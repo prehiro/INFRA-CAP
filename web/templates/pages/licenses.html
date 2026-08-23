@@ -43,15 +43,71 @@
       <input name="section" value="{{$F.Section}}" placeholder="Section"
              class="input input-sm input-bordered w-32 bg-base-200/50">
     </div>
-    <div>
+    <div x-data="datePicker('exp_from', '{{if $F.ExpFrom}}{{$F.ExpFrom.Format "02-01-06"}}{{end}}')" @click.outside="open=false" class="relative">
       <label class="label text-xs font-medium pb-1 text-base-content/60">Expiry from</label>
-      <input name="exp_from" value="{{if $F.ExpFrom}}{{$F.ExpFrom.Format "02-01-06"}}{{end}}" placeholder="DD-MM-YY"
-             class="input input-sm input-bordered w-28 bg-base-200/50">
+      <button type="button" @click="open=!open"
+              class="input input-sm input-bordered w-32 flex items-center justify-between gap-1 bg-base-100 hover:border-primary transition-colors"
+              :class="open && 'border-primary'">
+        <span class="text-sm" x-text="display || 'DD-MM-YY'" :class="!display && 'text-base-content/40'"></span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-base-content/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>
+      </button>
+      <input type="hidden" name="exp_from" x-bind:value="iso">
+      <div x-show="open" x-cloak x-transition.opacity.duration.150ms
+           class="absolute z-50 mt-1 rounded-box bg-base-100 border border-base-300 shadow-xl p-3 w-64">
+        <div class="flex items-center justify-between mb-2">
+          <button type="button" class="btn btn-ghost btn-xs" @click="prevMonth()">‹</button>
+          <span class="text-sm font-semibold" x-text="monthLabel"></span>
+          <button type="button" class="btn btn-ghost btn-xs" @click="nextMonth()">›</button>
+        </div>
+        <div class="grid grid-cols-7 gap-0.5 text-center text-[11px] text-base-content/40 mb-1">
+          <template x-for="d in ['Su','Mo','Tu','We','Th','Fr','Sa']"><span x-text="d"></span></template>
+        </div>
+        <div class="grid grid-cols-7 gap-0.5">
+          <template x-for="cell in cells" :key="cell.key">
+            <button type="button"
+                    class="btn btn-xs border-none"
+                    :class="cell.inMonth ? (cell.iso === selected ? 'btn-primary' : 'hover:bg-base-200') : 'opacity-25'"
+                    x-text="cell.day" @click="pick(cell)"></button>
+          </template>
+        </div>
+        <div class="mt-2 pt-2 border-t border-base-300 flex justify-between">
+          <button type="button" class="btn btn-ghost btn-xs" @click="clear()">Clear</button>
+          <button type="button" class="btn btn-ghost btn-xs" @click="today()">Today</button>
+        </div>
+      </div>
     </div>
-    <div>
+    <div x-data="datePicker('exp_to', '{{if $F.ExpTo}}{{$F.ExpTo.Format "02-01-06"}}{{end}}')" @click.outside="open=false" class="relative">
       <label class="label text-xs font-medium pb-1 text-base-content/60">Expiry to</label>
-      <input name="exp_to" value="{{if $F.ExpTo}}{{$F.ExpTo.Format "02-01-06"}}{{end}}" placeholder="DD-MM-YY"
-             class="input input-sm input-bordered w-28 bg-base-200/50">
+      <button type="button" @click="open=!open"
+              class="input input-sm input-bordered w-32 flex items-center justify-between gap-1 bg-base-100 hover:border-primary transition-colors"
+              :class="open && 'border-primary'">
+        <span class="text-sm" x-text="display || 'DD-MM-YY'" :class="!display && 'text-base-content/40'"></span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-base-content/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>
+      </button>
+      <input type="hidden" name="exp_to" x-bind:value="iso">
+      <div x-show="open" x-cloak x-transition.opacity.duration.150ms
+           class="absolute z-50 mt-1 rounded-box bg-base-100 border border-base-300 shadow-xl p-3 w-64">
+        <div class="flex items-center justify-between mb-2">
+          <button type="button" class="btn btn-ghost btn-xs" @click="prevMonth()">‹</button>
+          <span class="text-sm font-semibold" x-text="monthLabel"></span>
+          <button type="button" class="btn btn-ghost btn-xs" @click="nextMonth()">›</button>
+        </div>
+        <div class="grid grid-cols-7 gap-0.5 text-center text-[11px] text-base-content/40 mb-1">
+          <template x-for="d in ['Su','Mo','Tu','We','Th','Fr','Sa']"><span x-text="d"></span></template>
+        </div>
+        <div class="grid grid-cols-7 gap-0.5">
+          <template x-for="cell in cells" :key="cell.key">
+            <button type="button"
+                    class="btn btn-xs border-none"
+                    :class="cell.inMonth ? (cell.iso === selected ? 'btn-primary' : 'hover:bg-base-200') : 'opacity-25'"
+                    x-text="cell.day" @click="pick(cell)"></button>
+          </template>
+        </div>
+        <div class="mt-2 pt-2 border-t border-base-300 flex justify-between">
+          <button type="button" class="btn btn-ghost btn-xs" @click="clear()">Clear</button>
+          <button type="button" class="btn btn-ghost btn-xs" @click="today()">Today</button>
+        </div>
+      </div>
     </div>
     <button type="submit" class="btn btn-primary btn-sm">Filter</button>
     <a href="/licenses" class="btn btn-ghost btn-sm">Reset</a>
@@ -87,10 +143,10 @@
           <td class="text-xs whitespace-nowrap">{{if .ActivatedOn}}{{.ActivatedOn.Format "02-01-06"}}{{else}}—{{end}}</td>
           <td class="text-xs whitespace-nowrap {{if isExpiringSoon .ExpiryDate .Status}}text-warning font-semibold{{end}}">{{if .ExpiryDate}}{{.ExpiryDate.Format "02-01-06"}}{{else}}—{{end}}</td>
           <td class="text-right whitespace-nowrap">
-            <a href="/licenses/{{.ID}}/edit" class="btn btn-ghost btn-xs">Edit</a>
+            <a href="/licenses/{{.ID}}/edit" class="btn btn-warning btn-xs">Edit</a>
             <form method="post" action="/licenses/{{.ID}}/delete" class="inline"
                   onsubmit="return confirm('Retire this license?')">
-              <button type="submit" class="btn btn-ghost btn-xs text-error">Retire</button>
+              <button type="submit" class="btn btn-error btn-xs">Retire</button>
             </form>
           </td>
         </tr>

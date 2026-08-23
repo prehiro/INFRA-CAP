@@ -31,7 +31,74 @@
           localStorage.setItem('sidebar-collapsed', this.collapsed)
         },
       }))
-    })
+
+    Alpine.data('datePicker', (name, initial) => ({
+      open: false,
+      name,
+      selected: initial || '',
+      display: initial || '',
+      iso: initial ? (() => { const [d,m,y] = initial.split('-'); return '20'+y+'-'+m+'-'+d })() : '',
+      view: null,
+      get monthLabel() {
+        const v = this.view
+        const names = ['January','February','March','April','May','June','July','August','September','October','November','December']
+        return names[v.month] + ' ' + v.year
+      },
+      init() { this.view = this.monthOf(this.iso ? new Date(this.iso) : new Date()) },
+      monthOf(d) { return { year: d.getFullYear(), month: d.getMonth() } },
+      toISO(d) {
+        const p = n => String(n).padStart(2, '0')
+        return d.getFullYear() + '-' + p(d.getMonth()+1) + '-' + p(d.getDate())
+      },
+      prevMonth() {
+        let { year, month } = this.view
+        month--; if (month < 0) { month = 11; year-- }
+        this.view = { year, month }
+      },
+      nextMonth() {
+        let { year, month } = this.view
+        month++; if (month > 11) { month = 0; year++ }
+        this.view = { year, month }
+      },
+      get cells() {
+        const { year, month } = this.view
+        const first = new Date(year, month, 1)
+        const start = first.getDay()
+        const daysIn = new Date(year, month+1, 0).getDate()
+        const prevDays = new Date(year, month, 0).getDate()
+        const cells = []
+        for (let i = start-1; i >= 0; i--)
+          cells.push({ key: 'p'+i, day: prevDays-i, inMonth: false })
+        for (let d = 1; d <= daysIn; d++) {
+          const p = n => String(n).padStart(2,'0')
+          const iso = year+'-'+p(month+1)+'-'+p(d)
+          cells.push({ key: 'c'+d, day: d, inMonth: true, iso,
+                       selected: iso === this.selected })
+        }
+        let need = 42 - cells.length
+        for (let d = 1; cells.length < 42 && d <= need; d++)
+          cells.push({ key: 'n'+d, day: d, inMonth: false })
+        return cells
+      },
+      pick(cell) {
+        if (!cell.inMonth) return
+        this.selected = cell.iso
+        this.iso = cell.iso
+        // display as DD-MM-YY
+        const [y,m,d] = cell.iso.split('-')
+        this.display = d+'-'+m+'-'+y.slice(2)
+        this.open = false
+      },
+      clear() { this.selected=''; this.display=''; this.iso=''; this.open=false },
+      today() {
+        const t = this.toISO(new Date())
+        this.selected = t; this.iso = t
+        const [y,m,d] = t.split('-')
+        this.display = d+'-'+m+'-'+y.slice(2)
+        this.view = this.monthOf(new Date())
+        this.open = false
+      },
+    }))
   </script>
   <style>
     [x-cloak] { display: none !important; }

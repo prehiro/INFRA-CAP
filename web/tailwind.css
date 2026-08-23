@@ -65,7 +65,7 @@
     line-height: 1.1;
     white-space: nowrap;
   }
-  .status-in-use     { color: #166534; background: #dcfce7; } /* bold green on soft green */
+  .status-in-use     { color: var(--color-success); background: color-mix(in oklab, var(--color-success) 15%, white); }
   .status-available  { color: #1e40af; background: #dbeafe; } /* blue */
   .status-expired    { color: #991b1b; background: #fee2e2; } /* red */
   .status-retired    { color: #52525b; background: #f4f4f5; } /* gray */
