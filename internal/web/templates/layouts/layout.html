@@ -176,6 +176,10 @@
         </div>
 
         <div class="flex items-center gap-2">
+          <button class="btn btn-square btn-ghost btn-sm relative" aria-label="Notifications">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M22 8c0-2.3-.8-4.3-2-6"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/><path d="M2 8c0-2.3.8-4.3 2-6"/></svg>
+            <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-error"></span>
+          </button>
           {{if .AuthUser}}
           <!-- user dropdown -->
           <div class="dropdown dropdown-end" x-data="{ open: false }" @click.outside="open = false" @keydown.escape="open = false">
