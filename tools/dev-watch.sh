@@ -8,10 +8,10 @@ GO=tools/go/bin/go
 LOG=/tmp/infracap.log
 
 restart() {
-  # kill parent `go run` AND its compiled child (exe/server) — the child is what holds the port
-  pkill -f "exe/server" 2>/dev/null || true
+  # kill whatever holds :1112 (go run parent + its compiled child from go-build cache)
+  fuser -k 1112/tcp 2>/dev/null || true
   pkill -f "cmd/server" 2>/dev/null || true
-  sleep 0.6
+  sleep 0.8
   make sync-templates >/dev/null
   echo "[$(date +%H:%M:%S)] restarting..."
   nohup bash -c "set -a && . ./.env && set +a && exec $GO run ./cmd/server" > "$LOG" 2>&1 &
