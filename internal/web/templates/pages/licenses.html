@@ -1,6 +1,6 @@
 {{define "licenses_content"}}
 {{$F := .F}}
-<div class="max-w-7xl mx-auto space-y-5">
+<div class="w-full space-y-5">
 
   <!-- header -->
   <div class="flex flex-wrap items-center justify-between gap-3">
@@ -30,7 +30,7 @@
     </div>
     <div>
       <label class="label text-xs font-medium pb-1 text-base-content/60">Status</label>
-      <select name="status" class="select select-sm select-bordered bg-base-200/50 w-36">
+      <select name="status" class="select select-sm select-bordered w-36 bg-base-100">
         <option value="">All</option>
         {{$st := $F.Status}}
         {{range licenseStatuses}}
@@ -59,7 +59,7 @@
 
   <!-- table -->
   <div class="rounded-box bg-base-100 border border-base-300 shadow-sm overflow-x-auto">
-    <table class="table table-sm min-w-[900px]">
+    <table class="table table-sm w-full min-w-[1200px]">
       <thead>
         <tr class="bg-base-200/60 text-xs uppercase tracking-wide text-base-content/50">
           <th>Software</th><th>Maker</th><th>Assigned To</th><th>Device</th>
@@ -70,22 +70,22 @@
         {{if .Items}}
         {{range .Items}}
         <tr class="hover:bg-base-200/40 border-b border-base-300/50">
-          <td>
+          <td class="whitespace-nowrap">
             <div class="font-medium">{{.SoftwareName}}</div>
             <div class="text-xs text-base-content/45">{{if .Version}}v{{.Version}}{{end}}</div>
           </td>
-          <td>{{.Maker}}</td>
-          <td>{{if .AssignedTo}}{{.AssignedTo}}{{else}}<span class="text-base-content/30">—</span>{{end}}</td>
-          <td class="text-xs">{{if .DeviceHostname}}{{.DeviceHostname}}{{if .DeviceSN}}<div class="text-base-content/40">SN: {{.DeviceSN}}</div>{{end}}{{else}}<span class="text-base-content/30">—</span>{{end}}</td>
-          <td>{{if .Section}}{{.Section}}{{else}}<span class="text-base-content/30">—</span>{{end}}</td>
-          <td>
-            {{if eq .Status "In use"}}<span class="badge badge-primary badge-sm">In use</span>
-            {{else if eq .Status "Available"}}<span class="badge badge-success badge-sm">Available</span>
-            {{else if eq .Status "Expired"}}<span class="badge badge-error badge-sm">Expired</span>
-            {{else}}<span class="badge badge-ghost badge-sm">Retired</span>{{end}}
+          <td class="whitespace-nowrap">{{.Maker}}</td>
+          <td class="whitespace-nowrap">{{if .AssignedTo}}{{.AssignedTo}}{{else}}<span class="text-base-content/30">—</span>{{end}}</td>
+          <td class="text-xs whitespace-nowrap">{{if .DeviceHostname}}{{.DeviceHostname}}{{if .DeviceSN}}<div class="text-base-content/40">SN: {{.DeviceSN}}</div>{{end}}{{else}}<span class="text-base-content/30">—</span>{{end}}</td>
+          <td class="whitespace-nowrap">{{if .Section}}{{.Section}}{{else}}<span class="text-base-content/30">—</span>{{end}}</td>
+          <td class="whitespace-nowrap">
+            {{if eq .Status "In use"}}<span class="status-badge status-in-use">In use</span>
+            {{else if eq .Status "Available"}}<span class="status-badge status-available">Available</span>
+            {{else if eq .Status "Expired"}}<span class="status-badge status-expired">Expired</span>
+            {{else}}<span class="status-badge status-retired">Retired</span>{{end}}
           </td>
-          <td class="text-xs">{{if .ActivatedOn}}{{.ActivatedOn.Format "02-01-06"}}{{else}}—{{end}}</td>
-          <td class="text-xs {{if isExpiringSoon .ExpiryDate .Status}}text-warning font-semibold{{end}}">{{if .ExpiryDate}}{{.ExpiryDate.Format "02-01-06"}}{{else}}—{{end}}</td>
+          <td class="text-xs whitespace-nowrap">{{if .ActivatedOn}}{{.ActivatedOn.Format "02-01-06"}}{{else}}—{{end}}</td>
+          <td class="text-xs whitespace-nowrap {{if isExpiringSoon .ExpiryDate .Status}}text-warning font-semibold{{end}}">{{if .ExpiryDate}}{{.ExpiryDate.Format "02-01-06"}}{{else}}—{{end}}</td>
           <td class="text-right whitespace-nowrap">
             <a href="/licenses/{{.ID}}/edit" class="btn btn-ghost btn-xs">Edit</a>
             <form method="post" action="/licenses/{{.ID}}/delete" class="inline"

@@ -52,3 +52,21 @@
   --layout-sidebar-background: #ffffff;
   --layout-topbar-background: #ffffff;
 }
+
+/* ===== status badges (License Manager) ===== */
+@layer components {
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.65rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.1;
+    white-space: nowrap;
+  }
+  .status-in-use     { color: #166534; background: #dcfce7; } /* bold green on soft green */
+  .status-available  { color: #1e40af; background: #dbeafe; } /* blue */
+  .status-expired    { color: #991b1b; background: #fee2e2; } /* red */
+  .status-retired    { color: #52525b; background: #f4f4f5; } /* gray */
+}
