@@ -1,5 +1,7 @@
-{{define "auth_layout"}}<!DOCTYPE html>
+{{define "auth_layout"}}
+<!DOCTYPE html>
 <html lang="id" data-theme="infracap">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,26 +9,77 @@
   <link rel="stylesheet" href="/static/css/fonts.css">
   <link rel="stylesheet" href="/static/css/app.css">
   <style>
-    body { overflow: hidden; }
-    #net-canvas { position: fixed; inset: 0; z-index: 0; display: block; }
-    .auth-wrap { position: relative; z-index: 1; }
+    body {
+      overflow: hidden;
+    }
+
+    #net-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      display: block;
+    }
+
+    .auth-wrap {
+      position: relative;
+      z-index: 1;
+    }
 
     @keyframes card-in {
-      from { opacity: 0; transform: translateY(24px) scale(.97); }
-      to   { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    .auth-card { animation: card-in .6s cubic-bezier(0.34,1.56,0.64,1) both; }
-    @keyframes fade-in { from {opacity:0} to {opacity:1} }
-    .brand-in { animation: fade-in .8s ease .15s both; }
+      from {
+        opacity: 0;
+        transform: translateY(24px) scale(.97);
+      }
 
-    .app-title { font-size:1.35rem; font-weight:800; letter-spacing:-0.01em; line-height:1.1; }
-    .app-subtitle { font-size:.78rem; color:var(--color-base-content/50%); color:oklch(from var(--color-base-content) calc(l*1) c h / 55%); letter-spacing:.04em; }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .auth-card {
+      animation: card-in .6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+
+    @keyframes fade-in {
+      from {
+        opacity: 0
+      }
+
+      to {
+        opacity: 1
+      }
+    }
+
+    .brand-in {
+      animation: fade-in .8s ease .15s both;
+    }
+
+    .app-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      line-height: 1.1;
+    }
+
+    .app-subtitle {
+      font-size: .78rem;
+      color: var(--color-base-content/50%);
+      color: oklch(from var(--color-base-content) calc(l*1) c h / 55%);
+      letter-spacing: .04em;
+    }
+
     @media (min-width: 64rem) {
-      .auth-card-grid { grid-template-columns: 1fr 420px !important; }
+      .auth-card-grid {
+        grid-template-columns: 1fr 420px !important;
+      }
     }
 
     /* floating label input */
-    .field { position: relative; }
+    .field {
+      position: relative;
+    }
+
     .field input {
       width: 100%;
       height: 3.25rem;
@@ -38,11 +91,13 @@
       font-size: 0.9rem;
       transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
     }
+
     .field input:focus {
       border-color: var(--color-primary);
       background: var(--color-base-100);
       box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-primary) 12%, transparent);
     }
+
     .field label {
       position: absolute;
       left: 0.95rem;
@@ -52,23 +107,36 @@
       color: oklch(from var(--color-base-content) calc(l * 1) c h / 55%);
       font-size: 0.9rem;
       pointer-events: none;
-      transition: all .18s cubic-bezier(0.34,1.56,0.64,1);
+      transition: all .18s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
-    .field input:focus + label,
-    .field input:not(:placeholder-shown) + label {
+
+    .field input:focus+label,
+    .field input:not(:placeholder-shown)+label {
       top: 0.85rem;
       transform: translateY(-50%) scale(0.72);
       transform-origin: left center;
       color: var(--color-primary);
       font-weight: 600;
     }
+
     /* password visibility toggle */
     .pw-toggle {
-      position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%);
-      color: var(--color-base-content/40%); cursor: pointer;
-      background: none; border: none; padding: 0.25rem; border-radius: 0.375rem;
+      position: absolute;
+      right: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--color-base-content/40%);
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0.25rem;
+      border-radius: 0.375rem;
     }
-    .pw-toggle:hover { color: var(--color-base-content/70%); background: var(--color-base-200); }
+
+    .pw-toggle:hover {
+      color: var(--color-base-content/70%);
+      background: var(--color-base-200);
+    }
 
     /* primary button with sheen */
     .btn-signin {
@@ -85,41 +153,81 @@
       position: relative;
       overflow: hidden;
       box-shadow: 0 4px 14px color-mix(in oklab, var(--color-primary) 30%, transparent);
-      transition: transform .15s cubic-bezier(0.34,1.56,0.64,1), box-shadow .2s ease;
+      transition: transform .15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow .2s ease;
     }
-    .btn-signin:hover { transform: translateY(-1px); box-shadow: 0 6px 20px color-mix(in oklab, var(--color-primary) 38%, transparent); }
-    .btn-signin:active { transform: translateY(0); }
+
+    .btn-signin:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px color-mix(in oklab, var(--color-primary) 38%, transparent);
+    }
+
+    .btn-signin:active {
+      transform: translateY(0);
+    }
+
     .btn-signin::after {
       content: "";
-      position: absolute; top: 0; left: -80%;
-      width: 60%; height: 100%;
-      background: linear-gradient(105deg, transparent, rgba(255,255,255,.28), transparent);
+      position: absolute;
+      top: 0;
+      left: -80%;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(105deg, transparent, rgba(255, 255, 255, .28), transparent);
       transform: skewX(-20deg);
       animation: sheen 3.2s ease-in-out infinite;
     }
-    @keyframes sheen { 0%, 60% {left:-80%} 100% {left:130%} }
+
+    @keyframes sheen {
+
+      0%,
+      60% {
+        left: -80%
+      }
+
+      100% {
+        left: 130%
+      }
+    }
 
     .divider-label {
-      display:flex; align-items:center; gap:.75rem;
+      display: flex;
+      align-items: center;
+      gap: .75rem;
       color: oklch(from var(--color-base-content) calc(l*1) c h / 40%);
-      font-size:.75rem; text-transform:uppercase; letter-spacing:.08em;
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
     }
-    .divider-label::before, .divider-label::after {
-      content:""; flex:1; height:1px; background: var(--color-base-300);
+
+    .divider-label::before,
+    .divider-label::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--color-base-300);
     }
   </style>
 </head>
+
 <body class="bg-base-300 text-base-content min-h-screen">
 
   <!-- animated network background (kept) -->
   <canvas id="net-canvas"></canvas>
 
-  <div class="auth-wrap" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem;">
+  <div class="auth-wrap"
+    style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem;">
     <!-- brand header -->
     <div class="brand-in" style="text-align:center;margin-bottom:1.5rem;">
       <div style="display:flex;align-items:center;justify-content:center;gap:.75rem;">
-        <div style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--color-primary),color-mix(in oklab,var(--color-primary) 70%,#1a1e3a));display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px color-mix(in oklab,var(--color-primary) 35%,transparent);">
-          <svg xmlns="http://www.w3.org/2000/svg" style="width:24px;height:24px;color:#fff;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+        <div
+          style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--color-primary),color-mix(in oklab,var(--color-primary) 70%,#1a1e3a));display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px color-mix(in oklab,var(--color-primary) 35%,transparent);">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:24px;height:24px;color:#fff;" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 7h-9" />
+            <path d="M14 17H5" />
+            <circle cx="17" cy="17" r="3" />
+            <circle cx="7" cy="7" r="3" />
+          </svg>
         </div>
         <div style="text-align:left;">
           <div class="app-title">INFRA-CAP</div>
@@ -130,27 +238,49 @@
 
     <!-- two-column professional card -->
     <div class="auth-card-grid"
-         style="animation: card-in .6s cubic-bezier(0.34,1.56,0.64,1) both;width:100%;max-width:960px;display:grid;grid-template-columns:1fr;border-radius:var(--radius-box);overflow:hidden;box-shadow:0 25px 60px rgba(30,40,90,.18);border:1px solid color-mix(in oklab,var(--color-base-content) 10%,transparent);background:var(--color-base-100);">
+      style="animation: card-in .6s cubic-bezier(0.34,1.56,0.64,1) both;width:100%;max-width:960px;display:grid;grid-template-columns:1fr;border-radius:var(--radius-box);overflow:hidden;box-shadow:0 25px 60px rgba(30,40,90,.18);border:1px solid color-mix(in oklab,var(--color-base-content) 10%,transparent);background:var(--color-base-100);">
 
       <!-- LEFT: brand panel (desktop only) -->
       <div class="hidden lg:flex flex-col justify-between p-10 text-primary-content"
-           style="background: linear-gradient(160deg, var(--color-primary) 0%, color-mix(in oklab, var(--color-primary) 70%, #1a1e3a) 100%);">
+        style="background: linear-gradient(160deg, var(--color-primary) 0%, color-mix(in oklab, var(--color-primary) 70%, #1a1e3a) 100%);">
         <div>
           <div class="flex items-center gap-3">
             <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 7h-9" />
+                <path d="M14 17H5" />
+                <circle cx="17" cy="17" r="3" />
+                <circle cx="7" cy="7" r="3" />
+              </svg>
             </div>
             <span class="text-xl font-bold tracking-tight">INFRA-CAP</span>
           </div>
         </div>
 
         <div>
-          <h2 class="text-3xl font-bold leading-snug">Manage your software<br>licenses, effortlessly.</h2>
-          <p class="mt-4 text-white/70 text-sm leading-relaxed max-w-sm">Track license keys, assignments and expiry dates in one place — so nothing slips through the cracks.</p>
+          <h2 class="text-3xl font-bold leading-snug">Manage your IT Infra<br>things, effortlessly.</h2>
+          <p class="mt-4 text-white/70 text-sm leading-relaxed max-w-sm">License keys, assignments and expiry
+            dates in one place — so nothing slips through the cracks.</p>
           <ul class="mt-8 space-y-3.5 text-sm">
-            <li class="flex items-center gap-3"><span class="w-5 h-5 rounded-full bg-white/15 flex items-center justify-center shrink-0"><svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Centralized license &amp; activation records</li>
-            <li class="flex items-center gap-3"><span class="w-5 h-5 rounded-full bg-white/15 flex items-center justify-center shrink-0"><svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Expiry alerts before it becomes a problem</li>
-            <li class="flex items-center gap-3"><span class="w-5 h-5 rounded-full bg-white/15 flex items-center justify-center shrink-0"><svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Audit trail on every change</li>
+            <li class="flex items-center gap-3"><span
+                class="w-5 h-5 rounded-full bg-white/15 flex items-center justify-center shrink-0"><svg
+                  xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 6 9 17l-5-5" />
+                </svg></span>Centralized license &amp; activation records</li>
+            <li class="flex items-center gap-3"><span
+                class="w-5 h-5 rounded-full bg-white/15 flex items-center justify-center shrink-0"><svg
+                  xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 6 9 17l-5-5" />
+                </svg></span>Expiry alerts before it becomes a problem</li>
+            <li class="flex items-center gap-3"><span
+                class="w-5 h-5 rounded-full bg-white/15 flex items-center justify-center shrink-0"><svg
+                  xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 6 9 17l-5-5" />
+                </svg></span>Audit trail on every change</li>
           </ul>
         </div>
 
@@ -164,7 +294,12 @@
 
         {{if .Error}}
         <div role="alert" class="alert alert-error text-sm py-2.5 mb-5">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 8v4" />
+            <path d="M12 16h.01" />
+          </svg>
           <span>{{.Error}}</span>
         </div>
         {{end}}
@@ -172,17 +307,31 @@
         <form method="post" action="/login" class="space-y-4">
           <div class="field">
             <input id="username" name="username" type="text" required autocomplete="username" autofocus
-                   value="{{.Username}}" placeholder=" ">
+              value="{{.Username}}" placeholder=" ">
             <label for="username">Username</label>
           </div>
 
           <div class="field">
-            <input id="password" name="password" type="password" required autocomplete="current-password" placeholder=" ">
+            <input id="password" name="password" type="password" required autocomplete="current-password"
+              placeholder=" ">
             <label for="password">Password</label>
             <button type="button" class="pw-toggle" aria-label="Toggle password visibility"
-                    onclick="const inp=document.getElementById('password'); inp.type = inp.type==='password' ? 'text' : 'password'; this.querySelector('.eye-open').classList.toggle('hidden'); this.querySelector('.eye-closed').classList.toggle('hidden');">
-              <svg class="eye-open w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.637 18.7 18.7 0 0 1 5.322-7.096A8.86 8.86 0 0 1 12 2.5c2.06 0 3.974.77 5.616 2.115a18.7 18.7 0 0 1 5.322 7.096 1 1 0 0 1 0 .637 18.7 18.7 0 0 1-5.322 7.096A8.86 8.86 0 0 1 12 21.5c-2.06 0-3.974-.77-5.616-2.115a18.7 18.7 0 0 1-5.322-7.096Z"/><circle cx="12" cy="12" r="3"/></svg>
-              <svg class="eye-closed w-5 h-5 hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg>
+              onclick="const inp=document.getElementById('password'); inp.type = inp.type==='password' ? 'text' : 'password'; this.querySelector('.eye-open').classList.toggle('hidden'); this.querySelector('.eye-closed').classList.toggle('hidden');">
+              <svg class="eye-open w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path
+                  d="M2.062 12.348a1 1 0 0 1 0-.637 18.7 18.7 0 0 1 5.322-7.096A8.86 8.86 0 0 1 12 2.5c2.06 0 3.974.77 5.616 2.115a18.7 18.7 0 0 1 5.322 7.096 1 1 0 0 1 0 .637 18.7 18.7 0 0 1-5.322 7.096A8.86 8.86 0 0 1 12 21.5c-2.06 0-3.974-.77-5.616-2.115a18.7 18.7 0 0 1-5.322-7.096Z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              <svg class="eye-closed w-5 h-5 hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path
+                  d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" />
+                <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" />
+                <path
+                  d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143" />
+                <path d="m2 2 20 20" />
+              </svg>
             </button>
           </div>
 
@@ -190,41 +339,43 @@
         </form>
 
         <div class="divider-label mt-7">secured area</div>
-        <p class="text-center text-xs text-base-content/40 mt-3">Unauthorized access is prohibited.<br>All activity is logged &amp; monitored.</p>
+        <p class="text-center text-xs text-base-content/40 mt-3">Unauthorized access is prohibited.<br>All activity is
+          logged &amp; monitored.</p>
       </div>
     </div>
   </div>
 
-<script>
-(function () {
-  const canvas = document.getElementById('net-canvas');
-  const ctx = canvas.getContext('2d');
-  let W, H, dots;
-  const N = Math.min(70, Math.floor(window.innerWidth / 18));
-  const LINK_DIST = 150;
-  const DOT_SPEED = 0.35;
+  <script>
+    (function () {
+      const canvas = document.getElementById('net-canvas');
+      const ctx = canvas.getContext('2d');
+      let W, H, dots;
+      const N = Math.min(70, Math.floor(window.innerWidth / 18));
+      const LINK_DIST = 150;
+      const DOT_SPEED = 0.35;
 
-  function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
-  function makeDots() {
-    dots = [];
-    for (let i = 0; i < N; i++) dots.push({ x: Math.random()*W, y: Math.random()*H, vx:(Math.random()-0.5)*DOT_SPEED*2, vy:(Math.random()-0.5)*DOT_SPEED*2, r: Math.random()*1.6+1 });
-  }
-  function step() {
-    ctx.clearRect(0,0,W,H);
-    const g = ctx.createLinearGradient(0,0,W,H);
-    g.addColorStop(0,'#eef1f8'); g.addColorStop(1,'#e4e9f4');
-    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
-    for (const d of dots) { d.x+=d.vx; d.y+=d.vy; if(d.x<0||d.x>W)d.vx*=-1; if(d.y<0||d.y>H)d.vy*=-1; }
-    for (let i=0;i<dots.length;i++) for (let j=i+1;j<dots.length;j++) {
-      const dx=dots[i].x-dots[j].x, dy=dots[i].y-dots[j].y, dist=Math.hypot(dx,dy);
-      if (dist<LINK_DIST) { ctx.strokeStyle='rgba(80,92,198,'+((1-dist/LINK_DIST)*0.35)+')'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(dots[i].x,dots[i].y); ctx.lineTo(dots[j].x,dots[j].y); ctx.stroke(); }
-    }
-    for (const d of dots) { ctx.fillStyle='rgba(67,76,178,0.55)'; ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,Math.PI*2); ctx.fill(); }
-    requestAnimationFrame(step);
-  }
-  window.addEventListener('resize', ()=>{resize();makeDots();});
-  resize(); makeDots(); step();
-})();
-</script>
+      function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+      function makeDots() {
+        dots = [];
+        for (let i = 0; i < N; i++) dots.push({ x: Math.random() * W, y: Math.random() * H, vx: (Math.random() - 0.5) * DOT_SPEED * 2, vy: (Math.random() - 0.5) * DOT_SPEED * 2, r: Math.random() * 1.6 + 1 });
+      }
+      function step() {
+        ctx.clearRect(0, 0, W, H);
+        const g = ctx.createLinearGradient(0, 0, W, H);
+        g.addColorStop(0, '#eef1f8'); g.addColorStop(1, '#e4e9f4');
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+        for (const d of dots) { d.x += d.vx; d.y += d.vy; if (d.x < 0 || d.x > W) d.vx *= -1; if (d.y < 0 || d.y > H) d.vy *= -1; }
+        for (let i = 0; i < dots.length; i++) for (let j = i + 1; j < dots.length; j++) {
+          const dx = dots[i].x - dots[j].x, dy = dots[i].y - dots[j].y, dist = Math.hypot(dx, dy);
+          if (dist < LINK_DIST) { ctx.strokeStyle = 'rgba(80,92,198,' + ((1 - dist / LINK_DIST) * 0.35) + ')'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(dots[i].x, dots[i].y); ctx.lineTo(dots[j].x, dots[j].y); ctx.stroke(); }
+        }
+        for (const d of dots) { ctx.fillStyle = 'rgba(67,76,178,0.55)'; ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2); ctx.fill(); }
+        requestAnimationFrame(step);
+      }
+      window.addEventListener('resize', () => { resize(); makeDots(); });
+      resize(); makeDots(); step();
+    })();
+  </script>
 </body>
+
 </html>{{end}}
