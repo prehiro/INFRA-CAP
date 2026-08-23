@@ -1,5 +1,5 @@
 {{define "layout"}}<!DOCTYPE html>
-<html lang="id" data-theme="infracap">
+<html lang="id" class="group/html" data-theme="infracap">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,7 +9,6 @@
   <script src="/static/js/htmx.min.js"></script>
   <script defer src="/static/js/alpine.min.js"></script>
   <script>
-    // sidebar state must be defined BEFORE alpine loads
     document.addEventListener('alpine:init', () => {
       Alpine.data('sidebar', () => ({
         collapsed: false,
@@ -35,63 +34,153 @@
   </script>
   <style>
     [x-cloak] { display: none !important; }
-    /* sidebar transition */
-    #app-sidebar { transition: width .25s cubic-bezier(0.34,1.56,0.64,1); }
+
+    /* ===== Nexus-style layout ===== */
+    .layout-sidebar {
+      width: var(--layout-sidebar-width);
+      min-width: var(--layout-sidebar-width);
+      background: var(--layout-sidebar-background);
+      max-height: 100vh;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      border-inline-end: 1px solid var(--color-base-200);
+      transition-property: margin, width;
+      transition-duration: .3s;
+      transition-timing-function: ease;
+    }
+    .layout-content-col {
+      height: 100vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      min-width: 0;
+    }
+    .layout-topbar {
+      background: var(--layout-topbar-background);
+      min-height: calc(var(--spacing) * 16);
+      max-height: calc(var(--spacing) * 16);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: calc(var(--spacing) * 3);
+      padding-inline: calc(var(--spacing) * 3);
+      border-bottom: 1px solid var(--color-base-200);
+    }
+    .layout-content {
+      padding: calc(var(--spacing) * 4);
+      flex-grow: 1;
+    }
+    @media (min-width: 48rem) {
+      .layout-content { padding: calc(var(--spacing) * 6); }
+    }
+
+    /* collapsed (desktop): sidebar narrows to icon rail */
+    @media (min-width: 64rem) {
+      .group/html:has(.sidebar-collapsed) .layout-sidebar { width: 68px; min-width: 68px; }
+    }
+
+    /* mobile: fixed drawer + backdrop */
+    @media (max-width: 63.98rem) {
+      .layout-sidebar {
+        position: fixed;
+        inset-block: 0;
+        left: 0;
+        z-index: 500;
+        margin-inline-start: calc(var(--layout-sidebar-width) * -1);
+      }
+      .mobile-open .layout-sidebar { margin-inline-start: 0; }
+      .mobile-open .layout-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 499;
+        background-color: color-mix(in oklab, var(--color-base-content) 25%, transparent);
+      }
+    }
   </style>
 </head>
-<body class="bg-base-200 min-h-screen" x-data="sidebar()" x-init="init()">
+<body class="bg-base-200 text-base-content" x-data="sidebar()" x-init="init()"
+      :class="{ 'sidebar-collapsed': collapsed, 'mobile-open': mobileOpen }">
 
-  <!-- ============ SIDEBAR ============ -->
-  <aside id="app-sidebar"
-    class="fixed inset-y-0 left-0 z-40 flex flex-col bg-neutral text-neutral-content shadow-lg"
-    :class="[collapsed ? 'w-16' : 'w-64', mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0']">
+  <div class="flex w-full">
 
-    <!-- brand -->
-    <div class="flex items-center h-16 px-3 border-b border-white/10 shrink-0">
-      <div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center shrink-0">
-        <!-- pure SVG logo: shield/stack -->
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-primary-content" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+    <!-- ============ SIDEBAR ============ -->
+    <aside id="layout-sidebar" class="layout-sidebar">
+      <!-- brand -->
+      <div class="flex items-center h-16 px-4 shrink-0 overflow-hidden"
+           :class="collapsed ? 'justify-center lg:justify-center' : ''">
+        <div class="w-9 h-9 rounded-lg bg-primary flex items-center justify-center shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-primary-content" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+        </div>
+        <span class="ml-3 font-bold tracking-wide whitespace-nowrap text-lg"
+              x-show="!collapsed" x-cloak>INFRA-CAP</span>
       </div>
-      <span class="ml-3 font-bold tracking-wide whitespace-nowrap overflow-hidden" x-show="!collapsed" x-cloak>INFRA-CAP</span>
+
+      <!-- nav -->
+      <nav class="flex-1 py-3 px-3 space-y-1 overflow-y-auto overflow-x-hidden">
+        <template x-for="item in menu" :key="item.href">
+          <a :href="item.href" :title="collapsed ? item.label : undefined"
+             class="flex items-center rounded-box px-3 py-2.5 text-sm font-medium cursor-pointer transition-colors"
+             :class="active === item.href
+                ? 'bg-primary text-primary-content'
+                : 'text-base-content/70 hover:bg-base-200 hover:text-base-content'"
+             @click="mobileOpen = false">
+            <span class="shrink-0 w-5 h-5" x-html="item.icon"></span>
+            <span class="ml-3 whitespace-nowrap" x-show="!collapsed" x-cloak x-text="item.label"></span>
+          </a>
+        </template>
+      </nav>
+
+      <!-- footer -->
+      <div class="p-4 border-t border-base-200 text-xs text-base-content/40 whitespace-nowrap overflow-hidden"
+           x-show="!collapsed" x-cloak>INFRA-CAP v0.1</div>
+    </aside>
+
+    <!-- mobile backdrop -->
+    <div class="layout-backdrop hidden" @click="mobileOpen=false"></div>
+
+    <!-- ============ CONTENT COLUMN ============ -->
+    <div class="layout-content-col">
+
+      <!-- topbar -->
+      <div id="layout-topbar" class="layout-topbar">
+        <div class="flex items-center gap-2">
+          <!-- desktop collapse toggle -->
+          <button class="btn btn-square btn-ghost btn-sm hidden lg:inline-flex"
+                  aria-label="Toggle sidebar" @click="toggle()">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+          <!-- mobile open toggle -->
+          <button class="btn btn-square btn-ghost btn-sm inline-flex lg:hidden"
+                  aria-label="Open menu" @click="mobileOpen=true">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+          <!-- page title / breadcrumb slot -->
+          <span class="font-semibold">{{.Title}}</span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button class="btn btn-square btn-ghost btn-sm" aria-label="Notifications">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M22 8c0-2.3-.8-4.3-2-6"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/><path d="M2 8c0-2.3.8-4.3 2-6"/></svg>
+          </button>
+          <div class="avatar avatar-placeholder">
+            <div class="w-8 rounded-full bg-primary/15 text-primary text-sm font-semibold">
+              <span>H</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- page content -->
+      <main id="layout-content" class="layout-content">
+        {{template "content" .}}
+      </main>
     </div>
-
-    <!-- nav -->
-    <nav class="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
-      <template x-for="item in menu" :key="item.href">
-        <a :href="item.href"
-           class="flex items-center rounded-lg px-3 py-2.5 hover:bg-white/10 transition-colors"
-           :class="active === item.href ? 'bg-primary text-primary-content' : ''"
-           @click="mobileOpen = false">
-          <span class="shrink-0 w-6 h-6" x-html="item.icon"></span>
-          <span class="ml-3 whitespace-nowrap overflow-hidden" x-show="!collapsed" x-cloak x-text="item.label"></span>
-        </a>
-      </template>
-    </nav>
-
-    <!-- collapse toggle (desktop only) -->
-    <div class="p-2 border-t border-white/10 hidden md:block">
-      <button class="btn btn-ghost btn-sm w-full justify-center" @click="toggle()" :title="collapsed ? 'Expand' : 'Collapse'">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-transform duration-300" :class="collapsed ? 'rotate-180' : ''" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m11 17-5-5 5-5"/><path d="m18 17-5-5 5-5"/></svg>
-      </button>
-    </div>
-  </aside>
-
-  <!-- mobile overlay -->
-  <div class="fixed inset-0 bg-black/40 z-30 md:hidden" x-show="mobileOpen" x-cloak @click="mobileOpen=false"></div>
-
-  <!-- ============ CONTENT ============ -->
-  <div class="min-h-screen flex flex-col transition-all duration-200" :class="collapsed ? 'md:pl-16' : 'md:pl-64'">
-    <!-- topbar (mobile hamburger) -->
-    <header class="md:hidden sticky top-0 z-20 h-14 bg-base-100 border-b border-base-300 flex items-center px-4 gap-3">
-      <button class="btn btn-ghost btn-sm" @click="mobileOpen=true">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-      </button>
-      <span class="font-bold">INFRA-CAP</span>
-    </header>
-
-    <main class="flex-1 p-6">
-      {{template "content" .}}
-    </main>
   </div>
 </body>
 </html>{{end}}
