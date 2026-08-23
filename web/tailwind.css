@@ -1,29 +1,29 @@
-/* INFRA-CAP modern dark-slate theme */
+/* INFRA-CAP modern light theme — soft slate surfaces + indigo primary */
 @import "tailwindcss";
 @import "../tools/daisyui/package/daisyui.css";
 
 [data-theme="infracap"] {
-  color-scheme: dark;
-  --color-base-100: oklch(21% 0.02 265);          /* card surface */
-  --color-base-200: oklch(17% 0.02 265);          /* page bg */
-  --color-base-300: oklch(27% 0.02 265);          /* borders */
-  --color-base-content: oklch(93% 0.01 265);
-  --color-primary: oklch(62% 0.19 264);           /* indigo */
-  --color-primary-content: oklch(98% 0.01 264);
-  --color-secondary: oklch(70% 0.16 200);
-  --color-secondary-content: oklch(18% 0.03 200);
-  --color-accent: oklch(75% 0.15 165);
-  --color-accent-content: oklch(20% 0.04 165);
-  --color-neutral: oklch(14% 0.02 265);           /* sidebar */
-  --color-neutral-content: oklch(92% 0.01 265);
-  --color-info: oklch(72% 0.14 232);
-  --color-info-content: oklch(20% 0.05 232);
-  --color-success: oklch(74% 0.16 163);
-  --color-success-content: oklch(20% 0.05 163);
-  --color-warning: oklch(80% 0.16 80);
-  --color-warning-content: oklch(25% 0.07 80);
-  --color-error: oklch(65% 0.2 20);
-  --color-error-content: oklch(95% 0.02 20);
+  color-scheme: light;
+  --color-base-100: oklch(100% 0 0);              /* card surface: white */
+  --color-base-200: oklch(96.5% 0.005 260);       /* page bg: soft slate */
+  --color-base-300: oklch(91% 0.008 260);         /* borders */
+  --color-base-content: oklch(24% 0.02 265);
+  --color-primary: oklch(52% 0.2 265);            /* indigo-600 */
+  --color-primary-content: oklch(98% 0.01 265);
+  --color-secondary: oklch(55% 0.15 220);
+  --color-secondary-content: oklch(98% 0.01 220);
+  --color-accent: oklch(60% 0.13 175);
+  --color-accent-content: oklch(98% 0.01 175);
+  --color-neutral: oklch(26% 0.02 265);           /* sidebar */
+  --color-neutral-content: oklch(95% 0.01 265);
+  --color-info: oklch(58% 0.14 240);
+  --color-info-content: oklch(98% 0.01 240);
+  --color-success: oklch(58% 0.15 160);
+  --color-success-content: oklch(98% 0.01 160);
+  --color-warning: oklch(70% 0.15 75);
+  --color-warning-content: oklch(25% 0.07 75);
+  --color-error: oklch(58% 0.2 22);
+  --color-error-content: oklch(98% 0.01 22);
   --radius-selector: 0.5rem;
   --radius-field: 0.5rem;
   --radius-box: 0.75rem;
