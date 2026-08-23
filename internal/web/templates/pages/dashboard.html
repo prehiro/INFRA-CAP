@@ -1,17 +1,26 @@
 {{define "content"}}
-<div class="max-w-6xl mx-auto">
-  <div class="card bg-base-100 shadow">
-    <div class="card-body">
-      <h1 class="card-title text-2xl">Dashboard</h1>
-      <p class="text-base-content/60">Selamat datang di INFRA-CAP. Ringkasan lisensi akan tampil di sini (Fase 2).</p>
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-        {{range .Cards}}
-        <div class="stat bg-base-200 rounded-xl">
-          <div class="stat-title text-sm">{{.Label}}</div>
-          <div class="stat-value text-2xl text-primary">{{.Value}}</div>
-        </div>
-        {{end}}
-      </div>
+<div class="max-w-6xl mx-auto space-y-6">
+  <div>
+    <h1 class="text-2xl font-bold text-base-content">Dashboard</h1>
+    <p class="text-base-content/60 mt-1">Selamat datang di INFRA-CAP. Ringkasan lisensi akan tampil di sini (Fase 2).</p>
+  </div>
+
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    {{range .Cards}}
+    <div class="rounded-xl bg-base-100 border border-base-300 shadow-sm p-5 hover:shadow-md hover:border-primary/40 transition-all">
+      <div class="text-xs font-medium uppercase tracking-wide text-base-content/50">{{.Label}}</div>
+      <div class="text-3xl font-extrabold mt-2 text-primary">{{.Value}}</div>
+    </div>
+    {{end}}
+  </div>
+
+  <div class="rounded-xl bg-base-100 border border-base-300 shadow-sm p-6">
+    <div class="flex items-center justify-between">
+      <h2 class="font-semibold">Expiring Soon</h2>
+      <span class="badge badge-outline">Fase 2</span>
+    </div>
+    <div class="py-10 text-center text-base-content/40 text-sm">
+      Daftar lisensi yang mendekati kedaluwarsa akan tampil di sini.
     </div>
   </div>
 </div>
