@@ -40,11 +40,11 @@ tools:
 
 ## css: build tailwind + daisyui css
 css:
-	$(TW) -i web/tailwind.css -o web/static/css/app.css
+	$(TW) -i web/tailwind.css --content "web/templates/**/*.html" -o web/static/css/app.css
 
 ## css-watch: rebuild css on change (dev)
 css-watch:
-	$(TW) -i web/tailwind.css -o web/static/css/app.css --watch
+	$(TW) -i web/tailwind.css --content "web/templates/**/*.html" -o web/static/css/app.css --watch
 
 ## sync-templates: copy web/templates into the embed dir
 sync-templates:
