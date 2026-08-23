@@ -49244,31 +49244,43 @@
     }
   }
 }
+:root, :host {
+  --font-sans: "Inclusive Sans", ui-sans-serif, system-ui, sans-serif;
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+}
 [data-theme="infracap"] {
   color-scheme: light;
   --color-base-100: oklch(100% 0 0);
-  --color-base-200: oklch(96.5% 0.005 260);
-  --color-base-300: oklch(91% 0.008 260);
-  --color-base-content: oklch(24% 0.02 265);
-  --color-primary: oklch(52% 0.2 265);
-  --color-primary-content: oklch(98% 0.01 265);
-  --color-secondary: oklch(55% 0.15 220);
-  --color-secondary-content: oklch(98% 0.01 220);
-  --color-accent: oklch(60% 0.13 175);
-  --color-accent-content: oklch(98% 0.01 175);
-  --color-neutral: oklch(26% 0.02 265);
-  --color-neutral-content: oklch(95% 0.01 265);
-  --color-info: oklch(58% 0.14 240);
-  --color-info-content: oklch(98% 0.01 240);
-  --color-success: oklch(58% 0.15 160);
-  --color-success-content: oklch(98% 0.01 160);
-  --color-warning: oklch(70% 0.15 75);
-  --color-warning-content: oklch(25% 0.07 75);
-  --color-error: oklch(58% 0.2 22);
-  --color-error-content: oklch(98% 0.01 22);
-  --radius-selector: 0.5rem;
-  --radius-field: 0.5rem;
-  --radius-box: 0.75rem;
+  --color-base-200: oklch(98% 0 0);
+  --color-base-300: oklch(95% 0 0);
+  --color-base-content: oklch(21% .006 285.885);
+  --color-primary: oklch(45% .24 277.023);
+  --color-primary-content: oklch(93% .034 272.788);
+  --color-secondary: oklch(65% .241 354.308);
+  --color-secondary-content: oklch(94% .028 342.258);
+  --color-accent: oklch(77% .152 181.912);
+  --color-accent-content: oklch(38% .063 188.416);
+  --color-neutral: oklch(14% .005 285.823);
+  --color-neutral-content: oklch(92% .004 286.32);
+  --color-info: oklch(74% .16 232.661);
+  --color-info-content: oklch(29% .066 243.157);
+  --color-success: oklch(76% .177 163.223);
+  --color-success-content: oklch(37% .077 168.94);
+  --color-warning: oklch(82% .189 84.429);
+  --color-warning-content: oklch(41% .112 45.904);
+  --color-error: oklch(71% .194 13.428);
+  --color-error-content: oklch(27% .105 12.094);
+  --radius-selector: .5rem;
+  --radius-field: .25rem;
+  --radius-box: .5rem;
+  --size-selector: .25rem;
+  --size-field: .25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
 }
 @property --tw-translate-x {
   syntax: "*";
