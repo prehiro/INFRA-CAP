@@ -49560,6 +49560,25 @@
     color: #52525b;
     background: #f4f4f5;
   }
+  .shiny-hover {
+    position: relative;
+    overflow: hidden;
+  }
+  .shiny-hover::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -80%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(105deg, transparent, rgba(255,255,255,.45), transparent);
+    transform: skewX(-20deg);
+    transition: left .55s ease;
+    pointer-events: none;
+  }
+  .shiny-hover:hover::after {
+    left: 130%;
+  }
 }
 @property --tw-translate-x {
   syntax: "*";
