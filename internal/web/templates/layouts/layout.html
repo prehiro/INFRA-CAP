@@ -46,10 +46,18 @@
       flex-direction: column;
       position: relative;
       border-inline-end: 1px solid var(--color-base-200);
-      transition-property: margin, width;
+      transition-property: margin, width, min-width;
       transition-duration: .3s;
-      transition-timing-function: ease;
+      transition-timing-function: cubic-bezier(0.34,1.56,0.64,1); /* spring bounce */
     }
+    /* collapsed (desktop): sidebar narrows to icon rail.
+       body.sidebar-collapsed is set by Alpine (:class binding). */
+    @media (min-width: 64rem) {
+      body.sidebar-collapsed .layout-sidebar { width: 68px; min-width: 68px; }
+      body.sidebar-collapsed .layout-sidebar .sidebar-label { opacity: 0; }
+    }
+    /* label/icon micro-transitions */
+    .sidebar-label { transition: opacity .2s ease; }
     .layout-content-col {
       height: 100vh;
       overflow-y: auto;
@@ -80,11 +88,6 @@
       .layout-content { padding: calc(var(--spacing) * 6); }
     }
 
-    /* collapsed (desktop): sidebar narrows to icon rail */
-    @media (min-width: 64rem) {
-      .group/html:has(.sidebar-collapsed) .layout-sidebar { width: 68px; min-width: 68px; }
-    }
-
     /* mobile: fixed drawer + backdrop */
     @media (max-width: 63.98rem) {
       .layout-sidebar {
@@ -105,7 +108,7 @@
   </style>
 </head>
 <body class="bg-base-200 text-base-content" x-data="sidebar()" x-init="init()"
-      :class="{ 'sidebar-collapsed': collapsed, 'mobile-open': mobileOpen }">
+      x-bind:class="{ 'sidebar-collapsed': collapsed, 'mobile-open': mobileOpen }">
 
   <div class="flex w-full">
 
@@ -117,7 +120,7 @@
         <div class="w-9 h-9 rounded-lg bg-primary flex items-center justify-center shrink-0">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-primary-content" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
         </div>
-        <span class="ml-3 font-bold tracking-wide whitespace-nowrap text-lg"
+        <span class="ml-3 font-bold tracking-wide whitespace-nowrap text-lg sidebar-label"
               x-show="!collapsed" x-cloak>INFRA-CAP</span>
       </div>
 
@@ -131,7 +134,7 @@
                 : 'text-base-content/70 hover:bg-base-200 hover:text-base-content'"
              @click="mobileOpen = false">
             <span class="shrink-0 w-5 h-5" x-html="item.icon"></span>
-            <span class="ml-3 whitespace-nowrap" x-show="!collapsed" x-cloak x-text="item.label"></span>
+            <span class="ml-3 whitespace-nowrap sidebar-label" x-show="!collapsed" x-cloak x-text="item.label"></span>
           </a>
         </template>
       </nav>
