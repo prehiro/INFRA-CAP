@@ -49,3 +49,15 @@ css-watch:
 ## sync-templates: copy web/templates into the embed dir
 sync-templates:
 	@rm -rf internal/web/templates && cp -r web/templates internal/web/templates
+
+## restart: kill running server, rebuild, start again in background
+restart:
+	@-pkill -f "go run ./cmd/server" 2>/dev/null || true
+	@-pkill -f "infracap-server-dev" 2>/dev/null || true
+	@sleep 0.5
+	@make sync-templates >/dev/null
+	@nohup bash -c 'set -a && . ./.env && set +a && exec $(GO) run -tags dev ./cmd/server' > /tmp/infracap.log 2>&1 & echo "server restarted -> http://localhost:1112 (log: /tmp/infracap.log)"
+
+## watch: auto sync templates + css + restart on any template/go change (requires no deps)
+watch:
+	@bash tools/dev-watch.sh
