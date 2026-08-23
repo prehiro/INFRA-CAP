@@ -46,7 +46,7 @@ func (m *AdminUsersModule) list(w http.ResponseWriter, r *http.Request) {
 	for i := range users {
 		views = append(views, toView(&users[i]))
 	}
-	web.Render(w, r, "Users", map[string]any{"Users": views})
+	web.RenderNamed(w, r, "users_content", "Users", map[string]any{"Users": views})
 }
 
 func (m *AdminUsersModule) newForm(w http.ResponseWriter, r *http.Request) {

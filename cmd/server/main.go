@@ -16,6 +16,7 @@ import (
 	"infracap/internal/migrations"
 	"infracap/internal/auth"
 	"infracap/internal/modules/dashboard"
+	"infracap/internal/modules/licenses"
 	"infracap/internal/web"
 )
 
@@ -77,9 +78,12 @@ func run() error {
 
 	// protected routes (auth required)
 	protected := http.NewServeMux()
-	dash := dashboard.New()
+	licStore := &licenses.Store{DB: database}
+	dash := dashboard.NewWithStore(licStore)
 	dash.RegisterRoutes(protected)
 	usersMod.RegisterRoutes(protected)
+	licMod := licenses.New(&licenses.Store{DB: database})
+	licMod.RegisterRoutes(protected)
 
 	mux.Handle("/", web.CSRFValidate(authSvc.Middleware(true)(protected)))
 

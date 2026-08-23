@@ -1,0 +1,179 @@
+{{define "licenses_content"}}
+{{$F := .F}}
+<div class="max-w-7xl mx-auto space-y-5">
+
+  <!-- header -->
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-xl font-bold">License Manager</h1>
+      <p class="text-base-content/50 text-sm mt-0.5">{{.Total}} license(s)</p>
+    </div>
+    <div class="flex gap-2">
+      <a href="/licenses/export?{{if $F}}q={{$F.Query}}&status={{$F.Status}}&section={{$F.Section}}{{end}}"
+         class="btn btn-success btn-sm text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+        Export Excel
+      </a>
+      <a href="/licenses/new" class="btn btn-primary btn-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+        New License
+      </a>
+    </div>
+  </div>
+
+  <!-- filter bar -->
+  <form method="get" action="/licenses" class="rounded-box bg-base-100 border border-base-300 shadow-sm p-4 flex flex-wrap items-end gap-3">
+    <div class="flex-1 min-w-[220px]">
+      <label class="label text-xs font-medium pb-1 text-base-content/60">Search</label>
+      <input name="q" value="{{$F.Query}}" placeholder="Software, maker, key, assignee, hostname..."
+             class="input input-sm input-bordered w-full bg-base-200/50">
+    </div>
+    <div>
+      <label class="label text-xs font-medium pb-1 text-base-content/60">Status</label>
+      <select name="status" class="select select-sm select-bordered bg-base-200/50 w-36">
+        <option value="">All</option>
+        {{$st := $F.Status}}
+        {{range licenseStatuses}}
+        <option value="{{.}}" {{if eq $st .}}selected{{end}}>{{.}}</option>
+        {{end}}
+      </select>
+    </div>
+    <div>
+      <label class="label text-xs font-medium pb-1 text-base-content/60">Section</label>
+      <input name="section" value="{{$F.Section}}" placeholder="Section"
+             class="input input-sm input-bordered w-32 bg-base-200/50">
+    </div>
+    <div>
+      <label class="label text-xs font-medium pb-1 text-base-content/60">Expiry from</label>
+      <input name="exp_from" value="{{if $F.ExpFrom}}{{$F.ExpFrom.Format "02-01-06"}}{{end}}" placeholder="DD-MM-YY"
+             class="input input-sm input-bordered w-28 bg-base-200/50">
+    </div>
+    <div>
+      <label class="label text-xs font-medium pb-1 text-base-content/60">Expiry to</label>
+      <input name="exp_to" value="{{if $F.ExpTo}}{{$F.ExpTo.Format "02-01-06"}}{{end}}" placeholder="DD-MM-YY"
+             class="input input-sm input-bordered w-28 bg-base-200/50">
+    </div>
+    <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+    <a href="/licenses" class="btn btn-ghost btn-sm">Reset</a>
+  </form>
+
+  <!-- table -->
+  <div class="rounded-box bg-base-100 border border-base-300 shadow-sm overflow-x-auto">
+    <table class="table table-sm min-w-[900px]">
+      <thead>
+        <tr class="bg-base-200/60 text-xs uppercase tracking-wide text-base-content/50">
+          <th>Software</th><th>Maker</th><th>Assigned To</th><th>Device</th>
+          <th>Section</th><th>Status</th><th>Activated</th><th>Expiry</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {{if .Items}}
+        {{range .Items}}
+        <tr class="hover:bg-base-200/40 border-b border-base-300/50">
+          <td>
+            <div class="font-medium">{{.SoftwareName}}</div>
+            <div class="text-xs text-base-content/45">{{if .Version}}v{{.Version}}{{end}}</div>
+          </td>
+          <td>{{.Maker}}</td>
+          <td>{{if .AssignedTo}}{{.AssignedTo}}{{else}}<span class="text-base-content/30">—</span>{{end}}</td>
+          <td class="text-xs">{{if .DeviceHostname}}{{.DeviceHostname}}{{if .DeviceSN}}<div class="text-base-content/40">SN: {{.DeviceSN}}</div>{{end}}{{else}}<span class="text-base-content/30">—</span>{{end}}</td>
+          <td>{{if .Section}}{{.Section}}{{else}}<span class="text-base-content/30">—</span>{{end}}</td>
+          <td>
+            {{if eq .Status "In use"}}<span class="badge badge-primary badge-sm">In use</span>
+            {{else if eq .Status "Available"}}<span class="badge badge-success badge-sm">Available</span>
+            {{else if eq .Status "Expired"}}<span class="badge badge-error badge-sm">Expired</span>
+            {{else}}<span class="badge badge-ghost badge-sm">Retired</span>{{end}}
+          </td>
+          <td class="text-xs">{{if .ActivatedOn}}{{.ActivatedOn.Format "02-01-06"}}{{else}}—{{end}}</td>
+          <td class="text-xs {{if isExpiringSoon .ExpiryDate .Status}}text-warning font-semibold{{end}}">{{if .ExpiryDate}}{{.ExpiryDate.Format "02-01-06"}}{{else}}—{{end}}</td>
+          <td class="text-right whitespace-nowrap">
+            <a href="/licenses/{{.ID}}/edit" class="btn btn-ghost btn-xs">Edit</a>
+            <form method="post" action="/licenses/{{.ID}}/delete" class="inline"
+                  onsubmit="return confirm('Retire this license?')">
+              <button type="submit" class="btn btn-ghost btn-xs text-error">Retire</button>
+            </form>
+          </td>
+        </tr>
+        {{end}}
+        {{else}}
+        <tr><td colspan="9" class="text-center py-12 text-base-content/40">
+          No licenses found. <a href="/licenses/new" class="link link-primary">Add the first one</a>.
+        </td></tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- pagination -->
+  {{if gt .TotalPages 1}}
+  <div class="flex justify-center">
+    <div class="join">
+      {{$p := .Page}}{{$tp := .TotalPages}}
+      {{if gt $p 1}}<a href="?page={{sub $p 1}}" class="join-item btn btn-sm">«</a>{{end}}
+      {{range $i, $e := seq 1 $tp}}
+        {{if and (le (sub $e $p) 2) (le (sub $p $e) 2)}}
+        <a href="?page={{$e}}" class="join-item btn btn-sm {{if eq $e $p}}btn-primary{{else}}btn-ghost{{end}}">{{$e}}</a>
+        {{end}}
+      {{end}}
+      {{if lt $p $tp}}<a href="?page={{add $p 1}}" class="join-item btn btn-sm">»</a>{{end}}
+    </div>
+  </div>
+  {{end}}
+</div>
+{{end}}
+
+{{define "license_form_content"}}
+{{$L := .L}}
+{{$d := .}}
+<div class="max-w-3xl mx-auto space-y-5">
+  <h1 class="text-xl font-bold">{{if $d.IsNew}}New License{{else}}Edit: {{$L.SoftwareName}}{{end}}</h1>
+
+  {{if $d.Error}}
+  <div role="alert" class="alert alert-error text-sm py-2.5">
+    <span>{{$d.Error}}</span>
+  </div>
+  {{end}}
+
+  <form method="post" action="{{if $d.IsNew}}/licenses{{else}}/licenses/{{$L.ID}}{{end}}"
+        class="rounded-box bg-base-100 border border-base-300 shadow-sm p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div><label class="label text-xs font-medium pb-1">Maker *</label>
+      <input name="maker" value="{{$L.Maker}}" required class="input input-sm input-bordered w-full bg-base-200/50"></div>
+    <div><label class="label text-xs font-medium pb-1">Software Name *</label>
+      <input name="software_name" value="{{$L.SoftwareName}}" required class="input input-sm input-bordered w-full bg-base-200/50"></div>
+    <div><label class="label text-xs font-medium pb-1">Version</label>
+      <input name="version" value="{{if $L.Version}}{{$L.Version}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50"></div>
+    <div><label class="label text-xs font-medium pb-1">Status</label>
+      <select name="status" class="select select-sm select-bordered w-full bg-base-200/50">
+        {{$st := $L.Status}}
+        {{range licenseStatuses}}
+        <option value="{{.}}" {{if eq $st .}}selected{{end}}>{{.}}</option>
+        {{end}}
+      </select></div>
+    <div class="sm:col-span-2"><label class="label text-xs font-medium pb-1">License Key</label>
+      <input name="license_key" value="{{if $L.LicenseKey}}{{$L.LicenseKey}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50 font-mono"></div>
+    <div class="sm:col-span-2"><label class="label text-xs font-medium pb-1">Activation Key</label>
+      <input name="activation_key" value="{{if $L.ActivationKey}}{{$L.ActivationKey}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50 font-mono"></div>
+    <div><label class="label text-xs font-medium pb-1">Assigned To</label>
+      <input name="assigned_to" value="{{if $L.AssignedTo}}{{$L.AssignedTo}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50"></div>
+    <div><label class="label text-xs font-medium pb-1">Section</label>
+      <input name="section" value="{{if $L.Section}}{{$L.Section}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50"></div>
+    <div><label class="label text-xs font-medium pb-1">Device Hostname</label>
+      <input name="device_hostname" value="{{if $L.DeviceHostname}}{{$L.DeviceHostname}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50"></div>
+    <div><label class="label text-xs font-medium pb-1">Device SN</label>
+      <input name="device_sn" value="{{if $L.DeviceSN}}{{$L.DeviceSN}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50"></div>
+    <div><label class="label text-xs font-medium pb-1">PO No</label>
+      <input name="po_no" value="{{if $L.PONo}}{{$L.PONo}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50"></div>
+    <div><label class="label text-xs font-medium pb-1">Activated On (DD-MM-YY)</label>
+      <input name="activated_on" value="{{if $L.ActivatedOn}}{{$L.ActivatedOn.Format "02-01-06"}}{{end}}" placeholder="DD-MM-YY"
+             class="input input-sm input-bordered w-full bg-base-200/50"></div>
+    <div><label class="label text-xs font-medium pb-1">Expiry Date (DD-MM-YY)</label>
+      <input name="expiry_date" value="{{if $L.ExpiryDate}}{{$L.ExpiryDate.Format "02-01-06"}}{{end}}" placeholder="DD-MM-YY"
+             class="input input-sm input-bordered w-full bg-base-200/50"></div>
+
+    <div class="sm:col-span-2 flex gap-2 pt-2">
+      <button type="submit" class="btn btn-primary btn-sm flex-1">Save</button>
+      <a href="/licenses" class="btn btn-ghost btn-sm">Cancel</a>
+    </div>
+  </form>
+</div>
+{{end}}

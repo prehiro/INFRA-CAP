@@ -1,10 +1,12 @@
 package web
 
 import (
+	"time"
 	"context"
 	"embed"
 	"html/template"
 	"net/http"
+	"strings"
 )
 
 //go:embed all:templates
@@ -12,8 +14,37 @@ var templateFS embed.FS
 
 var tmpl *template.Template
 
+var funcMap = template.FuncMap{
+	"add": func(a, b int) int { return a + b },
+	"sub": func(a, b int) int { return a - b },
+	"div": func(a, b int64) int64 {
+		if b == 0 {
+			return 0
+		}
+		return a / b
+	},
+	"seq": func(start, end int) []int {
+		if end < start || end-start > 200 {
+			return nil
+		}
+		out := make([]int, 0, end-start+1)
+		for i := start; i <= end; i++ {
+			out = append(out, i)
+		}
+		return out
+	},
+	"now": func() time.Time { return time.Now() },
+	"isExpiringSoon": func(t *time.Time, status string) bool {
+		if t == nil || status == "Expired" || status == "Retired" {
+			return false
+		}
+		return t.Before(time.Now().Add(30 * 24 * time.Hour))
+	},
+	"licenseStatuses": func() []string { return []string{"In use", "Available", "Expired", "Retired"} },
+}
+
 func init() {
-	tmpl = template.Must(template.ParseFS(templateFS,
+	tmpl = template.Must(template.New("").Funcs(funcMap).ParseFS(templateFS,
 		"templates/layouts/*.html",
 		"templates/pages/*.html",
 	))
@@ -24,31 +55,37 @@ func Render(w http.ResponseWriter, r *http.Request, title string, data any) {
 	RenderNamed(w, r, "content", title, data)
 }
 
-// RenderNamed renders with an explicit content template name and injects
-// the authenticated user (if any) for the topbar.
+// RenderNamed renders the named content template first, then injects the
+// resulting HTML into the layout (html/template cannot take dynamic template names).
 func RenderNamed(w http.ResponseWriter, r *http.Request, contentName, title string, data any) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	tdata := map[string]any{
-		"Title": title,
-		"Cards": cardsOf(data),
-		"Data":  data,
+
+	var contentBuf strings.Builder
+	tdata := map[string]any{"Title": title}
+	if m, ok := data.(map[string]any); ok {
+		for k, v := range m {
+			tdata[k] = v
+		}
 	}
+	if err := tmpl.ExecuteTemplate(&contentBuf, contentName, tdata); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	if u := UserFromContext(r.Context()); u != nil {
 		tdata["AuthUser"] = u
 	}
+	tdata["ContentHTML"] = template.HTML(contentBuf.String())
+
 	if err := tmpl.ExecuteTemplate(w, "layout", tdata); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-// RenderAuth renders a page inside the auth layout (login screen, no sidebar).
-func RenderAuth(w http.ResponseWriter, title string, data any) {
+// RenderAuth renders a page inside the auth layout (login screen).
+func RenderAuth(w http.ResponseWriter, title string, data map[string]any) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := tmpl.ExecuteTemplate(w, "auth_layout", map[string]any{
-		"Title":    title,
-		"Error":    fieldOf(data, "Error"),
-		"Username": fieldOf(data, "Username"),
-	}); err != nil {
+	if err := tmpl.ExecuteTemplate(w, "auth_layout", data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }

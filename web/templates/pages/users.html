@@ -1,4 +1,4 @@
-{{define "content"}}
+{{define "users_content"}}
 <div class="max-w-6xl mx-auto space-y-6">
   <div class="flex items-center justify-between">
     <div>
@@ -20,7 +20,7 @@
       </thead>
       <tbody>
         {{$isNew := false}}
-        {{range .Data.Users}}
+        {{range .Users}}
         <tr class="hover:bg-base-200/40 border-b border-base-300/50">
           <td class="font-medium">{{.Username}}</td>
           <td>{{.FullName}}</td>
@@ -48,25 +48,25 @@
 {{end}}
 
 {{define "user_form_content"}}
-{{$d := .Data}}
-{{$u := $d.User}}
+{{$IsNew := .IsNew}}
+{{$u := .User}}
 <div class="max-w-md mx-auto space-y-6">
-  <h1 class="text-xl font-bold">{{if $d.IsNew}}New User{{else}}Edit User: {{$u.Username}}{{end}}</h1>
+  <h1 class="text-xl font-bold">{{if $IsNew}}New User{{else}}Edit User: {{$u.Username}}{{end}}</h1>
 
-  {{if $d.Error}}
+  {{if .Error}}
   <div role="alert" class="alert alert-error text-sm py-2.5">
-    <span>{{$d.Error}}</span>
+    <span>{{.Error}}</span>
   </div>
   {{end}}
 
-  <form method="post" action="{{if $d.IsNew}}/users{{else}}/users/{{$u.ID}}{{end}}"
+  <form method="post" action="{{if $IsNew}}/users{{else}}/users/{{$u.ID}}{{end}}"
         class="rounded-box bg-base-100 border border-base-300 shadow-sm p-6 space-y-4">
     <div>
       <label class="label text-sm font-medium pb-1">Username</label>
-      <input name="username" value="{{$u.Username}}" {{if not $d.IsNew}}disabled{{end}} required
-             class="input input-bordered w-full bg-base-200/50 {{if not $d.IsNew}}opacity-60{{end}}">
+      <input name="username" value="{{$u.Username}}" {{if not $IsNew}}disabled{{end}} required
+             class="input input-bordered w-full bg-base-200/50 {{if not $IsNew}}opacity-60{{end}}">
     </div>
-    {{if $d.IsNew}}
+    {{if $IsNew}}
     <div>
       <label class="label text-sm font-medium pb-1">Password</label>
       <input name="password" type="password" required minlength="8"
@@ -91,7 +91,7 @@
         <option value="admin" {{if eq $u.Role "admin"}}selected{{end}}>admin</option>
       </select>
     </div>
-    {{if not $d.IsNew}}
+    {{if not $IsNew}}
     <label class="flex items-center gap-2 cursor-pointer">
       <input type="checkbox" name="is_active" class="checkbox checkbox-primary checkbox-sm" {{if $u.IsActive}}checked{{end}}>
       <span class="text-sm">Active</span>
