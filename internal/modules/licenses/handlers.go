@@ -1,7 +1,6 @@
 package licenses
 
-import (
-	"context"
+import (	"context"
 	"net/http"
 	"strconv"
 	"strings"
@@ -114,13 +113,19 @@ func (m *Module) list(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	totalPages := (total + f.PageSize - 1) / f.PageSize
-	web.RenderNamed(w, r, "licenses_content", "License Manager", map[string]any{
+	data := map[string]any{
 		"Items":      items,
 		"Total":      total,
 		"Page":       f.Page,
 		"TotalPages": totalPages,
 		"F":          f,
-	})
+	}
+	// HTMX live filter: return only the results fragment
+	if r.Header.Get("HX-Request") == "true" {
+		web.RenderNamed(w, r, "license_results_content", "License Manager", data)
+		return
+	}
+	web.RenderNamed(w, r, "licenses_content", "License Manager", data)
 }
 
 func (m *Module) newForm(w http.ResponseWriter, r *http.Request) {

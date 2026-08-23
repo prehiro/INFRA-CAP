@@ -22,7 +22,8 @@
   </div>
 
   <!-- filter bar -->
-  <form method="get" action="/licenses" class="rounded-box bg-base-100 border border-base-300 shadow-sm p-4 flex flex-wrap items-end gap-3">
+  <form hx-get="/licenses" hx-target="#license-results" hx-swap="innerHTML" hx-trigger="input changed delay:350ms from:find input, change from:find select, dp-changed"
+      class="rounded-box bg-base-100 border border-base-300 shadow-sm p-4 flex flex-wrap items-end gap-3">
     <div class="flex-1 min-w-[220px]">
       <label class="label text-xs font-medium pb-1 text-base-content/60">Search</label>
       <input name="q" value="{{$F.Query}}" placeholder="Software, maker, key, assignee, hostname..."
@@ -109,11 +110,17 @@
         </div>
       </div>
     </div>
-    <button type="submit" class="btn btn-primary btn-sm">Filter</button>
     <a href="/licenses" class="btn btn-ghost btn-sm">Reset</a>
   </form>
 
-  <!-- table -->
+  <!-- results (swapped by HTMX) -->
+  <div id="license-results">
+{{template "license_results_content" .}}
+  </div>
+{{end}}
+
+{{define "license_results_content"}}
+  <div id="license-results">
   <div class="rounded-box bg-base-100 border border-base-300 shadow-sm overflow-x-auto">
     <table class="table table-sm w-full min-w-[1200px]">
       <thead>
@@ -181,6 +188,7 @@
     </div>
   </div>
   {{end}}
+  </div>
 </div>
 {{end}}
 

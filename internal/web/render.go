@@ -60,6 +60,20 @@ func Render(w http.ResponseWriter, r *http.Request, title string, data any) {
 func RenderNamed(w http.ResponseWriter, r *http.Request, contentName, title string, data any) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
+	// HTMX request → return bare fragment (no layout wrapper)
+	if r.Header.Get("HX-Request") == "true" {
+		tdata := map[string]any{"Title": title}
+		if m, ok := data.(map[string]any); ok {
+			for k, v := range m {
+				tdata[k] = v
+			}
+		}
+		if err := tmpl.ExecuteTemplate(w, contentName, tdata); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
 	var contentBuf strings.Builder
 	tdata := map[string]any{"Title": title}
 	if m, ok := data.(map[string]any); ok {
