@@ -19,6 +19,12 @@
     @keyframes fade-in { from {opacity:0} to {opacity:1} }
     .brand-in { animation: fade-in .8s ease .15s both; }
 
+    .app-title { font-size:1.35rem; font-weight:800; letter-spacing:-0.01em; line-height:1.1; }
+    .app-subtitle { font-size:.78rem; color:var(--color-base-content/50%); color:oklch(from var(--color-base-content) calc(l*1) c h / 55%); letter-spacing:.04em; }
+    @media (min-width: 64rem) {
+      .auth-card-grid { grid-template-columns: 1fr 420px !important; }
+    }
+
     /* floating label input */
     .field { position: relative; }
     .field input {
@@ -108,10 +114,23 @@
   <!-- animated network background (kept) -->
   <canvas id="net-canvas"></canvas>
 
-  <div class="auth-wrap min-h-screen flex items-center justify-center p-4">
+  <div class="auth-wrap" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem;">
+    <!-- brand header -->
+    <div class="brand-in" style="text-align:center;margin-bottom:1.5rem;">
+      <div style="display:flex;align-items:center;justify-content:center;gap:.75rem;">
+        <div style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--color-primary),color-mix(in oklab,var(--color-primary) 70%,#1a1e3a));display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px color-mix(in oklab,var(--color-primary) 35%,transparent);">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:24px;height:24px;color:#fff;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+        </div>
+        <div style="text-align:left;">
+          <div class="app-title">INFRA-CAP</div>
+          <div class="app-subtitle">Internal Web Apps</div>
+        </div>
+      </div>
+    </div>
+
     <!-- two-column professional card -->
-    <div class="w-full max-w-4xl grid lg:grid-cols-[1fr_420px] rounded-box overflow-hidden shadow-2xl shadow-base-content/10 border border-base-content/10 bg-base-100"
-         style="animation: card-in .6s cubic-bezier(0.34,1.56,0.64,1) both;">
+    <div class="auth-card-grid"
+         style="animation: card-in .6s cubic-bezier(0.34,1.56,0.64,1) both;width:100%;max-width:960px;display:grid;grid-template-columns:1fr;border-radius:var(--radius-box);overflow:hidden;box-shadow:0 25px 60px rgba(30,40,90,.18);border:1px solid color-mix(in oklab,var(--color-base-content) 10%,transparent);background:var(--color-base-100);">
 
       <!-- LEFT: brand panel (desktop only) -->
       <div class="hidden lg:flex flex-col justify-between p-10 text-primary-content"
@@ -140,14 +159,6 @@
 
       <!-- RIGHT: form panel -->
       <div class="bg-base-100 p-8 sm:p-10 flex flex-col justify-center">
-        <!-- mobile brand -->
-        <div class="lg:hidden flex items-center gap-3 mb-8 brand-in">
-          <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-primary-content" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
-          </div>
-          <span class="text-xl font-bold">INFRA-CAP</span>
-        </div>
-
         <h1 class="text-2xl font-bold">Welcome back</h1>
         <p class="text-sm text-base-content/50 mt-1 mb-7">Sign in to your account to continue</p>
 
