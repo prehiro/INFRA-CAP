@@ -1,0 +1,7 @@
+.env
+.gopath/
+.gomodcache/
+*.exe
+infracap
+tools/go/
+tools/tailwindcss*
