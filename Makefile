@@ -52,9 +52,9 @@ sync-templates:
 
 ## restart: kill running server, rebuild, start again in background
 restart:
-	@-pkill -f "go run ./cmd/server" 2>/dev/null || true
-	@-pkill -f "infracap-server-dev" 2>/dev/null || true
-	@sleep 0.5
+	@-pkill -f "exe/server" 2>/dev/null || true
+	@-pkill -f "cmd/server" 2>/dev/null || true
+	@sleep 0.6
 	@make sync-templates >/dev/null
 	@nohup bash -c 'set -a && . ./.env && set +a && exec $(GO) run -tags dev ./cmd/server' > /tmp/infracap.log 2>&1 & echo "server restarted -> http://localhost:1112 (log: /tmp/infracap.log)"
 
