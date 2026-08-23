@@ -6,48 +6,160 @@
   <title>{{.Title}} — INFRA-CAP</title>
   <link rel="stylesheet" href="/static/css/fonts.css">
   <link rel="stylesheet" href="/static/css/app.css">
+  <style>
+    body { overflow: hidden; }
+    /* ===== flying connecting dots network background ===== */
+    #net-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      display: block;
+    }
+    .auth-wrap { position: relative; z-index: 1; }
+    /* card entrance animation */
+    @keyframes card-in {
+      from { opacity: 0; transform: translateY(24px) scale(.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .auth-card {
+      animation: card-in .6s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes fade-in { from {opacity:0} to {opacity:1} }
+    .brand-in { animation: fade-in .8s ease .15s both; }
+    input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
+  </style>
 </head>
-<body class="bg-base-200 text-base-content min-h-screen flex items-center justify-center p-4">
+<body class="bg-base-300 text-base-content min-h-screen">
 
-  <div class="w-full max-w-sm">
-    <!-- brand -->
-    <div class="flex flex-col items-center mb-8">
-      <div class="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/25">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-primary-content" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
-      </div>
-      <h1 class="text-2xl font-bold mt-4">INFRA-CAP</h1>
-      <p class="text-base-content/50 text-sm mt-1">Infrastructure & License Management</p>
-    </div>
+  <!-- animated network background -->
+  <canvas id="net-canvas"></canvas>
 
-    <div class="rounded-box bg-base-100 border border-base-300 shadow-sm p-6">
-      {{if .Error}}
-      <div role="alert" class="alert alert-error text-sm py-2.5 mb-4">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
-        <span>{{.Error}}</span>
-      </div>
-      {{end}}
-
-      <form method="post" action="/login" class="space-y-4">
-        <div>
-          <label class="label text-sm font-medium pb-1" for="username">Username</label>
-          <input id="username" name="username" type="text" required autocomplete="username" autofocus
-                 value="{{.Username}}"
-                 placeholder="username"
-                 class="input input-bordered w-full bg-base-200/50 focus:outline-none focus:border-primary">
+  <div class="auth-wrap min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-sm">
+      <!-- brand -->
+      <div class="flex flex-col items-center mb-8 brand-in">
+        <div class="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-primary-content" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
         </div>
-        <div>
-          <label class="label text-sm font-medium pb-1" for="password">Password</label>
-          <input id="password" name="password" type="password" required autocomplete="current-password"
-                 placeholder="••••••••"
-                 class="input input-bordered w-full bg-base-200/50 focus:outline-none focus:border-primary">
-        </div>
-        <button type="submit" class="btn btn-primary w-full">
-          Sign in
-        </button>
-      </form>
-    </div>
+        <h1 class="text-3xl font-bold mt-4 tracking-tight">INFRA-CAP</h1>
+        <p class="text-base-content/50 text-sm mt-1">Infrastructure &amp; License Management</p>
+      </div>
 
-    <p class="text-center text-xs text-base-content/40 mt-6">INFRA-CAP v0.1 — internal use only</p>
+      <!-- card -->
+      <div class="auth-card rounded-box bg-base-100/90 backdrop-blur border border-base-content/10 shadow-xl p-6">
+        {{if .Error}}
+        <div role="alert" class="alert alert-error text-sm py-2.5 mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+          <span>{{.Error}}</span>
+        </div>
+        {{end}}
+
+        <form method="post" action="/login" class="space-y-4">
+          <div>
+            <label class="label text-sm font-medium pb-1" for="username">Username</label>
+            <input id="username" name="username" type="text" required autocomplete="username" autofocus
+                   value="{{.Username}}"
+                   placeholder="username"
+                   class="input input-bordered w-full bg-base-200/60 focus:outline-none focus:border-primary transition-colors">
+          </div>
+          <div>
+            <label class="label text-sm font-medium pb-1" for="password">Password</label>
+            <input id="password" name="password" type="password" required autocomplete="current-password"
+                   placeholder="••••••••"
+                   class="input input-bordered w-full bg-base-200/60 focus:outline-none focus:border-primary transition-colors">
+          </div>
+          <button type="submit" class="btn btn-primary w-full shadow-md shadow-primary/25 hover:shadow-lg hover:shadow-primary/30 transition-shadow">
+            Sign in
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </button>
+        </form>
+      </div>
+
+      <p class="text-center text-xs text-base-content/40 mt-6">INFRA-CAP v0.1 — internal use only</p>
+    </div>
   </div>
+
+<script>
+(function () {
+  const canvas = document.getElementById('net-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, dots;
+  const N = Math.min(70, Math.floor(window.innerWidth / 18));
+  const LINK_DIST = 150;
+  const DOT_SPEED = 0.35;
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function makeDots() {
+    dots = [];
+    for (let i = 0; i < N; i++) {
+      dots.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        vx: (Math.random() - 0.5) * DOT_SPEED * 2,
+        vy: (Math.random() - 0.5) * DOT_SPEED * 2,
+        r: Math.random() * 1.6 + 1,
+      });
+    }
+  }
+
+  function step() {
+    ctx.clearRect(0, 0, W, H);
+
+    // subtle gradient wash
+    const g = ctx.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, '#eef1f8');
+    g.addColorStop(1, '#e4e9f4');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+
+    // move
+    for (const d of dots) {
+      d.x += d.vx; d.y += d.vy;
+      if (d.x < 0 || d.x > W) d.vx *= -1;
+      if (d.y < 0 || d.y > H) d.vy *= -1;
+    }
+
+    // links
+    for (let i = 0; i < dots.length; i++) {
+      for (let j = i + 1; j < dots.length; j++) {
+        const dx = dots[i].x - dots[j].x, dy = dots[i].y - dots[j].y;
+        const dist = Math.hypot(dx, dy);
+        if (dist < LINK_DIST) {
+          const alpha = (1 - dist / LINK_DIST) * 0.35;
+          ctx.strokeStyle = 'rgba(80, 92, 198,' + alpha + ')'; // indigo-ish
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(dots[i].x, dots[i].y);
+          ctx.lineTo(dots[j].x, dots[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+
+    // dots
+    for (const d of dots) {
+      ctx.fillStyle = 'rgba(67, 76, 178, 0.55)';
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    requestAnimationFrame(step);
+  }
+
+  window.addEventListener('resize', () => { resize(); makeDots(); });
+  resize(); makeDots(); step();
+
+  // respect reduced motion
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    // draw once, no animation
+    cancelAnimationFrame(step);
+  }
+})();
+</script>
 </body>
 </html>{{end}}

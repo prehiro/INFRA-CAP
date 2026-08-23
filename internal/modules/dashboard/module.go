@@ -15,7 +15,7 @@ func (m *Module) Name() string { return "dashboard" }
 
 func (m *Module) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
-		web.Render(w, "Dashboard", map[string]any{
+		web.Render(w, r, "Dashboard", map[string]any{
 			"Cards": []map[string]string{
 				{"Label": "Total License", "Value": "—"},
 				{"Label": "In Use", "Value": "—"},

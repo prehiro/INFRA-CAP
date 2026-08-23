@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 	"strings"
+
+	"infracap/internal/web"
 )
 
 type ctxKey int
@@ -92,3 +94,10 @@ func ClearSessionCookie(w http.ResponseWriter) {
 		MaxAge:   -1,
 	})
 }
+
+// GetFullName/GetUsername/GetRole satisfy web.UserInfo.
+func (u *User) GetFullName() string { return u.FullName }
+func (u *User) GetUsername() string { return u.Username }
+func (u *User) GetRole() string     { return u.Role }
+
+func init() { web.SetUserContextKey(userKey) }

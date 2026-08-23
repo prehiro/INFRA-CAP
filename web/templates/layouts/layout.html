@@ -176,15 +176,42 @@
         </div>
 
         <div class="flex items-center gap-2">
-
-          <button class="btn btn-square btn-ghost btn-sm" aria-label="Notifications">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M22 8c0-2.3-.8-4.3-2-6"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/><path d="M2 8c0-2.3.8-4.3 2-6"/></svg>
-          </button>
-          <div class="avatar avatar-placeholder">
-            <div class="w-8 rounded-full bg-primary/15 text-primary text-sm font-semibold">
-              <span>H</span>
+          {{if .AuthUser}}
+          <!-- user dropdown -->
+          <div class="dropdown dropdown-end" x-data="{ open: false }" @click.outside="open = false" @keydown.escape="open = false">
+            <button class="btn btn-ghost btn-sm gap-2 px-2" @click="open = !open" aria-label="User menu">
+              <div class="avatar avatar-placeholder">
+                <div class="w-8 rounded-full bg-primary/15 text-primary text-sm font-semibold uppercase">
+                  <span>{{slice .AuthUser.FullName 0 1}}</span>
+                </div>
+              </div>
+              <div class="text-left hidden sm:block leading-tight">
+                <div class="text-sm font-semibold">{{.AuthUser.FullName}}</div>
+                <div class="text-[11px] text-base-content/50 -mt-0.5">{{.AuthUser.Role}}</div>
+              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-base-content/40 transition-transform" x-bind:class="open ? 'rotate-180' : ''" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div class="dropdown-content mt-2 w-56 rounded-box bg-base-100 border border-base-300 shadow-lg py-2 z-50"
+                 x-show="open" x-cloak
+                 x-transition:enter="transition ease-out duration-150"
+                 x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-100"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0 scale-95">
+              <div class="px-4 py-2 border-b border-base-300/60">
+                <div class="font-semibold text-sm">{{.AuthUser.FullName}}</div>
+                <div class="text-xs text-base-content/50 mt-0.5">{{.AuthUser.Username}} · <span class="uppercase tracking-wide">{{.AuthUser.Role}}</span></div>
+              </div>
+              <form method="post" action="/logout" class="p-2">
+                <button type="submit" class="btn btn-ghost btn-sm w-full justify-start gap-2 text-error hover:bg-error/10">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                  Log out
+                </button>
+              </form>
             </div>
           </div>
+          {{end}}
         </div>
       </div>
 

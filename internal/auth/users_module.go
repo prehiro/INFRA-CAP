@@ -46,11 +46,11 @@ func (m *AdminUsersModule) list(w http.ResponseWriter, r *http.Request) {
 	for i := range users {
 		views = append(views, toView(&users[i]))
 	}
-	web.Render(w, "Users", map[string]any{"Users": views})
+	web.Render(w, r, "Users", map[string]any{"Users": views})
 }
 
 func (m *AdminUsersModule) newForm(w http.ResponseWriter, r *http.Request) {
-	web.RenderNamed(w, "new_user_content", "New User", map[string]any{
+	web.RenderNamed(w, r, "new_user_content", "New User", map[string]any{
 		"User":  userView{},
 		"IsNew": true,
 		"Error": "",
@@ -68,7 +68,7 @@ func (m *AdminUsersModule) create(w http.ResponseWriter, r *http.Request) {
 	}
 	err := m.Service.Create(r.Context(), username, password, fullName, role)
 	if err != nil {
-		web.RenderNamed(w, "new_user_content", "New User", map[string]any{
+		web.RenderNamed(w, r, "new_user_content", "New User", map[string]any{
 			"User":  userView{Username: username, FullName: fullName, Role: role},
 			"IsNew": true,
 			"Error": "Gagal menyimpan: username mungkin sudah dipakai atau password terlalu lemah.",
@@ -85,7 +85,7 @@ func (m *AdminUsersModule) editForm(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	web.RenderNamed(w, "edit_user_content", "Edit User", map[string]any{
+	web.RenderNamed(w, r, "edit_user_content", "Edit User", map[string]any{
 		"User":  toView(u),
 		"IsNew": false,
 		"Error": "",
