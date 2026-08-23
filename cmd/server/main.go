@@ -14,6 +14,7 @@ import (
 	"infracap/internal/config"
 	"infracap/internal/db"
 	"infracap/internal/migrations"
+	"infracap/internal/auth"
 	"infracap/internal/modules/dashboard"
 	"infracap/internal/web"
 )
@@ -64,15 +65,25 @@ func run() error {
 	mux.Handle("GET /static/", http.StripPrefix("/static/",
 		http.FileServer(http.Dir("web/static"))))
 
-	modules := []web.Module{
-		dashboard.New(),
+	authSvc := &auth.Service{DB: database}
+	if cfg.AutoMigrate {
+		authSvc.SeedFirstAdmin(context.Background())
 	}
-	for _, m := range modules {
-		m.RegisterRoutes(mux)
-		log.Printf("module registered: %s", m.Name())
-	}
+	authMod := auth.NewModule(authSvc)
+	usersMod := auth.NewAdminUsersModule(authSvc)
 
-	handler := web.RequestLogger(web.SecurityHeaders(mux))
+	// public routes
+	authMod.RegisterRoutes(mux)
+
+	// protected routes (auth required)
+	protected := http.NewServeMux()
+	dash := dashboard.New()
+	dash.RegisterRoutes(protected)
+	usersMod.RegisterRoutes(protected)
+
+	mux.Handle("/", web.CSRFValidate(authSvc.Middleware(true)(protected)))
+
+	handler := web.RequestLogger(web.CSRFCookieMiddleware(web.SecurityHeaders(mux)))
 	srv := &http.Server{
 		Addr:              cfg.Addr,
 		Handler:           handler,

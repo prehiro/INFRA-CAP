@@ -1,0 +1,53 @@
+{{define "auth_layout"}}<!DOCTYPE html>
+<html lang="id" data-theme="infracap">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{.Title}} — INFRA-CAP</title>
+  <link rel="stylesheet" href="/static/css/fonts.css">
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body class="bg-base-200 text-base-content min-h-screen flex items-center justify-center p-4">
+
+  <div class="w-full max-w-sm">
+    <!-- brand -->
+    <div class="flex flex-col items-center mb-8">
+      <div class="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/25">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-primary-content" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+      </div>
+      <h1 class="text-2xl font-bold mt-4">INFRA-CAP</h1>
+      <p class="text-base-content/50 text-sm mt-1">Infrastructure & License Management</p>
+    </div>
+
+    <div class="rounded-box bg-base-100 border border-base-300 shadow-sm p-6">
+      {{if .Error}}
+      <div role="alert" class="alert alert-error text-sm py-2.5 mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+        <span>{{.Error}}</span>
+      </div>
+      {{end}}
+
+      <form method="post" action="/login" class="space-y-4">
+        <div>
+          <label class="label text-sm font-medium pb-1" for="username">Username</label>
+          <input id="username" name="username" type="text" required autocomplete="username" autofocus
+                 value="{{.Username}}"
+                 placeholder="username"
+                 class="input input-bordered w-full bg-base-200/50 focus:outline-none focus:border-primary">
+        </div>
+        <div>
+          <label class="label text-sm font-medium pb-1" for="password">Password</label>
+          <input id="password" name="password" type="password" required autocomplete="current-password"
+                 placeholder="••••••••"
+                 class="input input-bordered w-full bg-base-200/50 focus:outline-none focus:border-primary">
+        </div>
+        <button type="submit" class="btn btn-primary w-full">
+          Sign in
+        </button>
+      </form>
+    </div>
+
+    <p class="text-center text-xs text-base-content/40 mt-6">INFRA-CAP v0.1 — internal use only</p>
+  </div>
+</body>
+</html>{{end}}

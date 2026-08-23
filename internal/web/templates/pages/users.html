@@ -1,0 +1,109 @@
+{{define "content"}}
+<div class="max-w-6xl mx-auto space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-xl font-bold">Users</h1>
+      <p class="text-base-content/50 text-sm mt-0.5">Kelola akun pengguna INFRA-CAP</p>
+    </div>
+    <a href="/users/new" class="btn btn-primary btn-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+      New User
+    </a>
+  </div>
+
+  <div class="rounded-box bg-base-100 border border-base-300 shadow-sm overflow-hidden">
+    <table class="table">
+      <thead>
+        <tr class="bg-base-200/60 text-xs uppercase tracking-wide text-base-content/50">
+          <th>Username</th><th>Full Name</th><th>Role</th><th>Status</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {{$isNew := false}}
+        {{range .Data.Users}}
+        <tr class="hover:bg-base-200/40 border-b border-base-300/50">
+          <td class="font-medium">{{.Username}}</td>
+          <td>{{.FullName}}</td>
+          <td>
+            {{if eq .Role "admin"}}
+              <span class="badge badge-primary badge-sm badge-outline">admin</span>
+            {{else}}
+              <span class="badge badge-ghost badge-sm">user</span>
+            {{end}}
+          </td>
+          <td>
+            {{if .IsActive}}
+              <span class="inline-flex items-center gap-1.5 text-success text-sm"><span class="w-1.5 h-1.5 rounded-full bg-success"></span>Active</span>
+            {{else}}
+              <span class="inline-flex items-center gap-1.5 text-error text-sm"><span class="w-1.5 h-1.5 rounded-full bg-error"></span>Inactive</span>
+            {{end}}
+          </td>
+          <td class="text-right"><a href="/users/{{.ID}}/edit" class="btn btn-ghost btn-xs">Edit</a></td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+</div>
+{{end}}
+
+{{define "user_form_content"}}
+{{$d := .Data}}
+{{$u := $d.User}}
+<div class="max-w-md mx-auto space-y-6">
+  <h1 class="text-xl font-bold">{{if $d.IsNew}}New User{{else}}Edit User: {{$u.Username}}{{end}}</h1>
+
+  {{if $d.Error}}
+  <div role="alert" class="alert alert-error text-sm py-2.5">
+    <span>{{$d.Error}}</span>
+  </div>
+  {{end}}
+
+  <form method="post" action="{{if $d.IsNew}}/users{{else}}/users/{{$u.ID}}{{end}}"
+        class="rounded-box bg-base-100 border border-base-300 shadow-sm p-6 space-y-4">
+    <div>
+      <label class="label text-sm font-medium pb-1">Username</label>
+      <input name="username" value="{{$u.Username}}" {{if not $d.IsNew}}disabled{{end}} required
+             class="input input-bordered w-full bg-base-200/50 {{if not $d.IsNew}}opacity-60{{end}}">
+    </div>
+    {{if $d.IsNew}}
+    <div>
+      <label class="label text-sm font-medium pb-1">Password</label>
+      <input name="password" type="password" required minlength="8"
+             class="input input-bordered w-full bg-base-200/50">
+    </div>
+    {{else}}
+    <div>
+      <label class="label text-sm font-medium pb-1">New Password <span class="text-base-content/40 font-normal">(kosongkan jika tidak diubah)</span></label>
+      <input name="new_password" type="password"
+             class="input input-bordered w-full bg-base-200/50">
+    </div>
+    {{end}}
+    <div>
+      <label class="label text-sm font-medium pb-1">Full Name</label>
+      <input name="full_name" value="{{$u.FullName}}" required
+             class="input input-bordered w-full bg-base-200/50">
+    </div>
+    <div>
+      <label class="label text-sm font-medium pb-1">Role</label>
+      <select name="role" class="select select-bordered w-full bg-base-200/50">
+        <option value="user" {{if eq $u.Role "user"}}selected{{end}}>user</option>
+        <option value="admin" {{if eq $u.Role "admin"}}selected{{end}}>admin</option>
+      </select>
+    </div>
+    {{if not $d.IsNew}}
+    <label class="flex items-center gap-2 cursor-pointer">
+      <input type="checkbox" name="is_active" class="checkbox checkbox-primary checkbox-sm" {{if $u.IsActive}}checked{{end}}>
+      <span class="text-sm">Active</span>
+    </label>
+    {{end}}
+    <div class="flex gap-2 pt-2">
+      <button type="submit" class="btn btn-primary btn-sm flex-1">Save</button>
+      <a href="/users" class="btn btn-ghost btn-sm">Cancel</a>
+    </div>
+  </form>
+</div>
+{{end}}
+
+{{define "new_user_content"}}{{template "user_form_content" .}}{{end}}
+{{define "edit_user_content"}}{{template "user_form_content" .}}{{end}}
