@@ -8,74 +8,179 @@
   <link rel="stylesheet" href="/static/css/app.css">
   <style>
     body { overflow: hidden; }
-    /* ===== flying connecting dots network background ===== */
-    #net-canvas {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      display: block;
-    }
+    #net-canvas { position: fixed; inset: 0; z-index: 0; display: block; }
     .auth-wrap { position: relative; z-index: 1; }
-    /* card entrance animation */
+
     @keyframes card-in {
       from { opacity: 0; transform: translateY(24px) scale(.97); }
       to   { opacity: 1; transform: translateY(0) scale(1); }
     }
-    .auth-card {
-      animation: card-in .6s cubic-bezier(0.34,1.56,0.64,1) both;
-    }
+    .auth-card { animation: card-in .6s cubic-bezier(0.34,1.56,0.64,1) both; }
     @keyframes fade-in { from {opacity:0} to {opacity:1} }
     .brand-in { animation: fade-in .8s ease .15s both; }
-    input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
+
+    /* floating label input */
+    .field { position: relative; }
+    .field input {
+      width: 100%;
+      height: 3.25rem;
+      padding: 1.35rem 0.9rem 0.45rem;
+      background: var(--color-base-200);
+      border: 1px solid var(--color-base-300);
+      border-radius: var(--radius-box);
+      outline: none;
+      font-size: 0.9rem;
+      transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .field input:focus {
+      border-color: var(--color-primary);
+      background: var(--color-base-100);
+      box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-primary) 12%, transparent);
+    }
+    .field label {
+      position: absolute;
+      left: 0.95rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--color-base-content / 55%);
+      color: oklch(from var(--color-base-content) calc(l * 1) c h / 55%);
+      font-size: 0.9rem;
+      pointer-events: none;
+      transition: all .18s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .field input:focus + label,
+    .field input:not(:placeholder-shown) + label {
+      top: 0.85rem;
+      transform: translateY(-50%) scale(0.72);
+      transform-origin: left center;
+      color: var(--color-primary);
+      font-weight: 600;
+    }
+    /* password visibility toggle */
+    .pw-toggle {
+      position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%);
+      color: var(--color-base-content/40%); cursor: pointer;
+      background: none; border: none; padding: 0.25rem; border-radius: 0.375rem;
+    }
+    .pw-toggle:hover { color: var(--color-base-content/70%); background: var(--color-base-200); }
+
+    /* primary button with sheen */
+    .btn-signin {
+      width: 100%;
+      height: 2.85rem;
+      border-radius: var(--radius-box);
+      background: linear-gradient(135deg, var(--color-primary), color-mix(in oklab, var(--color-primary) 78%, black));
+      color: var(--color-primary-content);
+      font-weight: 600;
+      font-size: 0.925rem;
+      letter-spacing: 0.01em;
+      border: none;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 14px color-mix(in oklab, var(--color-primary) 30%, transparent);
+      transition: transform .15s cubic-bezier(0.34,1.56,0.64,1), box-shadow .2s ease;
+    }
+    .btn-signin:hover { transform: translateY(-1px); box-shadow: 0 6px 20px color-mix(in oklab, var(--color-primary) 38%, transparent); }
+    .btn-signin:active { transform: translateY(0); }
+    .btn-signin::after {
+      content: "";
+      position: absolute; top: 0; left: -80%;
+      width: 60%; height: 100%;
+      background: linear-gradient(105deg, transparent, rgba(255,255,255,.28), transparent);
+      transform: skewX(-20deg);
+      animation: sheen 3.2s ease-in-out infinite;
+    }
+    @keyframes sheen { 0%, 60% {left:-80%} 100% {left:130%} }
+
+    .divider-label {
+      display:flex; align-items:center; gap:.75rem;
+      color: oklch(from var(--color-base-content) calc(l*1) c h / 40%);
+      font-size:.75rem; text-transform:uppercase; letter-spacing:.08em;
+    }
+    .divider-label::before, .divider-label::after {
+      content:""; flex:1; height:1px; background: var(--color-base-300);
+    }
   </style>
 </head>
 <body class="bg-base-300 text-base-content min-h-screen">
 
-  <!-- animated network background -->
+  <!-- animated network background (kept) -->
   <canvas id="net-canvas"></canvas>
 
   <div class="auth-wrap min-h-screen flex items-center justify-center p-4">
-    <div class="w-full max-w-sm">
-      <!-- brand -->
-      <div class="flex flex-col items-center mb-8 brand-in">
-        <div class="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-primary-content" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+    <!-- two-column professional card -->
+    <div class="w-full max-w-4xl grid lg:grid-cols-[1fr_420px] rounded-box overflow-hidden shadow-2xl shadow-base-content/10 border border-base-content/10 bg-base-100"
+         style="animation: card-in .6s cubic-bezier(0.34,1.56,0.64,1) both;">
+
+      <!-- LEFT: brand panel (desktop only) -->
+      <div class="hidden lg:flex flex-col justify-between p-10 text-primary-content"
+           style="background: linear-gradient(160deg, var(--color-primary) 0%, color-mix(in oklab, var(--color-primary) 70%, #1a1e3a) 100%);">
+        <div>
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+            </div>
+            <span class="text-xl font-bold tracking-tight">INFRA-CAP</span>
+          </div>
         </div>
-        <h1 class="text-3xl font-bold mt-4 tracking-tight">INFRA-CAP</h1>
-        <p class="text-base-content/50 text-sm mt-1">Infrastructure &amp; License Management</p>
+
+        <div>
+          <h2 class="text-3xl font-bold leading-snug">Manage your software<br>licenses, effortlessly.</h2>
+          <p class="mt-4 text-white/70 text-sm leading-relaxed max-w-sm">Track license keys, assignments and expiry dates in one place — so nothing slips through the cracks.</p>
+          <ul class="mt-8 space-y-3.5 text-sm">
+            <li class="flex items-center gap-3"><span class="w-5 h-5 rounded-full bg-white/15 flex items-center justify-center shrink-0"><svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Centralized license &amp; activation records</li>
+            <li class="flex items-center gap-3"><span class="w-5 h-5 rounded-full bg-white/15 flex items-center justify-center shrink-0"><svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Expiry alerts before it becomes a problem</li>
+            <li class="flex items-center gap-3"><span class="w-5 h-5 rounded-full bg-white/15 flex items-center justify-center shrink-0"><svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Audit trail on every change</li>
+          </ul>
+        </div>
+
+        <p class="text-white/40 text-xs">© 2026 INFRA-CAP · internal use only</p>
       </div>
 
-      <!-- card -->
-      <div class="auth-card rounded-box bg-base-100/90 backdrop-blur border border-base-content/10 shadow-xl p-6">
+      <!-- RIGHT: form panel -->
+      <div class="bg-base-100 p-8 sm:p-10 flex flex-col justify-center">
+        <!-- mobile brand -->
+        <div class="lg:hidden flex items-center gap-3 mb-8 brand-in">
+          <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-primary-content" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+          </div>
+          <span class="text-xl font-bold">INFRA-CAP</span>
+        </div>
+
+        <h1 class="text-2xl font-bold">Welcome back</h1>
+        <p class="text-sm text-base-content/50 mt-1 mb-7">Sign in to your account to continue</p>
+
         {{if .Error}}
-        <div role="alert" class="alert alert-error text-sm py-2.5 mb-4">
+        <div role="alert" class="alert alert-error text-sm py-2.5 mb-5">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
           <span>{{.Error}}</span>
         </div>
         {{end}}
 
         <form method="post" action="/login" class="space-y-4">
-          <div>
-            <label class="label text-sm font-medium pb-1" for="username">Username</label>
+          <div class="field">
             <input id="username" name="username" type="text" required autocomplete="username" autofocus
-                   value="{{.Username}}"
-                   placeholder="username"
-                   class="input input-bordered w-full bg-base-200/60 focus:outline-none focus:border-primary transition-colors">
+                   value="{{.Username}}" placeholder=" ">
+            <label for="username">Username</label>
           </div>
-          <div>
-            <label class="label text-sm font-medium pb-1" for="password">Password</label>
-            <input id="password" name="password" type="password" required autocomplete="current-password"
-                   placeholder="••••••••"
-                   class="input input-bordered w-full bg-base-200/60 focus:outline-none focus:border-primary transition-colors">
-          </div>
-          <button type="submit" class="btn btn-primary w-full shadow-md shadow-primary/25 hover:shadow-lg hover:shadow-primary/30 transition-shadow">
-            Sign in
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-          </button>
-        </form>
-      </div>
 
-      <p class="text-center text-xs text-base-content/40 mt-6">INFRA-CAP v0.1 — internal use only</p>
+          <div class="field">
+            <input id="password" name="password" type="password" required autocomplete="current-password" placeholder=" ">
+            <label for="password">Password</label>
+            <button type="button" class="pw-toggle" aria-label="Toggle password visibility"
+                    onclick="const inp=document.getElementById('password'); inp.type = inp.type==='password' ? 'text' : 'password'; this.querySelector('.eye-open').classList.toggle('hidden'); this.querySelector('.eye-closed').classList.toggle('hidden');">
+              <svg class="eye-open w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.637 18.7 18.7 0 0 1 5.322-7.096A8.86 8.86 0 0 1 12 2.5c2.06 0 3.974.77 5.616 2.115a18.7 18.7 0 0 1 5.322 7.096 1 1 0 0 1 0 .637 18.7 18.7 0 0 1-5.322 7.096A8.86 8.86 0 0 1 12 21.5c-2.06 0-3.974-.77-5.616-2.115a18.7 18.7 0 0 1-5.322-7.096Z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="eye-closed w-5 h-5 hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg>
+            </button>
+          </div>
+
+          <button type="submit" class="btn-signin mt-2">Sign in</button>
+        </form>
+
+        <div class="divider-label mt-7">secured area</div>
+        <p class="text-center text-xs text-base-content/40 mt-3">Unauthorized access is prohibited.<br>All activity is logged &amp; monitored.</p>
+      </div>
     </div>
   </div>
 
@@ -88,77 +193,26 @@
   const LINK_DIST = 150;
   const DOT_SPEED = 0.35;
 
-  function resize() {
-    W = canvas.width = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-  }
-
+  function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
   function makeDots() {
     dots = [];
-    for (let i = 0; i < N; i++) {
-      dots.push({
-        x: Math.random() * W,
-        y: Math.random() * H,
-        vx: (Math.random() - 0.5) * DOT_SPEED * 2,
-        vy: (Math.random() - 0.5) * DOT_SPEED * 2,
-        r: Math.random() * 1.6 + 1,
-      });
-    }
+    for (let i = 0; i < N; i++) dots.push({ x: Math.random()*W, y: Math.random()*H, vx:(Math.random()-0.5)*DOT_SPEED*2, vy:(Math.random()-0.5)*DOT_SPEED*2, r: Math.random()*1.6+1 });
   }
-
   function step() {
-    ctx.clearRect(0, 0, W, H);
-
-    // subtle gradient wash
-    const g = ctx.createLinearGradient(0, 0, W, H);
-    g.addColorStop(0, '#eef1f8');
-    g.addColorStop(1, '#e4e9f4');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, W, H);
-
-    // move
-    for (const d of dots) {
-      d.x += d.vx; d.y += d.vy;
-      if (d.x < 0 || d.x > W) d.vx *= -1;
-      if (d.y < 0 || d.y > H) d.vy *= -1;
+    ctx.clearRect(0,0,W,H);
+    const g = ctx.createLinearGradient(0,0,W,H);
+    g.addColorStop(0,'#eef1f8'); g.addColorStop(1,'#e4e9f4');
+    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+    for (const d of dots) { d.x+=d.vx; d.y+=d.vy; if(d.x<0||d.x>W)d.vx*=-1; if(d.y<0||d.y>H)d.vy*=-1; }
+    for (let i=0;i<dots.length;i++) for (let j=i+1;j<dots.length;j++) {
+      const dx=dots[i].x-dots[j].x, dy=dots[i].y-dots[j].y, dist=Math.hypot(dx,dy);
+      if (dist<LINK_DIST) { ctx.strokeStyle='rgba(80,92,198,'+((1-dist/LINK_DIST)*0.35)+')'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(dots[i].x,dots[i].y); ctx.lineTo(dots[j].x,dots[j].y); ctx.stroke(); }
     }
-
-    // links
-    for (let i = 0; i < dots.length; i++) {
-      for (let j = i + 1; j < dots.length; j++) {
-        const dx = dots[i].x - dots[j].x, dy = dots[i].y - dots[j].y;
-        const dist = Math.hypot(dx, dy);
-        if (dist < LINK_DIST) {
-          const alpha = (1 - dist / LINK_DIST) * 0.35;
-          ctx.strokeStyle = 'rgba(80, 92, 198,' + alpha + ')'; // indigo-ish
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(dots[i].x, dots[i].y);
-          ctx.lineTo(dots[j].x, dots[j].y);
-          ctx.stroke();
-        }
-      }
-    }
-
-    // dots
-    for (const d of dots) {
-      ctx.fillStyle = 'rgba(67, 76, 178, 0.55)';
-      ctx.beginPath();
-      ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
+    for (const d of dots) { ctx.fillStyle='rgba(67,76,178,0.55)'; ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,Math.PI*2); ctx.fill(); }
     requestAnimationFrame(step);
   }
-
-  window.addEventListener('resize', () => { resize(); makeDots(); });
+  window.addEventListener('resize', ()=>{resize();makeDots();});
   resize(); makeDots(); step();
-
-  // respect reduced motion
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    // draw once, no animation
-    cancelAnimationFrame(step);
-  }
 })();
 </script>
 </body>
