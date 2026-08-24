@@ -215,11 +215,11 @@
   <form {{if $d.ViewOnly}}onsubmit="return false" class="pointer-events-none"{{else}}method="post" action="{{if $d.IsNew}}/licenses{{else}}/licenses/{{$L.ID}}{{end}}"{{end}}
         data-form class="rounded-box bg-base-100 border border-base-300 shadow-sm p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
     <div><label class="label text-xs font-medium pb-1">Maker *</label>
-      <input name="maker" value="{{$L.Maker}}" required class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}>
+      <input name="maker" value="{{$L.Maker}}" required class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}></div>
     <div><label class="label text-xs font-medium pb-1">Software Name *</label>
-      <input name="software_name" value="{{$L.SoftwareName}}" required class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}>
+      <input name="software_name" value="{{$L.SoftwareName}}" required class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}></div>
     <div><label class="label text-xs font-medium pb-1">Version</label>
-      <input name="version" value="{{if $L.Version}}{{$L.Version}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}>
+      <input name="version" value="{{if $L.Version}}{{$L.Version}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}></div>
     <div><label class="label text-xs font-medium pb-1">Status</label>
       <select name="status" {{if $d.ViewOnly}}disabled{{end}} class="select select-sm select-bordered w-full bg-base-200/50">
         {{$st := $L.Status}}
@@ -228,19 +228,19 @@
         {{end}}
       </select></div>
     <div class="sm:col-span-2"><label class="label text-xs font-medium pb-1">License Key</label>
-      <input name="license_key" value="{{if $L.LicenseKey}}{{$L.LicenseKey}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50 font-mono" {{if $d.ViewOnly}}disabled{{end}}>
+      <input name="license_key" value="{{if $L.LicenseKey}}{{$L.LicenseKey}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50 font-mono" {{if $d.ViewOnly}}disabled{{end}}></div>
     <div class="sm:col-span-2"><label class="label text-xs font-medium pb-1">Activation Key</label>
-      <input name="activation_key" value="{{if $L.ActivationKey}}{{$L.ActivationKey}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50 font-mono" {{if $d.ViewOnly}}disabled{{end}}>
+      <input name="activation_key" value="{{if $L.ActivationKey}}{{$L.ActivationKey}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50 font-mono" {{if $d.ViewOnly}}disabled{{end}}></div>
     <div><label class="label text-xs font-medium pb-1">Assigned To</label>
-      <input name="assigned_to" value="{{if $L.AssignedTo}}{{$L.AssignedTo}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}>
+      <input name="assigned_to" value="{{if $L.AssignedTo}}{{$L.AssignedTo}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}></div>
     <div><label class="label text-xs font-medium pb-1">Section</label>
-      <input name="section" value="{{if $L.Section}}{{$L.Section}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}>
+      <input name="section" value="{{if $L.Section}}{{$L.Section}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}></div>
     <div><label class="label text-xs font-medium pb-1">Device Hostname</label>
-      <input name="device_hostname" value="{{if $L.DeviceHostname}}{{$L.DeviceHostname}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}>
+      <input name="device_hostname" value="{{if $L.DeviceHostname}}{{$L.DeviceHostname}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}></div>
     <div><label class="label text-xs font-medium pb-1">Device SN</label>
-      <input name="device_sn" value="{{if $L.DeviceSN}}{{$L.DeviceSN}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}>
+      <input name="device_sn" value="{{if $L.DeviceSN}}{{$L.DeviceSN}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}></div>
     <div><label class="label text-xs font-medium pb-1">PO No</label>
-      <input name="po_no" value="{{if $L.PONo}}{{$L.PONo}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}>
+      <input name="po_no" value="{{if $L.PONo}}{{$L.PONo}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}></div>
     <div><label class="label text-xs font-medium pb-1">Activated On (DD-MM-YY)</label>
       <input name="activated_on" value="{{if $L.ActivatedOn}}{{$L.ActivatedOn.Format "02-01-06"}}{{end}}" placeholder="DD-MM-YY"
              class="input input-sm input-bordered w-full bg-base-200/50"></div>
@@ -251,7 +251,7 @@
     <div class="sm:col-span-2">
       <label class="label text-xs font-medium pb-1">Remarks</label>
       <textarea name="remarks" rows="2" placeholder="Catatan tambahan (opsional)" {{if $d.ViewOnly}}disabled{{end}}
-                class="textarea textarea-sm textarea-bordered w-full bg-base-200/50">{{$L.Remarks}}</textarea>
+                class="textarea textarea-sm textarea-bordered w-full bg-base-200/50">{{if $L.Remarks}}{{$L.Remarks}}{{end}}</textarea>
     </div>
 
     <div class="sm:col-span-2 flex gap-2 pt-2">
