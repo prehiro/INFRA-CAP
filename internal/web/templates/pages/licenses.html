@@ -339,10 +339,14 @@
 
     <!-- body -->
     <div class="overflow-y-auto px-6 py-5">
-      <form {{if $d.ViewOnly}}onsubmit="return false" class="pointer-events-none"{{else}}hx-post="{{if $d.IsNew}}/licenses{{else}}/licenses/{{$L.ID}}{{end}}" hx-target="#modal-container" hx-swap="innerHTML"{{end}}
+      {{if $d.ViewOnly}}
+{{template "license_view_content" .}}
+      {{else}}
+      <form hx-post="{{if $d.IsNew}}/licenses{{else}}/licenses/{{$L.ID}}{{end}}" hx-target="#modal-container" hx-swap="innerHTML"
             id="license-modal-form" data-form class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 {{template "license_fields_content" .}}
       </form>
+      {{end}}
     </div>
 
     <!-- footer -->
@@ -358,6 +362,85 @@
 </div>
 {{end}}
 
+{{define "license_view_content"}}{{$L := .L}}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+
+  <!-- LEFT section -->
+  <div class="space-y-4">
+    <h3 class="text-xs font-bold uppercase tracking-wider text-base-content/40 border-b border-base-300 pb-2">Informasi Lisensi</h3>
+    <div class="space-y-3">
+      <div><div class="text-xs text-base-content/50">Maker</div><div class="font-medium">{{$L.Maker}}</div></div>
+      <div><div class="text-xs text-base-content/50">Software Name</div><div class="font-medium">{{$L.SoftwareName}}</div></div>
+      <div><div class="text-xs text-base-content/50">Version</div><div>{{if $L.Version}}{{$L.Version}}{{else}}<span class="text-base-content/30">—</span>{{end}}</div></div>
+      <div><div class="text-xs text-base-content/50 mb-1">Status</div>
+        {{if eq $L.Status "In use"}}<span class="status-badge status-in-use">In use</span>
+        {{else if eq $L.Status "Available"}}<span class="status-badge status-available">Available</span>
+        {{else if eq $L.Status "Expired"}}<span class="status-badge status-expired">Expired</span>
+        {{else}}<span class="status-badge status-retired">Retired</span>{{end}}
+      </div>
+      <div x-data="{ copied: false }">
+        <div class="text-xs text-base-content/50 mb-1">License Key</div>
+        {{if $L.LicenseKey}}
+        <button type="button" class="group flex items-center gap-2 w-full text-left rounded-lg border border-dashed border-base-300 hover:border-info bg-base-200/30 hover:bg-info/5 px-3 py-1.5 transition-colors"
+                @click="navigator.clipboard.write('{{if $L.LicenseKey}}{{$L.LicenseKey}}{{end}}').then(() => { copied = true; setTimeout(() => copied = false, 1500) })"
+                title="Klik untuk copy">
+          <span class="font-mono text-sm flex-1 truncate">{{$L.LicenseKey}}</span>
+          <span class="shrink-0" x-show="!copied">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-base-content/40 group-hover:text-info transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          </span>
+          <span class="shrink-0 text-success text-xs font-semibold flex items-center gap-1" x-show="copied" x-cloak>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            Tersalin
+          </span>
+        </button>
+        {{else}}<div class="text-base-content/30">—</div>{{end}}
+      </div>
+      <div x-data="{ copied: false }">
+        <div class="text-xs text-base-content/50 mb-1">Activation Key</div>
+        {{if $L.ActivationKey}}
+        <button type="button" class="group flex items-center gap-2 w-full text-left rounded-lg border border-dashed border-base-300 hover:border-info bg-base-200/30 hover:bg-info/5 px-3 py-1.5 transition-colors"
+                @click="navigator.clipboard.write('{{if $L.ActivationKey}}{{$L.ActivationKey}}{{end}}').then(() => { copied = true; setTimeout(() => copied = false, 1500) })"
+                title="Klik untuk copy">
+          <span class="font-mono text-sm flex-1 truncate">{{$L.ActivationKey}}</span>
+          <span class="shrink-0" x-show="!copied">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-base-content/40 group-hover:text-info transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          </span>
+          <span class="shrink-0 text-success text-xs font-semibold flex items-center gap-1" x-show="copied" x-cloak>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            Tersalin
+          </span>
+        </button>
+        {{else}}<div class="text-base-content/30">—</div>{{end}}
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT section -->
+  <div class="space-y-4">
+    <h3 class="text-xs font-bold uppercase tracking-wider text-base-content/40 border-b border-base-300 pb-2">Penugasan &amp; Perangkat</h3>
+    <div class="space-y-3">
+      <div><div class="text-xs text-base-content/50">Assigned To</div><div>{{if $L.AssignedTo}}{{$L.AssignedTo}}{{else}}<span class="text-base-content/30">—</span>{{end}}</div></div>
+      <div><div class="text-xs text-base-content/50">Section</div><div>{{if $L.Section}}{{$L.Section}}{{else}}<span class="text-base-content/30">—</span>{{end}}</div></div>
+      <div><div class="text-xs text-base-content/50">Device Hostname</div><div>{{if $L.DeviceHostname}}{{$L.DeviceHostname}}{{else}}<span class="text-base-content/30">—</span>{{end}}</div></div>
+      <div><div class="text-xs text-base-content/50">Device SN</div><div>{{if $L.DeviceSN}}{{$L.DeviceSN}}{{else}}<span class="text-base-content/30">—</span>{{end}}</div></div>
+      <div><div class="text-xs text-base-content/50">PO No</div><div>{{if $L.PONo}}{{$L.PONo}}{{else}}<span class="text-base-content/30">—</span>{{end}}</div></div>
+      <div class="grid grid-cols-2 gap-4">
+        <div><div class="text-xs text-base-content/50">Activated On</div><div>{{if $L.ActivatedOn}}{{$L.ActivatedOn.Format "02-01-06"}}{{else}}<span class="text-base-content/30">—</span>{{end}}</div></div>
+        <div><div class="text-xs text-base-content/50">Expiry Date</div><div>{{if $L.ExpiryDate}}{{$L.ExpiryDate.Format "02-01-06"}}{{else}}<span class="text-base-content/30">—</span>{{end}}</div></div>
+      </div>
+    </div>
+
+    {{if or $L.Remarks}}
+    <div class="pt-1">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-base-content/40 border-b border-base-300 pb-2 mb-2">Remarks</h3>
+      <p class="text-sm whitespace-pre-wrap">{{$L.Remarks}}</p>
+    </div>
+    {{end}}
+  </div>
+
+</div>
+{{end}}
+
 {{define "license_form_content"}}{{$L := .L}}{{$d := .}}
 <div class="max-w-3xl mx-auto space-y-5">
   <h1 class="text-xl font-bold">{{if $d.IsNew}}New License{{else if $d.ViewOnly}}View: {{$L.SoftwareName}}{{else}}Edit: {{$L.SoftwareName}}{{end}}</h1>
@@ -368,17 +451,22 @@
   </div>
   {{end}}
 
-  <form {{if $d.ViewOnly}}onsubmit="return false" class="pointer-events-none"{{else}}method="post" action="{{if $d.IsNew}}/licenses{{else}}/licenses/{{$L.ID}}{{end}}"{{end}}
+  {{if $d.ViewOnly}}
+<div class="rounded-box bg-base-100 border border-base-300 shadow-sm p-6">
+{{template "license_view_content" .}}
+</div>
+  <div class="flex gap-2">
+    <a href="/licenses" class="btn btn-info btn-sm flex-1 shiny-hover">Back to List</a>
+  </div>
+  {{else}}
+  <form method="post" action="{{if $d.IsNew}}/licenses{{else}}/licenses/{{$L.ID}}{{end}}"
         data-form class="rounded-box bg-base-100 border border-base-300 shadow-sm p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
 {{template "license_fields_content" .}}
     <div class="sm:col-span-2 flex gap-2 pt-2">
-      {{if $d.ViewOnly}}
-      <a href="/licenses" class="btn btn-info btn-sm flex-1 shiny-hover">Back to List</a>
-      {{else}}
       <button type="submit" class="btn btn-primary btn-sm flex-1 shiny-hover">Simpan</button>
       <a href="/licenses" class="btn btn-ghost btn-sm">Batal</a>
-      {{end}}
     </div>
   </form>
+  {{end}}
 </div>
 {{end}}
