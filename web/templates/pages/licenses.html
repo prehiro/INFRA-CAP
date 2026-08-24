@@ -367,7 +367,7 @@
 
   <!-- LEFT section -->
   <div class="space-y-4">
-    <h3 class="text-xs font-bold uppercase tracking-wider text-base-content/40 border-b border-base-300 pb-2">Informasi Lisensi</h3>
+    <h3 class="text-xs font-bold uppercase tracking-wider text-base-content/40 border-b border-base-300 pb-2">License Information</h3>
     <div class="space-y-3">
       <div><div class="text-xs text-base-content/50">Maker</div><div class="font-medium">{{$L.Maker}}</div></div>
       <div><div class="text-xs text-base-content/50">Software Name</div><div class="font-medium">{{$L.SoftwareName}}</div></div>
@@ -382,7 +382,7 @@
         <div class="text-xs text-base-content/50 mb-1">License Key</div>
         {{if $L.LicenseKey}}
         <button type="button" class="group flex items-center gap-2 w-full text-left rounded-lg border border-dashed border-base-300 hover:border-info bg-base-200/30 hover:bg-info/5 px-3 py-1.5 transition-colors"
-                @click="navigator.clipboard.write('{{if $L.LicenseKey}}{{$L.LicenseKey}}{{end}}').then(() => { copied = true; setTimeout(() => copied = false, 1500) })"
+                @click="navigator.clipboard.writeText('{{if $L.LicenseKey}}{{$L.LicenseKey}}{{end}}').then(() => { copied = true; setTimeout(() => copied = false, 1500) })"
                 title="Klik untuk copy">
           <span class="font-mono text-sm flex-1 truncate">{{$L.LicenseKey}}</span>
           <span class="shrink-0" x-show="!copied">
@@ -399,7 +399,7 @@
         <div class="text-xs text-base-content/50 mb-1">Activation Key</div>
         {{if $L.ActivationKey}}
         <button type="button" class="group flex items-center gap-2 w-full text-left rounded-lg border border-dashed border-base-300 hover:border-info bg-base-200/30 hover:bg-info/5 px-3 py-1.5 transition-colors"
-                @click="navigator.clipboard.write('{{if $L.ActivationKey}}{{$L.ActivationKey}}{{end}}').then(() => { copied = true; setTimeout(() => copied = false, 1500) })"
+                @click="navigator.clipboard.writeText('{{if $L.ActivationKey}}{{$L.ActivationKey}}{{end}}').then(() => { copied = true; setTimeout(() => copied = false, 1500) })"
                 title="Klik untuk copy">
           <span class="font-mono text-sm flex-1 truncate">{{$L.ActivationKey}}</span>
           <span class="shrink-0" x-show="!copied">
@@ -417,7 +417,7 @@
 
   <!-- RIGHT section -->
   <div class="space-y-4">
-    <h3 class="text-xs font-bold uppercase tracking-wider text-base-content/40 border-b border-base-300 pb-2">Penugasan &amp; Perangkat</h3>
+    <h3 class="text-xs font-bold uppercase tracking-wider text-base-content/40 border-b border-base-300 pb-2">Assignment &amp; Device</h3>
     <div class="space-y-3">
       <div><div class="text-xs text-base-content/50">Assigned To</div><div>{{if $L.AssignedTo}}{{$L.AssignedTo}}{{else}}<span class="text-base-content/30">—</span>{{end}}</div></div>
       <div><div class="text-xs text-base-content/50">Section</div><div>{{if $L.Section}}{{$L.Section}}{{else}}<span class="text-base-content/30">—</span>{{end}}</div></div>
