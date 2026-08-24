@@ -41,6 +41,23 @@ var funcMap = template.FuncMap{
 		return t.Before(time.Now().Add(30 * 24 * time.Hour))
 	},
 	"licenseStatuses": func() []string { return []string{"In use", "Available", "Expired", "Retired"} },
+	// dict builds a map for template partial calls: {{template "x" (dict "A" 1 "B" "two")}}
+	"dict": func(kv ...any) map[string]any {
+		m := map[string]any{}
+		for i := 0; i+1 < len(kv); i += 2 {
+			if k, ok := kv[i].(string); ok {
+				m[k] = kv[i+1]
+			}
+		}
+		return m
+	},
+	// dmy formats *time.Time as DD-MM-YY (empty string when nil)
+	"dmy": func(t *time.Time) string {
+		if t == nil {
+			return ""
+		}
+		return t.Format("02-01-06")
+	},
 }
 
 func init() {

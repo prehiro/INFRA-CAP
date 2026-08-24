@@ -106,6 +106,66 @@
         this.open = false
       },
     }))
+
+      // dpField: datepicker for forms (modal + fallback page). Third arg = disabled guard.
+      Alpine.data('dpField', (name, initial, disabled = false) => ({
+        open: false,
+        name,
+        selected: initial || '',
+        display: initial || '',
+        iso: initial ? (() => { const [d,m,y] = initial.split('-'); return '20'+y+'-'+m+'-'+d })() : '',
+        view: null,
+        toggle() { if (!disabled) this.open = !this.open },
+        get monthLabel() {
+          const v = this.view
+          const names = ['January','February','March','April','May','June','July','August','September','October','November','December']
+          if (!v) return ''
+          return names[v.m] + ' ' + v.y
+        },
+        get cells() {
+          const v = this.view
+          if (!v) return []
+          const first = new Date(v.y, v.m, 1)
+          const startDow = first.getDay()
+          const daysInMonth = new Date(v.y, v.m + 1, 0).getDate()
+          const out = []
+          for (let k = 0; k < startDow; k++) out.push({ key: 'p'+k, day: '', inMonth: false, iso: '' })
+          for (let d = 1; d <= daysInMonth; d++) {
+            const mm = String(v.m + 1).padStart(2, '0'), dd = String(d).padStart(2, '0')
+            out.push({ key: 'd'+d, day: d, inMonth: true, iso: v.y+'-'+mm+'-'+dd })
+          }
+          return out
+        },
+        init() {
+          if (this.iso) {
+            const [y, m] = this.iso.split('-').map(Number)
+            this.view = { y, m: m - 1 }
+          }
+        },
+        prevMonth() {
+          let v = this.view || (() => { const n = new Date(); return { y: n.getFullYear(), m: n.getMonth() } })()
+          v = { y: v.m === 0 ? v.y - 1 : v.y, m: v.m === 0 ? 11 : v.m - 1 }
+          this.view = v
+        },
+        nextMonth() {
+          let v = this.view || (() => { const n = new Date(); return { y: n.getFullYear(), m: n.getMonth() } })()
+          v = { y: v.m === 11 ? v.y + 1 : v.y, m: v.m === 11 ? 0 : v.m + 1 }
+          this.view = v
+        },
+        pick(cell) {
+          if (!cell.inMonth) return
+          this.selected = cell.iso
+          const [y, m, d] = cell.iso.split('-')
+          this.display = d + '-' + m + '-' + y.slice(2)
+          this.iso = cell.iso
+          this.open = false
+        },
+        clear() { this.selected=''; this.display=''; this.iso=''; this.open=false },
+        today() {
+          const n = new Date()
+          this.pick({ inMonth: true, iso: n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0') })
+        }
+      }))
   })
   </script>
   <style>
