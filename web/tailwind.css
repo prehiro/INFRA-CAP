@@ -124,3 +124,47 @@
     left: 130%;
   }
 }
+
+/* ===== row action buttons (table) ===== */
+@layer components {
+  .row-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    height: 1.65rem;
+    padding: 0 0.6rem;
+    border-radius: 0.375rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #57534e; /* stone-600 */
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all .2s ease;
+  }
+  .row-action:hover  { transform: translateY(-1px); }
+  .row-action:active { transform: translateY(0) scale(.97); }
+
+  .row-action-view:hover {
+    color: #1d4ed8;
+    background: #eff6ff;
+    border-color: #bfdbfe;
+  }
+  .row-action-edit {
+    color: #b45309;                                    /* amber-700 */
+  }
+  .row-action-edit:hover {
+    color: #92400e;                                    /* amber-800 */
+    background: #fffbeb;                               /* amber-50 */
+    border-color: #fde68a;                             /* amber-200 */
+  }
+  .row-action-retire {
+    color: #b91c1c;                                    /* red-700 */
+  }
+  .row-action-retire:hover {
+    color: white;
+    background: var(--color-error);
+    border-color: var(--color-error);
+  }
+}
