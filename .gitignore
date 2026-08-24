@@ -5,3 +5,4 @@
 infracap
 tools/go/
 tools/tailwindcss*
+tmp/
