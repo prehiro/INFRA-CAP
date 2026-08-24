@@ -125,7 +125,7 @@
     <table class="table table-sm w-full min-w-[1200px]">
       <thead>
         <tr class="bg-base-200/60 text-xs uppercase tracking-wide text-base-content/50">
-          <th>Software</th><th>Maker</th><th>Assigned To</th><th>Device</th>
+          <th>Software</th><th>Maker</th><th>Assigned To</th><th>Hostname</th><th>SN</th>
           <th>Section</th><th>Status</th><th>Activated</th><th>Expiry</th><th></th>
         </tr>
       </thead>
@@ -139,7 +139,8 @@
           </td>
           <td class="whitespace-nowrap">{{.Maker}}</td>
           <td class="whitespace-nowrap">{{if .AssignedTo}}{{.AssignedTo}}{{else}}<span class="text-base-content/30">—</span>{{end}}</td>
-          <td class="text-xs whitespace-nowrap">{{if .DeviceHostname}}{{.DeviceHostname}}{{if .DeviceSN}}<div class="text-base-content/40">SN: {{.DeviceSN}}</div>{{end}}{{else}}<span class="text-base-content/30">—</span>{{end}}</td>
+          <td class="whitespace-nowrap">{{if .DeviceHostname}}{{.DeviceHostname}}{{else}}<span class="text-base-content/30">—</span>{{end}}</td>
+          <td class="whitespace-nowrap text-xs text-base-content/60">{{if .DeviceSN}}{{.DeviceSN}}{{else}}<span class="text-base-content/30">—</span>{{end}}</td>
           <td class="whitespace-nowrap">{{if .Section}}{{.Section}}{{else}}<span class="text-base-content/30">—</span>{{end}}</td>
           <td class="whitespace-nowrap">
             {{if eq .Status "In use"}}<span class="status-badge status-in-use">In use</span>
