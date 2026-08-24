@@ -19,6 +19,7 @@ func (m *Module) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /licenses", m.list)
 	mux.HandleFunc("GET /licenses/new", m.newForm)
 	mux.HandleFunc("POST /licenses", m.save)
+	mux.HandleFunc("GET /licenses/{id}", m.viewLicense)
 	mux.HandleFunc("GET /licenses/{id}/edit", m.editForm)
 	mux.HandleFunc("POST /licenses/{id}", m.update)
 	mux.HandleFunc("POST /licenses/{id}/delete", m.retire)
@@ -127,6 +128,21 @@ func (m *Module) list(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	web.RenderNamed(w, r, "licenses_content", "License Manager", data)
+}
+
+// viewLicense shows a read-only detail page.
+func (m *Module) viewLicense(w http.ResponseWriter, r *http.Request) {
+	l, err := m.Store.GetByID(r.Context(), atoi(r.PathValue("id")))
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	web.RenderNamed(w, r, "license_form_content", "License Detail", map[string]any{
+		"L":      l,
+		"IsNew":  false,
+		"Error":  "",
+		"ViewOnly": true,
+	})
 }
 
 func (m *Module) newForm(w http.ResponseWriter, r *http.Request) {
