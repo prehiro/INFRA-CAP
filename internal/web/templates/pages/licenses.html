@@ -378,12 +378,14 @@
         {{else if eq $L.Status "Expired"}}<span class="status-badge status-expired">Expired</span>
         {{else}}<span class="status-badge status-retired">Retired</span>{{end}}
       </div>
-      <div x-data="{ copied: false }" @text-copied.document="copied = true; setTimeout(() => copied = false, 1600)"
+      <div x-data="{ copied: false, field: 'license_key' }"
+           @text-copied.document="if ($event.detail === field) { copied = true; setTimeout(() => copied = false, 1600) }"
            class="relative">
         <div class="text-xs text-base-content/50 mb-1">License Key</div>
+        <!-- listener -->
         {{if $L.LicenseKey}}
-        <button type="button" class="group flex items-center gap-2 w-full text-left rounded-lg border border-dashed border-base-300 hover:border-info bg-base-200/30 hover:bg-info/5 px-3 py-1.5 transition-colors"
-                @click="copyText('{{if $L.LicenseKey}}{{$L.LicenseKey}}{{end}}')"
+        <button type="button" class="group relative flex items-center gap-2 w-full text-left rounded-lg border border-dashed border-base-300 hover:border-info bg-base-200/30 hover:bg-info/5 px-3 py-1.5 transition-colors"
+                @click="copyText('{{if $L.LicenseKey}}{{$L.LicenseKey}}{{end}}', 'license_key')"
                 title="Click to copy">
           <span class="font-mono text-sm flex-1 truncate">{{$L.LicenseKey}}</span>
           <span class="shrink-0 transition-transform duration-200" :class="copied && 'scale-75 opacity-0'">
@@ -396,19 +398,20 @@
                 x-transition:enter-end="opacity-100 scale-100"
                 x-transition:leave="transition ease-in duration-500"
                 x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-                class="absolute inset-0 rounded-lg bg-success/20 border border-success/40 flex items-center justify-center gap-1.5 text-success text-xs font-bold pointer-events-none">
+                class="absolute inset-0 rounded-lg border border-success flex items-center justify-center gap-1.5 text-white text-xs font-bold shadow-sm pointer-events-none" style="background-color: color-mix(in oklab, var(--color-success) 88%, transparent)">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
             License Copied!
           </span>
         </button>
         {{else}}<div class="text-base-content/30">—</div>{{end}}
       </div>
-      <div x-data="{ copied: false }" @text-copied.document="copied = true; setTimeout(() => copied = false, 1600)"
+      <div x-data="{ copied: false, field: 'activation_key' }"
+           @text-copied.document="if ($event.detail === field) { copied = true; setTimeout(() => copied = false, 1600) }"
            class="relative">
         <div class="text-xs text-base-content/50 mb-1">Activation Key</div>
         {{if $L.ActivationKey}}
-        <button type="button" class="group flex items-center gap-2 w-full text-left rounded-lg border border-dashed border-base-300 hover:border-info bg-base-200/30 hover:bg-info/5 px-3 py-1.5 transition-colors"
-                @click="copyText('{{if $L.ActivationKey}}{{$L.ActivationKey}}{{end}}')"
+        <button type="button" class="group relative flex items-center gap-2 w-full text-left rounded-lg border border-dashed border-base-300 hover:border-info bg-base-200/30 hover:bg-info/5 px-3 py-1.5 transition-colors"
+                @click="copyText('{{if $L.ActivationKey}}{{$L.ActivationKey}}{{end}}', 'activation_key')"
                 title="Click to copy">
           <span class="font-mono text-sm flex-1 truncate">{{$L.ActivationKey}}</span>
           <span class="shrink-0 transition-transform duration-200" :class="copied && 'scale-75 opacity-0'">
@@ -421,7 +424,7 @@
                 x-transition:enter-end="opacity-100 scale-100"
                 x-transition:leave="transition ease-in duration-500"
                 x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-                class="absolute inset-0 rounded-lg bg-success/20 border border-success/40 flex items-center justify-center gap-1.5 text-success text-xs font-bold pointer-events-none">
+                class="absolute inset-0 rounded-lg border border-success flex items-center justify-center gap-1.5 text-white text-xs font-bold shadow-sm pointer-events-none" style="background-color: color-mix(in oklab, var(--color-success) 88%, transparent)">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
             License Copied!
           </span>

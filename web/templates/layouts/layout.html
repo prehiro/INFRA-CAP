@@ -361,14 +361,13 @@
     if (m) e.detail.headers['X-CSRF-Token'] = decodeURIComponent(m[1]);
   });
   // copy-to-clipboard with insecure-origin fallback
-  window.copyText = function(text) {
+  window.copyText = function(text, field) {
+    const done = () => document.dispatchEvent(new CustomEvent('text-copied', { detail: field || '' }));
     if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(text).then(
-        () => document.dispatchEvent(new CustomEvent('text-copied')),
-        () => { __copyFallback(text); }
-      );
+      navigator.clipboard.writeText(text).then(done, () => { __copyFallback(text); done(); });
     } else {
       __copyFallback(text);
+      done();
     }
   };
   function __copyFallback(text) {
@@ -383,7 +382,6 @@
     let ok = false;
     try { ok = document.execCommand('copy'); } catch (e) {}
     document.body.removeChild(ta);
-    if (ok || true) document.dispatchEvent(new CustomEvent('text-copied'));
   }
 </script>
 </body>
