@@ -45,8 +45,6 @@ func (m *Module) exportExcel(w http.ResponseWriter, r *http.Request) {
 		put(l.Maker)
 		put(l.SoftwareName)
 		put(deref(l.Version))
-		put(deref(l.LicenseKey))
-		put(deref(l.ActivationKey))
 		put(deref(l.AssignedTo))
 		put(deref(l.DeviceHostname))
 		put(deref(l.DeviceSN))
@@ -55,6 +53,7 @@ func (m *Module) exportExcel(w http.ResponseWriter, r *http.Request) {
 		put(l.Status)
 		put(dateStr(l.ActivatedOn))
 		put(dateStr(l.ExpiryDate))
+		put(deref(l.Remarks))
 	}
 
 	// column widths: header length vs longest value

@@ -24,6 +24,7 @@ type License struct {
 	Status       string
 	ActivatedOn  *time.Time
 	ExpiryDate   *time.Time
+	Remarks      *string
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }
@@ -49,14 +50,14 @@ func (l *License) Validate() error {
 
 const cols = `id, maker, software_name, version, license_key, activation_key,
 	assigned_to, device_hostname, device_sn, section, po_no, status,
-	activated_on, expiry_date, created_at, updated_at`
+	activated_on, expiry_date, remarks, created_at, updated_at`
 
 func scanRow(row interface{ Scan(...any) error }) (*License, error) {
 	var l License
 	err := row.Scan(&l.ID, &l.Maker, &l.SoftwareName, &l.Version, &l.LicenseKey,
 		&l.ActivationKey, &l.AssignedTo, &l.DeviceHostname, &l.DeviceSN,
 		&l.Section, &l.PONo, &l.Status, &l.ActivatedOn, &l.ExpiryDate,
-		&l.CreatedAt, &l.UpdatedAt)
+		&l.Remarks, &l.CreatedAt, &l.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -192,23 +193,23 @@ func strPtr(s *string) any {
 func (s *Store) insert(ctx context.Context, l *License) error {
 	return s.DB.QueryRowContext(ctx, `INSERT INTO licenses
 		(maker, software_name, version, license_key, activation_key, assigned_to,
-		 device_hostname, device_sn, section, po_no, status, activated_on, expiry_date)
+		 device_hostname, device_sn, section, po_no, status, activated_on, expiry_date, remarks)
 	 OUTPUT INSERTED.id
-	 VALUES (@p1,@p2,@p3,@p4,@p5,@p6,@p7,@p8,@p9,@p10,@p11,@p12,@p13)`,
+	 VALUES (@p1,@p2,@p3,@p4,@p5,@p6,@p7,@p8,@p9,@p10,@p11,@p12,@p13,@p14)`,
 		l.Maker, l.SoftwareName, strPtr(l.Version), strPtr(l.LicenseKey), strPtr(l.ActivationKey),
 		strPtr(l.AssignedTo), strPtr(l.DeviceHostname), strPtr(l.DeviceSN), strPtr(l.Section),
-		strPtr(l.PONo), l.Status, datePtr(l.ActivatedOn), datePtr(l.ExpiryDate)).Scan(&l.ID)
+		strPtr(l.PONo), l.Status, datePtr(l.ActivatedOn), datePtr(l.ExpiryDate), strPtr(l.Remarks)).Scan(&l.ID)
 }
 
 func (s *Store) update(ctx context.Context, l *License) error {
 	_, err := s.DB.ExecContext(ctx, `UPDATE licenses SET
 		maker=@p1, software_name=@p2, version=@p3, license_key=@p4, activation_key=@p5,
 		assigned_to=@p6, device_hostname=@p7, device_sn=@p8, section=@p9, po_no=@p10,
-		status=@p11, activated_on=@p12, expiry_date=@p13, updated_at=SYSUTCDATETIME()
-	 WHERE id=@p14`,
+		status=@p11, activated_on=@p12, expiry_date=@p13, remarks=@p14, updated_at=SYSUTCDATETIME()
+	 WHERE id=@p15`,
 		l.Maker, l.SoftwareName, strPtr(l.Version), strPtr(l.LicenseKey), strPtr(l.ActivationKey),
 		strPtr(l.AssignedTo), strPtr(l.DeviceHostname), strPtr(l.DeviceSN), strPtr(l.Section),
-		strPtr(l.PONo), l.Status, datePtr(l.ActivatedOn), datePtr(l.ExpiryDate), l.ID)
+		strPtr(l.PONo), l.Status, datePtr(l.ActivatedOn), datePtr(l.ExpiryDate), strPtr(l.Remarks), l.ID)
 	return err
 }
 

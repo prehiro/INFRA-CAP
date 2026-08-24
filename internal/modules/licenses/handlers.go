@@ -68,6 +68,7 @@ func formToLicense(r *http.Request) *License {
 		Section:       ptr("section"),
 		PONo:          ptr("po_no"),
 		Status:        r.PostFormValue("status"),
+		Remarks:       ptr("remarks"),
 	}
 	if l.Status == "" {
 		l.Status = "Available"

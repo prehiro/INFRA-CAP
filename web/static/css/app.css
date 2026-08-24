@@ -375,6 +375,9 @@
   .max-w-6xl {
     max-width: var(--container-6xl);
   }
+  .max-w-\[220px\] {
+    max-width: 220px;
+  }
   .max-w-md {
     max-width: var(--container-md);
   }
@@ -384,8 +387,8 @@
   .min-w-\[220px\] {
     min-width: 220px;
   }
-  .min-w-\[1200px\] {
-    min-width: 1200px;
+  .min-w-\[1600px\] {
+    min-width: 1600px;
   }
   .flex-1 {
     flex: 1;

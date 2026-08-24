@@ -122,26 +122,28 @@
 {{define "license_results_content"}}
   <div id="license-results">
   <div class="rounded-box bg-base-100 border border-base-300 shadow-sm overflow-x-auto">
-    <table class="table table-sm w-full min-w-[1200px]">
+    <table class="table table-sm w-full min-w-[1600px]">
       <thead>
         <tr class="bg-base-200/60 text-xs uppercase tracking-wide text-base-content/50">
-          <th>Software</th><th>Maker</th><th>Assigned To</th><th>Hostname</th><th>SN</th>
-          <th>Section</th><th>Status</th><th>Activated</th><th>Expiry</th><th></th>
+          <th>Maker</th><th>Software Name</th><th>Version</th><th>Assigned To</th>
+          <th>Hostname</th><th>SN</th><th>Section</th><th>PO No</th><th>Status</th>
+          <th>Activated On</th><th>Expiry Date</th><th>Remarks</th><th></th>
         </tr>
       </thead>
       <tbody>
         {{if .Items}}
         {{range .Items}}
         <tr class="hover:bg-base-200/40 border-b border-base-300/50">
+          <td class="whitespace-nowrap">{{.Maker}}</td>
           <td class="whitespace-nowrap">
             <div class="font-medium">{{.SoftwareName}}</div>
-            <div class="text-xs text-base-content/45">{{if .Version}}v{{.Version}}{{end}}</div>
           </td>
-          <td class="whitespace-nowrap">{{.Maker}}</td>
+          <td class="whitespace-nowrap text-xs text-base-content/60">{{if .Version}}v{{.Version}}{{else}}<span class="text-base-content/30">—</span>{{end}}</td>
           <td class="whitespace-nowrap">{{if .AssignedTo}}{{.AssignedTo}}{{else}}<span class="text-base-content/30">—</span>{{end}}</td>
           <td class="whitespace-nowrap">{{if .DeviceHostname}}{{.DeviceHostname}}{{else}}<span class="text-base-content/30">—</span>{{end}}</td>
           <td class="whitespace-nowrap text-xs text-base-content/60">{{if .DeviceSN}}{{.DeviceSN}}{{else}}<span class="text-base-content/30">—</span>{{end}}</td>
           <td class="whitespace-nowrap">{{if .Section}}{{.Section}}{{else}}<span class="text-base-content/30">—</span>{{end}}</td>
+          <td class="whitespace-nowrap text-xs text-base-content/60">{{if .PONo}}{{.PONo}}{{else}}<span class="text-base-content/30">—</span>{{end}}</td>
           <td class="whitespace-nowrap">
             {{if eq .Status "In use"}}<span class="status-badge status-in-use">In use</span>
             {{else if eq .Status "Available"}}<span class="status-badge status-available">Available</span>
@@ -150,6 +152,7 @@
           </td>
           <td class="text-xs whitespace-nowrap">{{if .ActivatedOn}}{{.ActivatedOn.Format "02-01-06"}}{{else}}—{{end}}</td>
           <td class="text-xs whitespace-nowrap {{if isExpiringSoon .ExpiryDate .Status}}text-warning font-semibold{{end}}">{{if .ExpiryDate}}{{.ExpiryDate.Format "02-01-06"}}{{else}}—{{end}}</td>
+          <td class="text-xs text-base-content/60 max-w-[220px]">{{if .Remarks}}{{.Remarks}}{{else}}<span class="text-base-content/30">—</span>{{end}}</td>
           <td class="text-right whitespace-nowrap">
             <a href="/licenses/{{.ID}}/edit" class="btn btn-warning btn-xs gap-1 shiny-hover">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
@@ -240,6 +243,12 @@
     <div><label class="label text-xs font-medium pb-1">Expiry Date (DD-MM-YY)</label>
       <input name="expiry_date" value="{{if $L.ExpiryDate}}{{$L.ExpiryDate.Format "02-01-06"}}{{end}}" placeholder="DD-MM-YY"
              class="input input-sm input-bordered w-full bg-base-200/50"></div>
+
+    <div class="sm:col-span-2">
+      <label class="label text-xs font-medium pb-1">Remarks</label>
+      <textarea name="remarks" rows="2" placeholder="Catatan tambahan (opsional)"
+                class="textarea textarea-sm textarea-bordered w-full bg-base-200/50">{{$L.Remarks}}</textarea>
+    </div>
 
     <div class="sm:col-span-2 flex gap-2 pt-2">
       <button type="submit" class="btn btn-primary btn-sm flex-1 shiny-hover">Save</button>
