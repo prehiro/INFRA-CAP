@@ -7,34 +7,7 @@
   <link rel="stylesheet" href="/static/css/fonts.css">
   <link rel="stylesheet" href="/static/css/app.css">
   <script src="/static/js/htmx.min.js"></script>
-<script>
-  document.body.addEventListener('htmx:configRequest', (e) => {
-    const m = document.cookie.match(/(?:^|; )infracap_csrf=([^;]*)/);
-    if (m) e.detail.headers['X-CSRF-Token'] = decodeURIComponent(m[1]);
-  });
-window.copyText = function(text) {
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(text).then(() => window.__flashCopied(), () => window.__copyFallback(text));
-    } else {
-      window.__copyFallback(text);
-    }
-  };
-  window.__copyFallback = function(text) {
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    try { document.execCommand('copy'); } catch (e) {}
-    document.body.removeChild(ta);
-    window.__flashCopied();
-  };
-  window.__flashCopied = function() {
-    document.dispatchEvent(new CustomEvent('text-copied'));
-  };
-  // close modal on successful save: htmx swaps fresh results into #license-results
-</script>
+
   <script defer src="/static/js/alpine.min.js"></script>
   <script>
     document.addEventListener('alpine:init', () => {
@@ -381,5 +354,37 @@ window.copyText = function(text) {
       </main>
     </div>
   </div>
+<script>
+  // htmx: attach CSRF header to every request
+  document.addEventListener('htmx:configRequest', (e) => {
+    const m = document.cookie.match(/(?:^|; )infracap_csrf=([^;]*)/);
+    if (m) e.detail.headers['X-CSRF-Token'] = decodeURIComponent(m[1]);
+  });
+  // copy-to-clipboard with insecure-origin fallback
+  window.copyText = function(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(
+        () => document.dispatchEvent(new CustomEvent('text-copied')),
+        () => { __copyFallback(text); }
+      );
+    } else {
+      __copyFallback(text);
+    }
+  };
+  function __copyFallback(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.top = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    ta.setSelectionRange(0, text.length);
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+    if (ok || true) document.dispatchEvent(new CustomEvent('text-copied'));
+  }
+</script>
 </body>
 </html>{{end}}

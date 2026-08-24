@@ -378,36 +378,52 @@
         {{else if eq $L.Status "Expired"}}<span class="status-badge status-expired">Expired</span>
         {{else}}<span class="status-badge status-retired">Retired</span>{{end}}
       </div>
-      <div x-data="{ copied: false }" @text-copied.document="copied = true; setTimeout(() => copied = false, 1500)">
+      <div x-data="{ copied: false }" @text-copied.document="copied = true; setTimeout(() => copied = false, 1600)"
+           class="relative">
         <div class="text-xs text-base-content/50 mb-1">License Key</div>
         {{if $L.LicenseKey}}
         <button type="button" class="group flex items-center gap-2 w-full text-left rounded-lg border border-dashed border-base-300 hover:border-info bg-base-200/30 hover:bg-info/5 px-3 py-1.5 transition-colors"
                 @click="copyText('{{if $L.LicenseKey}}{{$L.LicenseKey}}{{end}}')"
                 title="Click to copy">
           <span class="font-mono text-sm flex-1 truncate">{{$L.LicenseKey}}</span>
-          <span class="shrink-0" x-show="!copied">
+          <span class="shrink-0 transition-transform duration-200" :class="copied && 'scale-75 opacity-0'">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-base-content/40 group-hover:text-info transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
           </span>
-          <span class="shrink-0 text-success text-xs font-semibold flex items-center gap-1" x-show="copied" x-cloak>
+          <!-- copied overlay -->
+          <span x-show="copied" x-cloak
+                x-transition:enter="transition ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-300"
+                x-transition:enter-start="opacity-0 scale-80"
+                x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-500"
+                x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                class="absolute inset-0 rounded-lg bg-success/20 border border-success/40 flex items-center justify-center gap-1.5 text-success text-xs font-bold pointer-events-none">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-            Copied
+            License Copied!
           </span>
         </button>
         {{else}}<div class="text-base-content/30">—</div>{{end}}
       </div>
-      <div x-data="{ copied: false }" @text-copied.document="copied = true; setTimeout(() => copied = false, 1500)">
+      <div x-data="{ copied: false }" @text-copied.document="copied = true; setTimeout(() => copied = false, 1600)"
+           class="relative">
         <div class="text-xs text-base-content/50 mb-1">Activation Key</div>
         {{if $L.ActivationKey}}
         <button type="button" class="group flex items-center gap-2 w-full text-left rounded-lg border border-dashed border-base-300 hover:border-info bg-base-200/30 hover:bg-info/5 px-3 py-1.5 transition-colors"
                 @click="copyText('{{if $L.ActivationKey}}{{$L.ActivationKey}}{{end}}')"
                 title="Click to copy">
           <span class="font-mono text-sm flex-1 truncate">{{$L.ActivationKey}}</span>
-          <span class="shrink-0" x-show="!copied">
+          <span class="shrink-0 transition-transform duration-200" :class="copied && 'scale-75 opacity-0'">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-base-content/40 group-hover:text-info transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
           </span>
-          <span class="shrink-0 text-success text-xs font-semibold flex items-center gap-1" x-show="copied" x-cloak>
+          <!-- copied overlay -->
+          <span x-show="copied" x-cloak
+                x-transition:enter="transition ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-300"
+                x-transition:enter-start="opacity-0 scale-80"
+                x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-500"
+                x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                class="absolute inset-0 rounded-lg bg-success/20 border border-success/40 flex items-center justify-center gap-1.5 text-success text-xs font-bold pointer-events-none">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-            Copied
+            License Copied!
           </span>
         </button>
         {{else}}<div class="text-base-content/30">—</div>{{end}}
