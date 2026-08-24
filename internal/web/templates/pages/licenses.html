@@ -365,7 +365,7 @@
 {{define "license_view_content"}}{{$L := .L}}
 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
 
-  <!-- LEFT section -->
+  <!-- LEFT: License Information -->
   <div class="space-y-4">
     <h3 class="text-xs font-bold uppercase tracking-wider text-base-content/40 border-b border-base-300 pb-2">License Information</h3>
     <div class="space-y-3">
@@ -378,55 +378,54 @@
         {{else if eq $L.Status "Expired"}}<span class="status-badge status-expired">Expired</span>
         {{else}}<span class="status-badge status-retired">Retired</span>{{end}}
       </div>
-      <div x-data="{ copied: false, field: 'license_key' }"
-           @text-copied.document="if ($event.detail === field) { copied = true; setTimeout(() => copied = false, 1600) }"
-           class="relative">
+      <div x-data="{ copied: false }"
+           @text-copied.document="if ($event.detail === 'license_key') { copied = true; setTimeout(() => copied = false, 1800) }">
         <div class="text-xs text-base-content/50 mb-1">License Key</div>
-        <!-- listener -->
         {{if $L.LicenseKey}}
-        <button type="button" class="group relative flex items-center gap-2 w-full text-left rounded-lg border border-dashed border-base-300 hover:border-info bg-base-200/30 hover:bg-info/5 px-3 py-1.5 transition-colors"
-                @click="copyText('{{if $L.LicenseKey}}{{$L.LicenseKey}}{{end}}', 'license_key')"
-                title="Click to copy">
-          <span class="font-mono text-sm flex-1 truncate">{{$L.LicenseKey}}</span>
-          <span class="shrink-0 transition-transform duration-200" :class="copied && 'scale-75 opacity-0'">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-base-content/40 group-hover:text-info transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+        <button type="button"
+                @click="copyText('{{$L.LicenseKey}}', 'license_key')"
+                title="Click to copy"
+                class="group relative flex items-center gap-2 w-full text-left rounded-lg border px-3 py-1.5 transition-all duration-300"
+                :class="copied ? 'border-success bg-success/10' : 'border-dashed border-base-300 hover:border-info bg-base-200/30 hover:bg-info/5'">
+          <span class="relative flex-1 h-5 overflow-hidden font-mono text-sm">
+            <span x-show="!copied" class="absolute inset-0 flex items-center truncate transition-all duration-300"
+                  :class="copied ? '-translate-y-3 opacity-0' : 'translate-y-0 opacity-100'">{{$L.LicenseKey}}</span>
+            <span x-show="copied" x-cloak
+                  class="absolute inset-0 flex items-center gap-1.5 font-sans text-success font-semibold text-xs transition-all duration-300"
+                  :class="copied ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+              Copied to clipboard!
+            </span>
           </span>
-          <!-- copied overlay -->
-          <span x-show="copied" x-cloak
-                x-transition:enter="transition ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-300"
-                x-transition:enter-start="opacity-0 scale-80"
-                x-transition:enter-end="opacity-100 scale-100"
-                x-transition:leave="transition ease-in duration-500"
-                x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-                class="absolute inset-0 rounded-lg border border-success flex items-center justify-center gap-1.5 text-white text-xs font-bold shadow-sm pointer-events-none" style="background-color: color-mix(in oklab, var(--color-success) 88%, transparent)">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-            License Copied!
+          <span class="shrink-0 relative w-4 h-4">
+            <svg x-show="!copied" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 absolute inset-0 text-base-content/40 group-hover:text-info transition-colors duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            <svg x-show="copied" x-cloak xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 absolute inset-0 text-success transition-transform duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
           </span>
         </button>
         {{else}}<div class="text-base-content/30">—</div>{{end}}
       </div>
-      <div x-data="{ copied: false, field: 'activation_key' }"
-           @text-copied.document="if ($event.detail === field) { copied = true; setTimeout(() => copied = false, 1600) }"
-           class="relative">
+      <div x-data="{ copied: false }"
+           @text-copied.document="if ($event.detail === 'activation_key') { copied = true; setTimeout(() => copied = false, 1800) }">
         <div class="text-xs text-base-content/50 mb-1">Activation Key</div>
         {{if $L.ActivationKey}}
-        <button type="button" class="group relative flex items-center gap-2 w-full text-left rounded-lg border border-dashed border-base-300 hover:border-info bg-base-200/30 hover:bg-info/5 px-3 py-1.5 transition-colors"
-                @click="copyText('{{if $L.ActivationKey}}{{$L.ActivationKey}}{{end}}', 'activation_key')"
-                title="Click to copy">
-          <span class="font-mono text-sm flex-1 truncate">{{$L.ActivationKey}}</span>
-          <span class="shrink-0 transition-transform duration-200" :class="copied && 'scale-75 opacity-0'">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-base-content/40 group-hover:text-info transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+        <button type="button"
+                @click="copyText('{{$L.ActivationKey}}', 'activation_key')"
+                title="Click to copy"
+                class="group relative flex items-center gap-2 w-full text-left rounded-lg border px-3 py-1.5 transition-all duration-300"
+                :class="copied ? 'border-success bg-success/10' : 'border-dashed border-base-300 hover:border-info bg-base-200/30 hover:bg-info/5'">
+          <span class="relative flex-1 h-5 overflow-hidden font-mono text-sm">
+            <span x-show="!copied" class="absolute inset-0 flex items-center truncate transition-all duration-300"
+                  :class="copied ? '-translate-y-3 opacity-0' : 'translate-y-0 opacity-100'">{{$L.ActivationKey}}</span>
+            <span x-show="copied" x-cloak
+                  class="absolute inset-0 flex items-center gap-1.5 font-sans text-success font-semibold text-xs transition-all duration-300"
+                  :class="copied ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+              Copied to clipboard!
+            </span>
           </span>
-          <!-- copied overlay -->
-          <span x-show="copied" x-cloak
-                x-transition:enter="transition ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-300"
-                x-transition:enter-start="opacity-0 scale-80"
-                x-transition:enter-end="opacity-100 scale-100"
-                x-transition:leave="transition ease-in duration-500"
-                x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-                class="absolute inset-0 rounded-lg border border-success flex items-center justify-center gap-1.5 text-white text-xs font-bold shadow-sm pointer-events-none" style="background-color: color-mix(in oklab, var(--color-success) 88%, transparent)">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-            License Copied!
+          <span class="shrink-0 relative w-4 h-4">
+            <svg x-show="!copied" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 absolute inset-0 text-base-content/40 group-hover:text-info transition-colors duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            <svg x-show="copied" x-cloak xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 absolute inset-0 text-success transition-transform duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
           </span>
         </button>
         {{else}}<div class="text-base-content/30">—</div>{{end}}
@@ -434,7 +433,7 @@
     </div>
   </div>
 
-  <!-- RIGHT section -->
+  <!-- RIGHT: Assignment & Device -->
   <div class="space-y-4">
     <h3 class="text-xs font-bold uppercase tracking-wider text-base-content/40 border-b border-base-300 pb-2">Assignment &amp; Device</h3>
     <div class="space-y-3">
@@ -449,7 +448,7 @@
       </div>
     </div>
 
-    {{if or $L.Remarks}}
+    {{if $L.Remarks}}
     <div class="pt-1">
       <h3 class="text-xs font-bold uppercase tracking-wider text-base-content/40 border-b border-base-300 pb-2 mb-2">Remarks</h3>
       <p class="text-sm whitespace-pre-wrap">{{$L.Remarks}}</p>
