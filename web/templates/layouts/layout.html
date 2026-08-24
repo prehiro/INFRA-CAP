@@ -7,6 +7,13 @@
   <link rel="stylesheet" href="/static/css/fonts.css">
   <link rel="stylesheet" href="/static/css/app.css">
   <script src="/static/js/htmx.min.js"></script>
+<script>
+  document.body.addEventListener('htmx:configRequest', (e) => {
+    const m = document.cookie.match(/(?:^|; )infracap_csrf=([^;]*)/);
+    if (m) e.detail.headers['X-CSRF-Token'] = decodeURIComponent(m[1]);
+  });
+  // close modal on successful save: htmx swaps fresh results into #license-results
+</script>
   <script defer src="/static/js/alpine.min.js"></script>
   <script>
     document.addEventListener('alpine:init', () => {

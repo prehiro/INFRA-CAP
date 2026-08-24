@@ -130,23 +130,29 @@ func (m *Module) list(w http.ResponseWriter, r *http.Request) {
 	web.RenderNamed(w, r, "licenses_content", "License Manager", data)
 }
 
-// viewLicense shows a read-only detail page.
+// viewLicense shows a read-only detail (modal for HTMX, page fallback otherwise).
 func (m *Module) viewLicense(w http.ResponseWriter, r *http.Request) {
 	l, err := m.Store.GetByID(r.Context(), atoi(r.PathValue("id")))
 	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
-	web.RenderNamed(w, r, "license_form_content", "License Detail", map[string]any{
-		"L":      l,
-		"IsNew":  false,
-		"Error":  "",
-		"ViewOnly": true,
-	})
+	data := map[string]any{"L": l, "IsNew": false, "Error": "", "ViewOnly": true}
+	if r.Header.Get("HX-Request") == "true" {
+		web.RenderNamed(w, r, "license_modal_content", "License Detail", data)
+		return
+	}
+	web.RenderNamed(w, r, "license_form_content", "License Detail", data)
 }
 
 func (m *Module) newForm(w http.ResponseWriter, r *http.Request) {
-	m.renderForm(w, r, &License{Status: "Available"}, true, "")
+	tpl := "license_form_content"
+	if r.Header.Get("HX-Request") == "true" {
+		tpl = "license_modal_content"
+	}
+	web.RenderNamed(w, r, tpl, "New License", map[string]any{
+		"L": &License{Status: "Available"}, "IsNew": true, "Error": "",
+	})
 }
 
 func (m *Module) editForm(w http.ResponseWriter, r *http.Request) {
@@ -155,11 +161,21 @@ func (m *Module) editForm(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	m.renderForm(w, r, l, false, "")
+	tpl := "license_form_content"
+	if r.Header.Get("HX-Request") == "true" {
+		tpl = "license_modal_content"
+	}
+	web.RenderNamed(w, r, tpl, "Edit License", map[string]any{
+		"L": l, "IsNew": false, "Error": "",
+	})
 }
 
 func (m *Module) renderForm(w http.ResponseWriter, r *http.Request, l *License, isNew bool, errMsg string) {
-	web.RenderNamed(w, r, "license_form_content", formTitle(l, isNew), map[string]any{
+	tpl := "license_form_content"
+	if r.Header.Get("HX-Request") == "true" {
+		tpl = "license_modal_content"
+	}
+	web.RenderNamed(w, r, tpl, formTitle(l, isNew), map[string]any{
 		"L":     l,
 		"IsNew": isNew,
 		"Error": errMsg,
@@ -175,8 +191,13 @@ func formTitle(l *License, isNew bool) string {
 
 func (m *Module) save(w http.ResponseWriter, r *http.Request) {
 	l := formToLicense(r)
+	isNew := l.ID == 0
 	if err := m.Store.Save(r.Context(), l); err != nil {
-		m.renderForm(w, r, l, l.ID == 0, err.Error())
+		m.renderForm(w, r, l, isNew, err.Error())
+		return
+	}
+	if r.Header.Get("HX-Request") == "true" {
+		m.hxResults(w, r)
 		return
 	}
 	http.Redirect(w, r, "/licenses", http.StatusSeeOther)
@@ -189,7 +210,18 @@ func (m *Module) update(w http.ResponseWriter, r *http.Request) {
 		m.renderForm(w, r, l, false, err.Error())
 		return
 	}
+	if r.Header.Get("HX-Request") == "true" {
+		m.hxResults(w, r)
+		return
+	}
 	http.Redirect(w, r, "/licenses", http.StatusSeeOther)
+}
+
+// hxResults returns the refreshed table fragment after a successful modal submit.
+func (m *Module) hxResults(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("HX-Retarget", "#license-results")
+	w.Header().Set("HX-Reswap", "outerHTML")
+	m.list(w, r)
 }
 
 // retire implements soft delete: status → Retired.

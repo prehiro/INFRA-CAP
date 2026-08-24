@@ -14,10 +14,11 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
         Export Excel
       </a>
-      <a href="/licenses/new" class="btn btn-primary btn-sm shiny-hover">
+      <button type="button" class="btn btn-primary btn-sm shiny-hover"
+            hx-get="/licenses/new" hx-target="#modal-container" hx-swap="innerHTML">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
         New License
-      </a>
+      </button>
     </div>
   </div>
 
@@ -117,6 +118,9 @@
   <div id="license-results">
 {{template "license_results_content" .}}
   </div>
+
+  <!-- modal target -->
+  <div id="modal-container"></div>
 {{end}}
 
 {{define "license_results_content"}}
@@ -154,14 +158,16 @@
           <td class="text-xs whitespace-nowrap {{if isExpiringSoon .ExpiryDate .Status}}text-warning font-semibold{{end}}">{{if .ExpiryDate}}{{.ExpiryDate.Format "02-01-06"}}{{else}}—{{end}}</td>
           <td class="text-xs text-base-content/60 max-w-[220px]">{{if .Remarks}}{{.Remarks}}{{else}}<span class="text-base-content/30">—</span>{{end}}</td>
           <td class="text-right whitespace-nowrap">
-            <a href="/licenses/{{.ID}}" class="btn btn-info btn-xs gap-1 shiny-hover">
+            <button type="button" class="btn btn-info btn-xs gap-1 shiny-hover"
+                    hx-get="/licenses/{{.ID}}" hx-target="#modal-container" hx-swap="innerHTML">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
               View
-            </a>
-            <a href="/licenses/{{.ID}}/edit" class="btn btn-warning btn-xs gap-1 shiny-hover">
+            </button>
+            <button type="button" class="btn btn-warning btn-xs gap-1 shiny-hover"
+                    hx-get="/licenses/{{.ID}}/edit" hx-target="#modal-container" hx-swap="innerHTML">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
               Edit
-            </a>
+            </button>
             <form method="post" action="/licenses/{{.ID}}/delete" class="inline"
                   onsubmit="return confirm('Retire this license?')">
               <button type="submit" class="btn btn-error btn-xs gap-1 shiny-hover">
@@ -173,8 +179,8 @@
         </tr>
         {{end}}
         {{else}}
-        <tr><td colspan="9" class="text-center py-12 text-base-content/40">
-          No licenses found. <a href="/licenses/new" class="link link-primary">Add the first one</a>.
+        <tr><td colspan="13" class="text-center py-12 text-base-content/40">
+          No licenses found. <button type="button" class="link link-primary" hx-get="/licenses/new" hx-target="#modal-container" hx-swap="innerHTML">Add the first one</button>.
         </td></tr>
         {{end}}
       </tbody>
@@ -200,20 +206,7 @@
 </div>
 {{end}}
 
-{{define "license_form_content"}}
-{{$L := .L}}
-{{$d := .}}
-<div class="max-w-3xl mx-auto space-y-5">
-  <h1 class="text-xl font-bold">{{if $d.IsNew}}New License{{else if $d.ViewOnly}}View: {{$L.SoftwareName}}{{else}}Edit: {{$L.SoftwareName}}{{end}}</h1>
-
-  {{if $d.Error}}
-  <div role="alert" class="alert alert-error text-sm py-2.5">
-    <span>{{$d.Error}}</span>
-  </div>
-  {{end}}
-
-  <form {{if $d.ViewOnly}}onsubmit="return false" class="pointer-events-none"{{else}}method="post" action="{{if $d.IsNew}}/licenses{{else}}/licenses/{{$L.ID}}{{end}}"{{end}}
-        data-form class="rounded-box bg-base-100 border border-base-300 shadow-sm p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+{{define "license_fields_content"}}{{$L := .L}}{{$d := .}}
     <div><label class="label text-xs font-medium pb-1">Maker *</label>
       <input name="maker" value="{{$L.Maker}}" required class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}></div>
     <div><label class="label text-xs font-medium pb-1">Software Name *</label>
@@ -243,23 +236,111 @@
       <input name="po_no" value="{{if $L.PONo}}{{$L.PONo}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}></div>
     <div><label class="label text-xs font-medium pb-1">Activated On (DD-MM-YY)</label>
       <input name="activated_on" value="{{if $L.ActivatedOn}}{{$L.ActivatedOn.Format "02-01-06"}}{{end}}" placeholder="DD-MM-YY"
-             class="input input-sm input-bordered w-full bg-base-200/50"></div>
+             class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}></div>
     <div><label class="label text-xs font-medium pb-1">Expiry Date (DD-MM-YY)</label>
       <input name="expiry_date" value="{{if $L.ExpiryDate}}{{$L.ExpiryDate.Format "02-01-06"}}{{end}}" placeholder="DD-MM-YY"
-             class="input input-sm input-bordered w-full bg-base-200/50"></div>
-
+             class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}></div>
     <div class="sm:col-span-2">
       <label class="label text-xs font-medium pb-1">Remarks</label>
       <textarea name="remarks" rows="2" placeholder="Catatan tambahan (opsional)" {{if $d.ViewOnly}}disabled{{end}}
                 class="textarea textarea-sm textarea-bordered w-full bg-base-200/50">{{if $L.Remarks}}{{$L.Remarks}}{{end}}</textarea>
     </div>
+{{end}}
 
+{{define "license_modal_content"}}{{$d := .}}{{$L := .L}}
+<div x-data="{ open: false, close() { this.open = false; setTimeout(() => this.$refs.root.remove(), 220) } }"
+     x-init="$nextTick(() => open = true)"
+     x-ref="root"
+     @keydown.escape.window="close()"
+     class="fixed inset-0 z-[90] flex items-center justify-center p-4">
+
+  <!-- backdrop -->
+  <div x-show="open" @click="close()"
+       x-transition:enter="transition ease-out duration-200"
+       x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+       x-transition:leave="transition ease-in duration-150"
+       x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+       class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+
+  <!-- dialog card -->
+  <div x-show="open"
+       x-transition:enter="transition ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-300"
+       x-transition:enter-start="opacity-0 scale-90 translate-y-6"
+       x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+       x-transition:leave="transition ease-in duration-150"
+       x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+       x-transition:leave-end="opacity-0 scale-95 translate-y-3"
+       class="relative w-full max-w-2xl max-h-[92vh] flex flex-col rounded-2xl bg-base-100 border border-base-300 shadow-2xl overflow-hidden">
+
+    <!-- header -->
+    <div class="flex items-center justify-between gap-3 px-6 py-4 border-b border-base-300 bg-base-200/40 shrink-0">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 {{if $d.ViewOnly}}bg-info/15 text-info{{else if $d.IsNew}}bg-primary/15 text-primary{{else}}bg-warning/15 text-warning{{end}}">
+          {{if $d.ViewOnly}}
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+          {{else if $d.IsNew}}
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+          {{else}}
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
+          {{end}}
+        </div>
+        <div class="min-w-0">
+          <h2 class="font-bold text-base leading-tight truncate">{{if $d.ViewOnly}}View License{{else if $d.IsNew}}New License{{else}}Edit License{{end}}</h2>
+          <p class="text-xs text-base-content/50 truncate">{{$L.Maker}}{{if $L.SoftwareName}} · {{$L.SoftwareName}}{{end}}</p>
+        </div>
+      </div>
+      <button type="button" @click="close()"
+              class="btn btn-circle btn-ghost btn-sm shrink-0 hover:bg-error hover:text-white transition-colors" aria-label="Tutup dialog">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+
+    {{if $d.Error}}
+    <div role="alert" class="alert alert-error text-sm py-2.5 mx-6 mt-4 shrink-0">
+      <span>{{$d.Error}}</span>
+    </div>
+    {{end}}
+
+    <!-- body -->
+    <div class="overflow-y-auto px-6 py-5">
+      <form {{if $d.ViewOnly}}onsubmit="return false" class="pointer-events-none"{{else}}hx-post="{{if $d.IsNew}}/licenses{{else}}/licenses/{{$L.ID}}{{end}}" hx-target="#modal-container" hx-swap="innerHTML"{{end}}
+            id="license-modal-form" data-form class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+{{template "license_fields_content" .}}
+      </form>
+    </div>
+
+    <!-- footer -->
+    <div class="px-6 py-4 border-t border-base-300 bg-base-200/30 flex justify-end gap-2 shrink-0">
+      {{if $d.ViewOnly}}
+      <button type="button" @click="close()" class="btn btn-info btn-sm shiny-hover">Tutup</button>
+      {{else}}
+      <button type="button" @click="close()" class="btn btn-ghost btn-sm">Batal</button>
+      <button type="submit" form="license-modal-form" class="btn btn-primary btn-sm shiny-hover">Simpan</button>
+      {{end}}
+    </div>
+  </div>
+</div>
+{{end}}
+
+{{define "license_form_content"}}{{$L := .L}}{{$d := .}}
+<div class="max-w-3xl mx-auto space-y-5">
+  <h1 class="text-xl font-bold">{{if $d.IsNew}}New License{{else if $d.ViewOnly}}View: {{$L.SoftwareName}}{{else}}Edit: {{$L.SoftwareName}}{{end}}</h1>
+
+  {{if $d.Error}}
+  <div role="alert" class="alert alert-error text-sm py-2.5">
+    <span>{{$d.Error}}</span>
+  </div>
+  {{end}}
+
+  <form {{if $d.ViewOnly}}onsubmit="return false" class="pointer-events-none"{{else}}method="post" action="{{if $d.IsNew}}/licenses{{else}}/licenses/{{$L.ID}}{{end}}"{{end}}
+        data-form class="rounded-box bg-base-100 border border-base-300 shadow-sm p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+{{template "license_fields_content" .}}
     <div class="sm:col-span-2 flex gap-2 pt-2">
       {{if $d.ViewOnly}}
       <a href="/licenses" class="btn btn-info btn-sm flex-1 shiny-hover">Back to List</a>
       {{else}}
-      <button type="submit" class="btn btn-primary btn-sm flex-1 shiny-hover">Save</button>
-      <a href="/licenses" class="btn btn-ghost btn-sm">Cancel</a>
+      <button type="submit" class="btn btn-primary btn-sm flex-1 shiny-hover">Simpan</button>
+      <a href="/licenses" class="btn btn-ghost btn-sm">Batal</a>
       {{end}}
     </div>
   </form>
