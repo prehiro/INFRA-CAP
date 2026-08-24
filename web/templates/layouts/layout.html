@@ -12,6 +12,27 @@
     const m = document.cookie.match(/(?:^|; )infracap_csrf=([^;]*)/);
     if (m) e.detail.headers['X-CSRF-Token'] = decodeURIComponent(m[1]);
   });
+window.copyText = function(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(() => window.__flashCopied(), () => window.__copyFallback(text));
+    } else {
+      window.__copyFallback(text);
+    }
+  };
+  window.__copyFallback = function(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+    window.__flashCopied();
+  };
+  window.__flashCopied = function() {
+    document.dispatchEvent(new CustomEvent('text-copied'));
+  };
   // close modal on successful save: htmx swaps fresh results into #license-results
 </script>
   <script defer src="/static/js/alpine.min.js"></script>

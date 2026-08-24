@@ -238,7 +238,7 @@
     {{template "license_datepicker_content" (dict "Name" "expiry_date" "Label" "Expiry Date" "Value" (dmy $L.ExpiryDate) "Disabled" $d.ViewOnly)}}
     <div class="sm:col-span-2">
       <label class="label text-xs font-medium pb-1">Remarks</label>
-      <textarea name="remarks" rows="2" placeholder="Catatan tambahan (opsional)" {{if $d.ViewOnly}}disabled{{end}}
+      <textarea name="remarks" rows="2" placeholder="Additional notes (optional)" {{if $d.ViewOnly}}disabled{{end}}
                 class="textarea textarea-sm textarea-bordered w-full bg-base-200/50">{{if $L.Remarks}}{{$L.Remarks}}{{end}}</textarea>
     </div>
 {{end}}
@@ -326,7 +326,7 @@
         </div>
       </div>
       <button type="button" @click="close()"
-              class="btn btn-circle btn-ghost btn-sm shrink-0 hover:bg-error hover:text-white transition-colors" aria-label="Tutup dialog">
+              class="btn btn-circle btn-ghost btn-sm shrink-0 hover:bg-error hover:text-white transition-colors" aria-label="Close dialog">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
       </button>
     </div>
@@ -352,10 +352,10 @@
     <!-- footer -->
     <div class="px-6 py-4 border-t border-base-300 bg-base-200/30 flex justify-end gap-2 shrink-0">
       {{if $d.ViewOnly}}
-      <button type="button" @click="close()" class="btn btn-info btn-sm shiny-hover">Tutup</button>
+      <button type="button" @click="close()" class="btn btn-info btn-sm shiny-hover">Close</button>
       {{else}}
-      <button type="button" @click="close()" class="btn btn-ghost btn-sm">Batal</button>
-      <button type="submit" form="license-modal-form" class="btn btn-primary btn-sm shiny-hover">Simpan</button>
+      <button type="button" @click="close()" class="btn btn-ghost btn-sm">Cancel</button>
+      <button type="submit" form="license-modal-form" class="btn btn-primary btn-sm shiny-hover">Save</button>
       {{end}}
     </div>
   </div>
@@ -378,36 +378,36 @@
         {{else if eq $L.Status "Expired"}}<span class="status-badge status-expired">Expired</span>
         {{else}}<span class="status-badge status-retired">Retired</span>{{end}}
       </div>
-      <div x-data="{ copied: false }">
+      <div x-data="{ copied: false }" @text-copied.document="copied = true; setTimeout(() => copied = false, 1500)">
         <div class="text-xs text-base-content/50 mb-1">License Key</div>
         {{if $L.LicenseKey}}
         <button type="button" class="group flex items-center gap-2 w-full text-left rounded-lg border border-dashed border-base-300 hover:border-info bg-base-200/30 hover:bg-info/5 px-3 py-1.5 transition-colors"
-                @click="navigator.clipboard.writeText('{{if $L.LicenseKey}}{{$L.LicenseKey}}{{end}}').then(() => { copied = true; setTimeout(() => copied = false, 1500) })"
-                title="Klik untuk copy">
+                @click="copyText('{{if $L.LicenseKey}}{{$L.LicenseKey}}{{end}}')"
+                title="Click to copy">
           <span class="font-mono text-sm flex-1 truncate">{{$L.LicenseKey}}</span>
           <span class="shrink-0" x-show="!copied">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-base-content/40 group-hover:text-info transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
           </span>
           <span class="shrink-0 text-success text-xs font-semibold flex items-center gap-1" x-show="copied" x-cloak>
             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-            Tersalin
+            Copied
           </span>
         </button>
         {{else}}<div class="text-base-content/30">—</div>{{end}}
       </div>
-      <div x-data="{ copied: false }">
+      <div x-data="{ copied: false }" @text-copied.document="copied = true; setTimeout(() => copied = false, 1500)">
         <div class="text-xs text-base-content/50 mb-1">Activation Key</div>
         {{if $L.ActivationKey}}
         <button type="button" class="group flex items-center gap-2 w-full text-left rounded-lg border border-dashed border-base-300 hover:border-info bg-base-200/30 hover:bg-info/5 px-3 py-1.5 transition-colors"
-                @click="navigator.clipboard.writeText('{{if $L.ActivationKey}}{{$L.ActivationKey}}{{end}}').then(() => { copied = true; setTimeout(() => copied = false, 1500) })"
-                title="Klik untuk copy">
+                @click="copyText('{{if $L.ActivationKey}}{{$L.ActivationKey}}{{end}}')"
+                title="Click to copy">
           <span class="font-mono text-sm flex-1 truncate">{{$L.ActivationKey}}</span>
           <span class="shrink-0" x-show="!copied">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-base-content/40 group-hover:text-info transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
           </span>
           <span class="shrink-0 text-success text-xs font-semibold flex items-center gap-1" x-show="copied" x-cloak>
             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-            Tersalin
+            Copied
           </span>
         </button>
         {{else}}<div class="text-base-content/30">—</div>{{end}}
@@ -463,8 +463,8 @@
         data-form class="rounded-box bg-base-100 border border-base-300 shadow-sm p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
 {{template "license_fields_content" .}}
     <div class="sm:col-span-2 flex gap-2 pt-2">
-      <button type="submit" class="btn btn-primary btn-sm flex-1 shiny-hover">Simpan</button>
-      <a href="/licenses" class="btn btn-ghost btn-sm">Batal</a>
+      <button type="submit" class="btn btn-primary btn-sm flex-1 shiny-hover">Save</button>
+      <a href="/licenses" class="btn btn-ghost btn-sm">Cancel</a>
     </div>
   </form>
   {{end}}
