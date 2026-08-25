@@ -23,7 +23,7 @@
   </div>
 
   <!-- filter bar -->
-  <form hx-get="/licenses" hx-target="#license-results" hx-swap="innerHTML" hx-trigger="input changed delay:350ms from:find input, change from:find select, dp-changed"
+  <form hx-get="/licenses" hx-target="#license-results" hx-swap="outerHTML" hx-trigger="input changed delay:350ms from:find input, change from:find select, dp-changed"
       class="rounded-box bg-base-100 border border-base-300 shadow-sm p-4 flex flex-wrap items-end gap-3">
     <div class="flex-1 min-w-[220px]">
       <label class="label text-xs font-medium pb-1 text-base-content/60">Search</label>
@@ -114,17 +114,15 @@
     <a href="/licenses" class="btn btn-ghost btn-sm shiny-hover">Reset</a>
   </form>
 
-  <!-- results (swapped by HTMX) -->
-  <div id="license-results">
-{{template "license_results_content" .}}
-  </div>
+  <!-- results (swapped by HTMX; fragment root carries the id) -->
+  {{template "license_results_content" .}}
 
   <!-- modal target -->
   <div id="modal-container"></div>
 {{end}}
 
 {{define "license_results_content"}}
-  <div class="space-y-4">
+  <div id="license-results" class="space-y-4">
   <div class="rounded-box bg-base-100 border border-base-300 shadow-sm overflow-x-auto">
     <table class="table table-sm w-full min-w-[1600px]">
       <thead>
