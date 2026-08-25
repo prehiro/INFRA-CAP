@@ -40,7 +40,7 @@
       </div>
     </div>
     <!-- status count chips -->
-    <div id="status-chips" class="flex flex-wrap items-end gap-2">
+    <div id="status-chips" class="flex flex-wrap items-end gap-2" x-data="{ status: '{{$F.Status}}' }">
       {{$C := .StatusCounts}}
       {{$total := 0}}{{if $C}}{{range $k, $v := $C}}{{$total = add $total $v}}{{end}}{{end}}
       <button type="button" title="Show all (reset filters)"
@@ -51,8 +51,8 @@
       </button>
       {{range $st := licenseStatuses}}
       <button type="button" title="Filter: {{$st}}"
-              hx-get="/licenses{{chipQuery $st $F.Query (dmy $F.ExpFrom) (dmy $F.ExpTo)}}" hx-target="#license-results" hx-swap="outerHTML"
-              class="status-chip {{if eq $st $F.Status}}status-chip-active{{end}}">
+              @click="selectStatus('{{$st}}')"
+              :class="status === '{{$st}}' ? 'status-chip status-chip-active' : 'status-chip'">
         <span class="status-dot {{if eq $st "In use"}}bg-green-600{{else if eq $st "Available"}}bg-blue-600{{else if eq $st "Expired"}}bg-red-600{{else}}bg-stone-500{{end}}"></span>{{$st}}
         <span class="chip-count">{{index $C $st}}</span>
       </button>
