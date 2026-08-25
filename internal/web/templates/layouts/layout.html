@@ -370,7 +370,12 @@
     const modal = document.querySelector('#modal-container > div');
     // error responses re-render the modal WITH an alert — don't close those
     if (modal && modal.querySelector('.alert-error')) return;
-    if (modal) document.dispatchEvent(new CustomEvent('modal-close'));
+    let closed = false;
+    if (window.Alpine && modal) {
+      const data = window.Alpine.$data(modal);
+      if (data && typeof data.close === 'function') { data.close(); closed = true; }
+    }
+    if (!closed && modal) modal.remove();          // hard fallback
     window.__showSavedToast();
   });
 
