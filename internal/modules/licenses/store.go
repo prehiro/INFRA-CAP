@@ -86,7 +86,7 @@ func (f *Filter) normalize() {
 	if f.Page < 1 {
 		f.Page = 1
 	}
-	if f.PageSize < 1 || f.PageSize > 100 {
+	if f.PageSize < 1 || f.PageSize > 1000000 {
 		f.PageSize = 20
 	}
 	if !sortWhitelist[f.Sort] {

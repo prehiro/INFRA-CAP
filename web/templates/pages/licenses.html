@@ -130,7 +130,7 @@
 {{end}}
 
 {{define "license_results_content"}}
-  <div id="license-results" class="flex-1 min-h-0 flex flex-col">
+  <div id="license-results" class="flex-1 min-h-0 flex flex-col mt-4">
   <div class="rounded-box bg-base-100 border border-base-300 shadow-sm overflow-auto flex-1 min-h-0">
     <table class="table table-sm w-full">
       <thead class="sticky top-0 z-20">
@@ -188,22 +188,7 @@
     </table>
   </div>
 
-  <!-- pagination -->
-  {{if gt .TotalPages 1}}
-  <div class="shrink-0 flex justify-center pt-1">
-    <div class="join">
-      {{$p := .Page}}{{$tp := .TotalPages}}
-      {{if gt $p 1}}<a href="?page={{sub $p 1}}" class="join-item btn btn-sm">«</a>{{end}}
-      {{range $i, $e := seq 1 $tp}}
-        {{if and (le (sub $e $p) 2) (le (sub $p $e) 2)}}
-        <a href="?page={{$e}}" class="join-item btn btn-sm {{if eq $e $p}}btn-primary{{else}}btn-ghost{{end}}">{{$e}}</a>
-        {{end}}
-      {{end}}
-      {{if lt $p $tp}}<a href="?page={{add $p 1}}" class="join-item btn btn-sm">»</a>{{end}}
-    </div>
-  </div>
-  {{end}}
-  </div>
+</div>
 {{end}}
 
 {{define "license_fields_content"}}{{$L := .L}}{{$d := .}}

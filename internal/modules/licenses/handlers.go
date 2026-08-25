@@ -94,7 +94,7 @@ func filterFromRequest(r *http.Request) Filter {
 		Sort:     q.Get("sort"),
 		Order:    q.Get("order"),
 		Page:     atoi(q.Get("page")),
-		PageSize: 20,
+		PageSize: 100000, // no pagination: show all rows
 	}
 	var err error
 	if f.ExpFrom, err = parseDate(q.Get("exp_from")); err != nil {
