@@ -399,6 +399,23 @@
       setTimeout(() => t.remove(), 500);
     }, 2600);
   };
+  // Master reset: clear the search input + both date pickers + status, then refetch all.
+  window.clearAllFilters = function() {
+    // blank the form's hidden status/date fields so no stale filter leaks back via live-search
+    document.querySelectorAll('#license-results').forEach(()=>{});
+    const form = document.querySelector('form[hx-get="/licenses"]');
+    if (form) {
+      form.querySelectorAll('input[type="hidden"][name="status"], input[type="hidden"][name="exp_from"], input[type="hidden"][name="exp_to"]')
+          .forEach(function (h) { h.value = ''; });
+    }
+    const inp = document.getElementById('license-search-input');
+    if (inp) { inp.value = ''; inp.dispatchEvent(new Event('input', { bubbles: true })); }
+    document.querySelectorAll('[x-data^="datePicker"]').forEach(function (el) {
+      const d = Alpine.$data(el);
+      if (d && typeof d.clear === 'function') d.clear();
+    });
+    htmx.ajax('GET', '/licenses', { target: '#license-results', swap: 'outerHTML' });
+  };
   // copy-to-clipboard with insecure-origin fallback
   window.copyText = function(text, field) {
     const done = () => document.dispatchEvent(new CustomEvent('text-copied', { detail: field || '' }));

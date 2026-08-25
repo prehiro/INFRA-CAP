@@ -43,8 +43,8 @@
     <div id="status-chips" class="flex flex-wrap items-end gap-2">
       {{$C := .StatusCounts}}
       {{$total := 0}}{{if $C}}{{range $k, $v := $C}}{{$total = add $total $v}}{{end}}{{end}}
-      <button type="button" title="Show all"
-              hx-get="/licenses{{chipQuery "" $F.Query (dmy $F.ExpFrom) (dmy $F.ExpTo)}}" hx-target="#license-results" hx-swap="outerHTML"
+      <button type="button" title="Show all (reset filters)"
+              @click="clearAllFilters()"
               class="status-chip {{if not $F.Status}}status-chip-active{{end}}">
         <span class="status-dot bg-blue-600"></span>All
         <span class="chip-count">{{$total}}</span>
