@@ -25,10 +25,18 @@
   <!-- filter bar -->
   <form hx-get="/licenses" hx-target="#license-results" hx-swap="outerHTML" hx-trigger="input changed delay:350ms from:find input, change from:find select, dp-changed"
       class="rounded-box bg-base-100 border border-base-300 shadow-sm p-4 flex flex-wrap items-end gap-3">
-    <div class="flex-1 min-w-[220px]">
+    <div class="flex-1 min-w-[220px]" x-data="{ hasQ: document.querySelector('input[name=q]')?.value.length > 0 }">
       <label class="label text-xs font-medium pb-1 text-base-content/60">Search</label>
-      <input name="q" value="{{$F.Query}}" placeholder="Software, maker, key, assignee, hostname..."
-             class="input input-sm input-bordered w-full bg-base-200/50">
+      <div class="relative">
+        <input name="q" value="{{$F.Query}}" placeholder="Software, maker, key, assignee, hostname..."
+               @input="hasQ = $event.target.value.length > 0"
+               class="input input-sm input-bordered w-full bg-base-200/50 pr-8">
+        <button type="button" x-show="hasQ" x-cloak title="Clear search"
+                @click="const i = this.closest('div').querySelector('input[name=q]'); i.value=''; hasQ=false; i.dispatchEvent(new Event('input', {bubbles:true}))"
+                class="absolute right-1.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center text-white bg-error/80 hover:bg-error transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
     </div>
     <div>
       <label class="label text-xs font-medium pb-1 text-base-content/60">Status</label>
