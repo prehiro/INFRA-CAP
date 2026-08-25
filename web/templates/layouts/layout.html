@@ -360,15 +360,38 @@
     const m = document.cookie.match(/(?:^|; )infracap_csrf=([^;]*)/);
     if (m) e.detail.headers['X-CSRF-Token'] = decodeURIComponent(m[1]);
   });
-  // close edit/new modal after a successful save (response retargets to #license-results)
+  // close edit/new modal after a successful save + show success toast
   document.addEventListener('htmx:afterRequest', (e) => {
     if (!e.detail.successful) return;
     const rt = e.detail.requestConfig && e.detail.requestConfig.headers['HX-Retarget'];
-    const modal = document.querySelector('#modal-container .fixed');
-    if ((rt || '').includes('license-results') && modal && !modal.querySelector('.alert-error')) {
-      modal.dispatchEvent(new CustomEvent('modal-close'));
-    }
+    if (!rt || !rt.includes('license-results')) return;
+    const modal = document.querySelector('#modal-container > div');
+    // error responses re-render the modal WITH an alert — don't close those
+    if (modal && modal.querySelector('.alert-error')) return;
+    if (modal) modal.dispatchEvent(new CustomEvent('modal-close'));
+    window.__showSavedToast();
   });
+
+  window.__showSavedToast = function() {
+    let t = document.getElementById('save-toast');
+    if (t) t.remove();
+    t = document.createElement('div');
+    t.id = 'save-toast';
+    t.style.cssText = 'position:fixed;top:1.25rem;left:50%;transform:translateX(-50%) translateY(-150%);z-index:[999];z-index:999;transition:transform .45s cubic-bezier(0.34,1.56,0.64,1),opacity .3s;opacity:0;';
+    t.innerHTML = '<div style="display:flex;align-items:center;gap:.6rem;padding:.65rem 1.1rem;border-radius:.75rem;background:#15803d;color:#fff;font-size:.8125rem;font-weight:600;box-shadow:0 8px 24px -6px rgba(21,128,61,.5)">'
+      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'
+      + 'Data saved successfully</div>';
+    document.body.appendChild(t);
+    requestAnimationFrame(() => {
+      t.style.transform = 'translateX(-50%) translateY(0)';
+      t.style.opacity = '1';
+    });
+    setTimeout(() => {
+      t.style.transform = 'translateX(-50%) translateY(-150%)';
+      t.style.opacity = '0';
+      setTimeout(() => t.remove(), 500);
+    }, 2600);
+  };
   // copy-to-clipboard with insecure-origin fallback
   window.copyText = function(text, field) {
     const done = () => document.dispatchEvent(new CustomEvent('text-copied', { detail: field || '' }));
