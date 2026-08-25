@@ -370,7 +370,7 @@
     const modal = document.querySelector('#modal-container > div');
     // error responses re-render the modal WITH an alert — don't close those
     if (modal && modal.querySelector('.alert-error')) return;
-    if (modal) modal.dispatchEvent(new CustomEvent('modal-close'));
+    if (modal) document.dispatchEvent(new CustomEvent('modal-close'));
     window.__showSavedToast();
   });
 
