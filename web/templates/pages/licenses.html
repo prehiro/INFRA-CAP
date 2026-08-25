@@ -1,6 +1,6 @@
 {{define "licenses_content"}}
 {{$F := .F}}
-<div class="w-full space-y-5">
+<div class="w-full space-y-5 pb-5">
 
   <!-- header -->
   <div class="flex flex-wrap items-center justify-between gap-3">
@@ -190,7 +190,7 @@
 
   <!-- pagination -->
   {{if gt .TotalPages 1}}
-  <div class="flex justify-center">
+  <div class="flex justify-center pt-2 pb-2">
     <div class="join">
       {{$p := .Page}}{{$tp := .TotalPages}}
       {{if gt $p 1}}<a href="?page={{sub $p 1}}" class="join-item btn btn-sm">«</a>{{end}}
