@@ -28,7 +28,8 @@
     <div class="w-96 shrink-0 flex items-center gap-2" x-data="{ hasQ: {{if $F.Query}}true{{else}}false{{end}} }">
       <label class="label text-xs font-medium text-base-content/60 whitespace-nowrap">Search</label>
       <div class="relative flex items-center flex-1">
-        <input id="license-search-input" name="q" value="{{$F.Query}}" placeholder="Search licenses..."
+        <input type="hidden" name="status" value="{{$F.Status}}">
+        <input id="license-search-input" name="q" value="{{$F.Query}}" placeholder="{{if $F.Status}}Search within {{$F.Status}}...{{else}}Search licenses...{{end}}"
                @input="hasQ = $event.target.value.length > 0"
                class="input input-sm input-bordered w-full bg-base-200/50 pr-8">
         <button type="button" x-show="hasQ" x-cloak title="Clear search"
@@ -43,14 +44,14 @@
       {{$C := .StatusCounts}}
       {{$total := 0}}{{if $C}}{{range $k, $v := $C}}{{$total = add $total $v}}{{end}}{{end}}
       <button type="button" title="Show all"
-              hx-get="/licenses" hx-target="#license-results" hx-swap="outerHTML"
+              hx-get="/licenses{{if $F.Query}}?q={{urlquery $F.Query}}{{end}}" hx-target="#license-results" hx-swap="outerHTML"
               class="status-chip {{if not $F.Status}}status-chip-active{{end}}">
         <span class="status-dot bg-blue-600"></span>All
         <span class="chip-count">{{$total}}</span>
       </button>
       {{range $st := licenseStatuses}}
       <button type="button" title="Filter: {{$st}}"
-              hx-get="/licenses?status={{urlquery $st}}" hx-target="#license-results" hx-swap="outerHTML"
+              hx-get="/licenses?status={{urlquery $st}}{{if $F.Query}}&q={{urlquery $F.Query}}{{end}}" hx-target="#license-results" hx-swap="outerHTML"
               class="status-chip {{if eq $F.Status $st}}status-chip-active{{end}}">
         <span class="status-dot {{if eq $st "In use"}}bg-green-600{{else if eq $st "Available"}}bg-blue-600{{else if eq $st "Expired"}}bg-red-600{{else}}bg-stone-500{{end}}"></span>{{$st}}
         <span class="chip-count">{{index $C $st}}</span>
