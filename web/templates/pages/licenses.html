@@ -1,11 +1,9 @@
 {{define "licenses_content"}}
 {{$F := .F}}
-<div class="w-full">
+<div class="w-full space-y-5">
 
-  <!-- sticky: page title + filter -->
-  <div class="sticky top-0 z-30 -mx-4 px-4 pt-1 pb-3 bg-base-200/95 backdrop-blur-sm rounded-b-box shadow-sm">
-    <div class="space-y-5">
-      <div class="flex flex-wrap items-center justify-between gap-3">
+  <!-- header -->
+  <div class="flex flex-wrap items-center justify-between gap-3">
     <div>
       <h1 class="text-xl font-bold">License Manager</h1>
       <p class="text-base-content/50 text-sm mt-0.5">{{.Total}} license(s)</p>
@@ -124,8 +122,6 @@
     </div>
     <a href="/licenses" class="btn btn-ghost btn-sm shiny-hover">Reset</a>
   </form>
-      </div>
-  </div>
 
   <!-- results (swapped by HTMX; fragment root carries the id) -->
   {{template "license_results_content" .}}
@@ -136,10 +132,10 @@
 
 {{define "license_results_content"}}
   <div id="license-results" class="space-y-4">
-  <div class="rounded-box bg-base-100 border border-base-300 shadow-sm overflow-x-auto">
+  <div class="rounded-box bg-base-100 border border-base-300 shadow-sm overflow-auto max-h-[calc(100vh-19rem)]">
     <table class="table table-sm w-full">
-      <thead>
-        <tr class="bg-base-200/60 text-xs uppercase tracking-wide text-base-content/50">
+      <thead class="sticky top-0 z-20">
+        <tr class="bg-base-200/95 backdrop-blur-sm text-xs uppercase tracking-wide text-base-content/50">
           <th>Maker</th><th>Software Name</th><th>Version</th><th>Assigned To</th>
           <th>Hostname</th><th>SN</th><th>Section</th><th>PO No</th><th>Status</th>
           <th>Activated On</th><th>Expiry Date</th><th>Remarks</th><th></th>
