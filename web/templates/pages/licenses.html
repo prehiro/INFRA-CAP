@@ -24,10 +24,10 @@
 
   <!-- filter bar -->
   <form hx-get="/licenses" hx-target="#license-results" hx-swap="outerHTML" hx-trigger="input changed delay:350ms from:find input, change from:find select, dp-changed"
-      class="shrink-0 rounded-box bg-base-100 border border-base-300 shadow-sm p-4 flex flex-wrap items-end gap-3">
-    <div class="w-72 shrink-0" x-data="{ hasQ: {{if $F.Query}}true{{else}}false{{end}} }">
-      <label class="label text-xs font-medium pb-1 text-base-content/60">Search</label>
-      <div class="relative flex items-center">
+      class="shrink-0 rounded-box bg-base-100 border border-base-300 shadow-sm p-4 flex flex-wrap items-center gap-3">
+    <div class="w-72 shrink-0 flex items-center gap-2" x-data="{ hasQ: {{if $F.Query}}true{{else}}false{{end}} }">
+      <label class="label text-xs font-medium text-base-content/60 whitespace-nowrap">Search</label>
+      <div class="relative flex items-center flex-1">
         <input id="license-search-input" name="q" value="{{$F.Query}}" placeholder="Software, maker, key, assignee, hostname..."
                @input="hasQ = $event.target.value.length > 0"
                class="input input-sm input-bordered w-full bg-base-200/50 pr-8">
@@ -57,8 +57,8 @@
       </button>
       {{end}}
     </div>
-    <div x-data="datePicker('exp_from', '{{if $F.ExpFrom}}{{$F.ExpFrom.Format "02-01-06"}}{{end}}')" @click.outside="open=false" class="relative">
-      <label class="label text-xs font-medium pb-1 text-base-content/60">Expiry from</label>
+    <div x-data="datePicker('exp_from', '{{if $F.ExpFrom}}{{$F.ExpFrom.Format "02-01-06"}}{{end}}')" @click.outside="open=false" class="relative flex items-center gap-2">
+      <label class="label text-xs font-medium text-base-content/60 whitespace-nowrap">Expiry from</label>
       <button type="button" @click="open=!open"
               class="input input-sm input-bordered w-32 flex items-center justify-between gap-1 bg-base-100 hover:border-primary transition-colors"
               :class="open && 'border-primary'">
@@ -90,8 +90,8 @@
         </div>
       </div>
     </div>
-    <div x-data="datePicker('exp_to', '{{if $F.ExpTo}}{{$F.ExpTo.Format "02-01-06"}}{{end}}')" @click.outside="open=false" class="relative">
-      <label class="label text-xs font-medium pb-1 text-base-content/60">Expiry to</label>
+    <div x-data="datePicker('exp_to', '{{if $F.ExpTo}}{{$F.ExpTo.Format "02-01-06"}}{{end}}')" @click.outside="open=false" class="relative flex items-center gap-2">
+      <label class="label text-xs font-medium text-base-content/60 whitespace-nowrap">Expiry to</label>
       <button type="button" @click="open=!open"
               class="input input-sm input-bordered w-32 flex items-center justify-between gap-1 bg-base-100 hover:border-primary transition-colors"
               :class="open && 'border-primary'">
@@ -191,30 +191,8 @@
       </tbody>
     </table>
   </div>
-
-<!-- status chips OOB refresh -->
-    <div id="status-chips" hx-swap-oob="true" class="flex flex-wrap items-end gap-2">
-      {{$F := .F}}{{$C := .StatusCounts}}
-      {{$total := 0}}{{if $C}}{{range $k, $v := $C}}{{$total = add $total $v}}{{end}}{{end}}
-      <button type="button" title="Show all"
-              hx-get="/licenses" hx-target="#license-results" hx-swap="outerHTML"
-              class="status-chip {{if not $F.Status}}status-chip-active{{end}}">
-        <span class="status-dot bg-blue-600"></span>All
-        <span class="chip-count">{{$total}}</span>
-      </button>
-      {{range $st := licenseStatuses}}
-      <button type="button" title="Filter: {{$st}}"
-              hx-get="/licenses?status={{urlquery $st}}" hx-target="#license-results" hx-swap="outerHTML"
-              class="status-chip {{if eq $F.Status $st}}status-chip-active{{end}}">
-        <span class="status-dot {{if eq $st "In use"}}bg-green-600{{else if eq $st "Available"}}bg-blue-600{{else if eq $st "Expired"}}bg-red-600{{else}}bg-stone-500{{end}}"></span>{{$st}}
-        <span class="chip-count">{{index $C $st}}</span>
-      </button>
-      {{end}}
-    </div>
   </div>
-{{end}}
-
-{{define "license_fields_content"}}{{$L := .L}}{{$d := .}}
+{{end}}{{define "license_fields_content"}}{{$L := .L}}{{$d := .}}
     <div><label class="label text-xs font-medium pb-1">Maker *</label>
       <input name="maker" value="{{$L.Maker}}" required class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}></div>
     <div><label class="label text-xs font-medium pb-1">Software Name *</label>

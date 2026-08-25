@@ -423,5 +423,20 @@
     document.body.removeChild(ta);
   }
 </script>
+  <script>
+  // keep status chips' active state in sync after table swaps (chips live outside swap target)
+  document.addEventListener('htmx:afterRequest', function (evt) {
+    const el = evt.detail && evt.detail.elt;
+    if (!el || !el.classList || !el.classList.contains('status-chip')) return;
+    const path = el.getAttribute('hx-get') || '';
+    const m = path.match(/[?&]status=([^&]*)/);
+    const picked = m ? decodeURIComponent(m[1]) : '';
+    document.querySelectorAll('#status-chips .status-chip').forEach(function (c) {
+      const cm = (c.getAttribute('hx-get') || '').match(/[?&]status=([^&]*)/);
+      const cs = cm ? decodeURIComponent(cm[1]) : '';
+      c.classList.toggle('status-chip-active', cs === picked);
+    });
+  });
+  </script>
 </body>
 </html>{{end}}
