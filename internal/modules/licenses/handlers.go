@@ -116,12 +116,14 @@ func (m *Module) list(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	totalPages := (total + f.PageSize - 1) / f.PageSize
+	statusCounts, _ := m.Store.StatusCounts(r.Context())
 	data := map[string]any{
 		"Items":      items,
 		"Total":      total,
 		"Page":       f.Page,
 		"TotalPages": totalPages,
 		"F":          f,
+		"StatusCounts": statusCounts,
 	}
 	// HTMX live filter: return only the results fragment
 	if r.Header.Get("HX-Request") == "true" {

@@ -244,6 +244,25 @@ func (s *Store) Stats(ctx context.Context) (total, inUse, available, expiringSoo
 	return
 }
 
+// StatusCounts returns row counts per status for the filter-bar chips.
+func (s *Store) StatusCounts(ctx context.Context) (map[string]int, error) {
+	rows, err := s.DB.QueryContext(ctx, `SELECT status, COUNT(*) FROM licenses GROUP BY status`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	counts := map[string]int{}
+	for rows.Next() {
+		var status string
+		var n int
+		if err := rows.Scan(&status, &n); err != nil {
+			return nil, err
+		}
+		counts[status] = n
+	}
+	return counts, rows.Err()
+}
+
 // ExpiringSoon returns up to 10 active licenses closest to expiry.
 func (s *Store) ExpiringSoon(ctx context.Context) ([]*License, error) {
 	rows, err := s.DB.QueryContext(ctx, `SELECT `+cols+` FROM licenses
