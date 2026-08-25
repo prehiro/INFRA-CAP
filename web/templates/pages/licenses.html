@@ -1,6 +1,6 @@
 {{define "licenses_content"}}
 {{$F := .F}}
-<div class="w-full space-y-5 pb-5">
+<div class="w-full space-y-5">
 
   <!-- header -->
   <div class="flex flex-wrap items-center justify-between gap-3">
@@ -130,7 +130,7 @@
 {{end}}
 
 {{define "license_results_content"}}
-  <div id="license-results" class="space-y-4 mt-4">
+  <div id="license-results" class="space-y-4">
   <div class="rounded-box bg-base-100 border border-base-300 shadow-sm overflow-auto max-h-[calc(100vh-19rem)]">
     <table class="table table-sm w-full">
       <thead class="sticky top-0 z-20">
@@ -190,7 +190,7 @@
 
   <!-- pagination -->
   {{if gt .TotalPages 1}}
-  <div class="flex justify-center pt-2 pb-2">
+  <div class="flex justify-center">
     <div class="join">
       {{$p := .Page}}{{$tp := .TotalPages}}
       {{if gt $p 1}}<a href="?page={{sub $p 1}}" class="join-item btn btn-sm">«</a>{{end}}
