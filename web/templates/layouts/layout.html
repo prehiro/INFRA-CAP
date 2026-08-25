@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{.Title}} — INFRA-CAP</title>
+  <link rel="icon" type="image/svg+xml" href="/static/img/infras.svg">
   <link rel="stylesheet" href="/static/css/fonts.css">
   <link rel="stylesheet" href="/static/css/app.css">
   <script src="/static/js/htmx.min.js"></script>
@@ -247,9 +248,8 @@
       <!-- brand -->
       <div class="flex items-center h-16 px-4 shrink-0 overflow-hidden"
            :class="collapsed ? 'justify-center lg:justify-center' : ''">
-        <div class="w-9 h-9 rounded-lg bg-primary flex items-center justify-center shrink-0">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-primary-content" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
-        </div>
+        <img src="/static/img/infras.svg" alt="INFRA-CAP logo"
+             class="w-9 h-9 rounded-lg shrink-0">
         <span class="ml-3 font-bold tracking-wide whitespace-nowrap text-lg sidebar-label"
               x-show="!collapsed" x-cloak>INFRA-CAP</span>
       </div>
