@@ -39,7 +39,7 @@
       </div>
     </div>
     <!-- status count chips -->
-    <div class="flex flex-wrap items-end gap-2">
+    <div id="status-chips" class="flex flex-wrap items-end gap-2">
       {{$C := .StatusCounts}}
       {{$total := 0}}{{if $C}}{{range $k, $v := $C}}{{$total = add $total $v}}{{end}}{{end}}
       <button type="button" title="Show all"
@@ -192,7 +192,26 @@
     </table>
   </div>
 
-</div>
+<!-- status chips OOB refresh -->
+    <div id="status-chips" hx-swap-oob="true" class="flex flex-wrap items-end gap-2">
+      {{$F := .F}}{{$C := .StatusCounts}}
+      {{$total := 0}}{{if $C}}{{range $k, $v := $C}}{{$total = add $total $v}}{{end}}{{end}}
+      <button type="button" title="Show all"
+              hx-get="/licenses" hx-target="#license-results" hx-swap="outerHTML"
+              class="status-chip {{if not $F.Status}}status-chip-active{{end}}">
+        <span class="status-dot bg-blue-600"></span>All
+        <span class="chip-count">{{$total}}</span>
+      </button>
+      {{range $st := licenseStatuses}}
+      <button type="button" title="Filter: {{$st}}"
+              hx-get="/licenses?status={{urlquery $st}}" hx-target="#license-results" hx-swap="outerHTML"
+              class="status-chip {{if eq $F.Status $st}}status-chip-active{{end}}">
+        <span class="status-dot {{if eq $st "In use"}}bg-green-600{{else if eq $st "Available"}}bg-blue-600{{else if eq $st "Expired"}}bg-red-600{{else}}bg-stone-500{{end}}"></span>{{$st}}
+        <span class="chip-count">{{index $C $st}}</span>
+      </button>
+      {{end}}
+    </div>
+  </div>
 {{end}}
 
 {{define "license_fields_content"}}{{$L := .L}}{{$d := .}}
