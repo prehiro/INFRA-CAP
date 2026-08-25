@@ -89,8 +89,9 @@
         const [y,m,d] = cell.iso.split('-')
         this.display = d+'-'+m+'-'+y.slice(2)
         this.open = false
+        const f = this.$el.closest('form'); if (f) f.dispatchEvent(new CustomEvent('dp-changed', { bubbles: true }));
       },
-      clear() { this.selected=''; this.display=''; this.iso=''; this.open=false },
+      clear() { this.selected=''; this.display=''; this.iso=''; this.open=false; const f = this.$el.closest('form'); if (f) f.dispatchEvent(new CustomEvent('dp-changed', { bubbles: true })); },
       today() {
         const t = this.toISO(new Date())
         this.selected = t; this.iso = t
@@ -98,6 +99,7 @@
         this.display = d+'-'+m+'-'+y.slice(2)
         this.view = this.monthOf(new Date())
         this.open = false
+        const f = this.$el.closest('form'); if (f) f.dispatchEvent(new CustomEvent('dp-changed', { bubbles: true }));
       },
     }))
 
@@ -154,7 +156,7 @@
           this.iso = cell.iso
           this.open = false
         },
-        clear() { this.selected=''; this.display=''; this.iso=''; this.open=false },
+        clear() { this.selected=''; this.display=''; this.iso=''; this.open=false; const f = this.$el.closest('form'); if (f) f.dispatchEvent(new CustomEvent('dp-changed', { bubbles: true })); },
         today() {
           const n = new Date()
           this.pick({ inMonth: true, iso: n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0') })
