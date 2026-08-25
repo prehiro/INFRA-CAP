@@ -38,20 +38,24 @@
         </button>
       </div>
     </div>
-    <div>
-      <label class="label text-xs font-medium pb-1 text-base-content/60">Status</label>
-      <select name="status" class="select select-sm select-bordered w-36 bg-base-100">
-        <option value="">All</option>
-        {{$st := $F.Status}}
-        {{range licenseStatuses}}
-        <option value="{{.}}" {{if eq $st .}}selected{{end}}>{{.}}</option>
-        {{end}}
-      </select>
-    </div>
-    <div>
-      <label class="label text-xs font-medium pb-1 text-base-content/60">Section</label>
-      <input name="section" value="{{$F.Section}}" placeholder="Section"
-             class="input input-sm input-bordered w-32 bg-base-200/50">
+    <!-- status count chips -->
+    <div class="flex flex-wrap items-end gap-2">
+      {{$C := .StatusCounts}}
+      {{$total := 0}}{{if $C}}{{range $k, $v := $C}}{{$total = add $total $v}}{{end}}{{end}}
+      <button type="button" title="Show all"
+              hx-get="/licenses" hx-target="#license-results" hx-swap="outerHTML"
+              class="status-chip {{if not $F.Status}}status-chip-active{{end}}">
+        <span class="status-dot bg-blue-600"></span>All
+        <span class="chip-count">{{$total}}</span>
+      </button>
+      {{range $st := licenseStatuses}}
+      <button type="button" title="Filter: {{$st}}"
+              hx-get="/licenses?status={{urlquery $st}}" hx-target="#license-results" hx-swap="outerHTML"
+              class="status-chip {{if eq $F.Status $st}}status-chip-active{{end}}">
+        <span class="status-dot {{if eq $st "In use"}}bg-green-600{{else if eq $st "Available"}}bg-blue-600{{else if eq $st "Expired"}}bg-red-600{{else}}bg-stone-500{{end}}"></span>{{$st}}
+        <span class="chip-count">{{index $C $st}}</span>
+      </button>
+      {{end}}
     </div>
     <div x-data="datePicker('exp_from', '{{if $F.ExpFrom}}{{$F.ExpFrom.Format "02-01-06"}}{{end}}')" @click.outside="open=false" class="relative">
       <label class="label text-xs font-medium pb-1 text-base-content/60">Expiry from</label>
@@ -85,26 +89,6 @@
           <button type="button" class="btn btn-ghost btn-xs" @click="today()">Today</button>
         </div>
       </div>
-    </div>
-
-    <!-- status count chips -->
-    <div class="flex-1 min-w-[260px] flex flex-wrap items-end justify-end gap-2">
-      {{$C := .StatusCounts}}
-      {{$total := 0}}{{if $C}}{{range $k, $v := $C}}{{$total = add $total $v}}{{end}}{{end}}
-      <button type="button" title="Show all"
-              hx-get="/licenses" hx-target="#license-results" hx-swap="outerHTML"
-              class="status-chip {{if not $F.Status}}status-chip-active{{end}}">
-        <span class="status-dot bg-blue-600"></span>All
-        <span class="chip-count">{{$total}}</span>
-      </button>
-      {{range $st := licenseStatuses}}
-      <button type="button" title="Filter: {{$st}}"
-              hx-get="/licenses?status={{urlquery $st}}" hx-target="#license-results" hx-swap="outerHTML"
-              class="status-chip {{if eq $F.Status $st}}status-chip-active{{end}}">
-        <span class="status-dot {{if eq $st "In use"}}bg-green-600{{else if eq $st "Available"}}bg-blue-600{{else if eq $st "Expired"}}bg-red-600{{else}}bg-stone-500{{end}}"></span>{{$st}}
-        <span class="chip-count">{{index $C $st}}</span>
-      </button>
-      {{end}}
     </div>
     <div x-data="datePicker('exp_to', '{{if $F.ExpTo}}{{$F.ExpTo.Format "02-01-06"}}{{end}}')" @click.outside="open=false" class="relative">
       <label class="label text-xs font-medium pb-1 text-base-content/60">Expiry to</label>
@@ -552,3 +536,5 @@
   {{end}}
 </div>
 {{end}}
+
+    
