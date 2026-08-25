@@ -79,7 +79,7 @@ func RenderNamed(w http.ResponseWriter, r *http.Request, contentName, title stri
 
 	// HTMX request → return bare fragment (no layout wrapper)
 	if r.Header.Get("HX-Request") == "true" {
-		tdata := map[string]any{"Title": title}
+		tdata := map[string]any{"Title": title, "csrfToken": CSRFFromRequest(r)}
 		if m, ok := data.(map[string]any); ok {
 			for k, v := range m {
 				tdata[k] = v
@@ -106,6 +106,7 @@ func RenderNamed(w http.ResponseWriter, r *http.Request, contentName, title stri
 	if u := UserFromContext(r.Context()); u != nil {
 		tdata["AuthUser"] = u
 	}
+	tdata["csrfToken"] = CSRFFromRequest(r)
 	tdata["ContentHTML"] = template.HTML(contentBuf.String())
 
 	if err := tmpl.ExecuteTemplate(w, "layout", tdata); err != nil {

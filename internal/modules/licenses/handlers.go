@@ -22,6 +22,7 @@ func (m *Module) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /licenses/{id}", m.viewLicense)
 	mux.HandleFunc("GET /licenses/{id}/edit", m.editForm)
 	mux.HandleFunc("POST /licenses/{id}", m.update)
+	mux.HandleFunc("GET /licenses/{id}/retire-confirm", m.retireConfirm)
 	mux.HandleFunc("POST /licenses/{id}/delete", m.retire)
 	mux.HandleFunc("GET /licenses/export", m.exportExcel)
 }
@@ -224,6 +225,17 @@ func (m *Module) hxResults(w http.ResponseWriter, r *http.Request) {
 	m.list(w, r)
 }
 
+// retireConfirm shows the styled confirmation modal for retiring a license.
+func (m *Module) retireConfirm(w http.ResponseWriter, r *http.Request) {
+	l, err := m.Store.GetByID(r.Context(), atoi(r.PathValue("id")))
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	web.RenderNamed(w, r, "license_retire_confirm_content", "Retire License",
+		map[string]any{"L": l})
+}
+
 // retire implements soft delete: status → Retired.
 func (m *Module) retire(w http.ResponseWriter, r *http.Request) {
 	id := atoi(r.PathValue("id"))
@@ -236,6 +248,12 @@ func (m *Module) retire(w http.ResponseWriter, r *http.Request) {
 	l.AssignedTo = nil
 	if err := m.Store.Save(r.Context(), l); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if r.Header.Get("HX-Request") == "true" {
+		w.Header().Set("HX-Retarget", "#license-results")
+		w.Header().Set("HX-Reswap", "outerHTML")
+		m.list(w, r)
 		return
 	}
 	http.Redirect(w, r, "/licenses", http.StatusSeeOther)
