@@ -25,7 +25,7 @@
   <!-- filter bar -->
   <form hx-get="/licenses" hx-target="#license-results" hx-swap="outerHTML" hx-trigger="input changed delay:350ms from:find input, change from:find select, dp-changed"
       class="shrink-0 rounded-box bg-base-100 border border-base-300 shadow-sm p-4 flex flex-wrap items-end gap-3">
-    <div class="flex-1 min-w-[220px]" x-data="{ hasQ: {{if $F.Query}}true{{else}}false{{end}} }">
+    <div class="w-72 shrink-0" x-data="{ hasQ: {{if $F.Query}}true{{else}}false{{end}} }">
       <label class="label text-xs font-medium pb-1 text-base-content/60">Search</label>
       <div class="relative flex items-center">
         <input id="license-search-input" name="q" value="{{$F.Query}}" placeholder="Software, maker, key, assignee, hostname..."
