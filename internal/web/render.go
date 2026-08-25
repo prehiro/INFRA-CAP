@@ -1,6 +1,7 @@
 package web
 
 import (
+	"net/url"
 	"time"
 	"context"
 	"embed"
@@ -16,6 +17,7 @@ var tmpl *template.Template
 
 var funcMap = template.FuncMap{
 	"add": func(a, b int) int { return a + b },
+	"trimSuffix": func(s, suf string) string { return strings.TrimSuffix(s, suf) },
 	"sub": func(a, b int) int { return a - b },
 	"div": func(a, b int64) int64 {
 		if b == 0 {
@@ -50,6 +52,27 @@ var funcMap = template.FuncMap{
 			}
 		}
 		return m
+	},
+	// chipQuery builds a trusted filter query string for status chips (avoids
+	// html/template stripping dynamically-built URLs in attribute context).
+	"chipQuery": func(status, q, expFrom, expTo string) template.URL {
+		v := url.Values{}
+		if status != "" {
+			v.Set("status", status)
+		}
+		if q != "" {
+			v.Set("q", q)
+		}
+		if expFrom != "" {
+			v.Set("exp_from", expFrom)
+		}
+		if expTo != "" {
+			v.Set("exp_to", expTo)
+		}
+		if len(v) == 0 {
+			return template.URL("")
+		}
+		return template.URL("?" + v.Encode())
 	},
 	// dmy formats *time.Time as DD-MM-YY (empty string when nil)
 	"dmy": func(t *time.Time) string {

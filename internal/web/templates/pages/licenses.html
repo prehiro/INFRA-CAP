@@ -44,20 +44,19 @@
       {{$C := .StatusCounts}}
       {{$total := 0}}{{if $C}}{{range $k, $v := $C}}{{$total = add $total $v}}{{end}}{{end}}
       <button type="button" title="Show all"
-              hx-get="/licenses{{if $F.Query}}?q={{urlquery $F.Query}}{{end}}" hx-target="#license-results" hx-swap="outerHTML"
+              hx-get="/licenses{{chipQuery "" $F.Query (dmy $F.ExpFrom) (dmy $F.ExpTo)}}" hx-target="#license-results" hx-swap="outerHTML"
               class="status-chip {{if not $F.Status}}status-chip-active{{end}}">
         <span class="status-dot bg-blue-600"></span>All
         <span class="chip-count">{{$total}}</span>
       </button>
       {{range $st := licenseStatuses}}
       <button type="button" title="Filter: {{$st}}"
-              hx-get="/licenses?status={{urlquery $st}}{{if $F.Query}}&q={{urlquery $F.Query}}{{end}}" hx-target="#license-results" hx-swap="outerHTML"
-              class="status-chip {{if eq $F.Status $st}}status-chip-active{{end}}">
+              hx-get="/licenses{{chipQuery $st $F.Query (dmy $F.ExpFrom) (dmy $F.ExpTo)}}" hx-target="#license-results" hx-swap="outerHTML"
+              class="status-chip {{if eq $st $F.Status}}status-chip-active{{end}}">
         <span class="status-dot {{if eq $st "In use"}}bg-green-600{{else if eq $st "Available"}}bg-blue-600{{else if eq $st "Expired"}}bg-red-600{{else}}bg-stone-500{{end}}"></span>{{$st}}
         <span class="chip-count">{{index $C $st}}</span>
       </button>
-      {{end}}
-    </div>
+      {{end}}    </div>
     <div x-data="datePicker('exp_from', '{{if $F.ExpFrom}}{{$F.ExpFrom.Format "02-01-06"}}{{end}}')" @click.outside="open=false" class="relative flex items-center gap-2">
       <label class="label text-xs font-medium text-base-content/60 whitespace-nowrap">Expiry from</label>
       <button type="button" @click="open=!open"
