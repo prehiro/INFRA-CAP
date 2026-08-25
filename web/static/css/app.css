@@ -367,8 +367,8 @@
   .h-16 {
     height: calc(var(--spacing) * 16);
   }
-  .h-\[calc\(100vh-4rem\)\] {
-    height: calc(100vh - 4rem);
+  .h-\[calc\(100vh-7rem\)\] {
+    height: calc(100vh - 7rem);
   }
   .h-full {
     height: 100%;

@@ -1,6 +1,6 @@
 {{define "licenses_content"}}
 {{$F := .F}}
-<div class="flex flex-col h-[calc(100vh-4rem)] overflow-hidden">
+<div class="flex flex-col h-[calc(100vh-7rem)] overflow-hidden">
 
   <!-- header -->
   <div class="shrink-0 flex flex-wrap items-center justify-between gap-3 mb-3">
@@ -190,7 +190,7 @@
 
   <!-- pagination -->
   {{if gt .TotalPages 1}}
-  <div class="shrink-0 flex justify-center pt-1 pb-1">
+  <div class="shrink-0 flex justify-center pt-1">
     <div class="join">
       {{$p := .Page}}{{$tp := .TotalPages}}
       {{if gt $p 1}}<a href="?page={{sub $p 1}}" class="join-item btn btn-sm">«</a>{{end}}
