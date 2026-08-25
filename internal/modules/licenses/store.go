@@ -111,8 +111,8 @@ func (f *Filter) whereClause() (string, []any) {
 		args = append(args, "%"+q+"%")
 		n := len(args)
 		conds = append(conds, fmt.Sprintf(
-			"(software_name LIKE @p%d OR maker LIKE @p%d OR license_key LIKE @p%d OR assigned_to LIKE @p%d OR device_hostname LIKE @p%d)",
-			n, n, n, n, n))
+			"(software_name LIKE @p%d OR maker LIKE @p%d OR version LIKE @p%d OR assigned_to LIKE @p%d OR device_hostname LIKE @p%d OR device_sn LIKE @p%d OR section LIKE @p%d OR po_no LIKE @p%d OR license_key LIKE @p%d)",
+			n, n, n, n, n, n, n, n, n))
 	}
 	if f.Status != "" && validStatus[f.Status] {
 		add("status = @p", f.Status)
