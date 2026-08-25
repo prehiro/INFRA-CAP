@@ -1,9 +1,11 @@
 {{define "licenses_content"}}
 {{$F := .F}}
-<div class="w-full space-y-5">
+<div class="w-full">
 
-  <!-- header -->
-  <div class="flex flex-wrap items-center justify-between gap-3">
+  <!-- sticky: page title + filter -->
+  <div class="sticky top-0 z-30 -mx-4 px-4 pt-1 pb-3 bg-base-200/95 backdrop-blur-sm rounded-b-box shadow-sm">
+    <div class="space-y-5">
+      <div class="flex flex-wrap items-center justify-between gap-3">
     <div>
       <h1 class="text-xl font-bold">License Manager</h1>
       <p class="text-base-content/50 text-sm mt-0.5">{{.Total}} license(s)</p>
@@ -25,15 +27,15 @@
   <!-- filter bar -->
   <form hx-get="/licenses" hx-target="#license-results" hx-swap="outerHTML" hx-trigger="input changed delay:350ms from:find input, change from:find select, dp-changed"
       class="rounded-box bg-base-100 border border-base-300 shadow-sm p-4 flex flex-wrap items-end gap-3">
-    <div class="flex-1 min-w-[220px]" x-data="{ hasQ: document.querySelector('input[name=q]')?.value.length > 0 }">
+    <div class="flex-1 min-w-[220px]" x-data="{ hasQ: {{if $F.Query}}true{{else}}false{{end}} }">
       <label class="label text-xs font-medium pb-1 text-base-content/60">Search</label>
-      <div class="relative">
-        <input name="q" value="{{$F.Query}}" placeholder="Software, maker, key, assignee, hostname..."
+      <div class="relative flex items-center">
+        <input id="license-search-input" name="q" value="{{$F.Query}}" placeholder="Software, maker, key, assignee, hostname..."
                @input="hasQ = $event.target.value.length > 0"
                class="input input-sm input-bordered w-full bg-base-200/50 pr-8">
         <button type="button" x-show="hasQ" x-cloak title="Clear search"
-                @click="const i = this.closest('div').querySelector('input[name=q]'); i.value=''; hasQ=false; i.dispatchEvent(new Event('input', {bubbles:true}))"
-                class="absolute right-1.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center text-white bg-error/80 hover:bg-error transition-colors">
+                @click="const i = document.getElementById('license-search-input'); i.value=''; hasQ=false; i.dispatchEvent(new Event('input', {bubbles:true})); i.focus()"
+                class="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center text-white bg-error/80 hover:bg-error transition-colors shrink-0">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </button>
       </div>
@@ -119,8 +121,11 @@
         </div>
       </div>
     </div>
+    </div>
     <a href="/licenses" class="btn btn-ghost btn-sm shiny-hover">Reset</a>
   </form>
+      </div>
+  </div>
 
   <!-- results (swapped by HTMX; fragment root carries the id) -->
   {{template "license_results_content" .}}
@@ -132,7 +137,7 @@
 {{define "license_results_content"}}
   <div id="license-results" class="space-y-4">
   <div class="rounded-box bg-base-100 border border-base-300 shadow-sm overflow-x-auto">
-    <table class="table table-sm w-full min-w-[1600px]">
+    <table class="table table-sm w-full">
       <thead>
         <tr class="bg-base-200/60 text-xs uppercase tracking-wide text-base-content/50">
           <th>Maker</th><th>Software Name</th><th>Version</th><th>Assigned To</th>
@@ -204,7 +209,6 @@
   </div>
   {{end}}
   </div>
-</div>
 {{end}}
 
 {{define "license_fields_content"}}{{$L := .L}}{{$d := .}}
