@@ -417,16 +417,6 @@
     htmx.ajax('GET', '/licenses' + (status ? ('?status=' + encodeURIComponent(status)) : ''),
               { target: '#license-results', swap: 'outerHTML' });
   };
-  // Lightweight: revert chips to "All" + clear hidden status input (used when user types in search).
-  window.resetChipsToAll = function() {
-    const chipsDiv = document.getElementById('status-chips');
-    if (chipsDiv && Alpine.$data(chipsDiv)) {
-      Alpine.$data(chipsDiv).status = '';
-    }
-    const si = document.getElementById('license-status-input');
-    if (si) si.value = '';
-  };
-
   // Master reset: clear the search input + both date pickers + status, then refetch all.
   window.clearAllFilters = function() {
     // reset the chips Alpine state so "All" shows active (indigo) and others don't
