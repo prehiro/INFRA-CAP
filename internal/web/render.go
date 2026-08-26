@@ -121,6 +121,8 @@ var funcMap = template.FuncMap{
 		// Determine if it's a before/after diff.
 		before, hasBefore := generic["before"].(map[string]any)
 		after, hasAfter := generic["after"].(map[string]any)
+		var b strings.Builder
+		// field label lookup
 		label := map[string]string{
 			"maker": "Maker", "software_name": "Software Name", "version": "Version",
 			"license_key": "License Key", "activation_key": "Activation Key",
@@ -128,7 +130,16 @@ var funcMap = template.FuncMap{
 			"section": "Section", "po_no": "PO No", "status": "Status",
 			"activated_on": "Activated On", "expiry_date": "Expiry Date", "remarks": "Remarks",
 		}
-		var b strings.Builder
+		lab := func(k string) string {
+			if l, ok := label[k]; ok {
+				return l
+			}
+			return strings.ReplaceAll(k, "_", " ")
+		}
+		// stable field order
+		order := []string{"maker", "software_name", "version", "status", "assigned_to",
+			"device_hostname", "device_sn", "section", "license_key", "activation_key",
+			"po_no", "activated_on", "expiry_date", "remarks"}
 		esc := func(v any) string {
 			if v == nil {
 				return `<span class="text-base-content/30 italic">—</span>`
@@ -136,9 +147,21 @@ var funcMap = template.FuncMap{
 			return html.EscapeString(fmt.Sprintf("%v", v))
 		}
 		if hasBefore && hasAfter {
-			// collect union of keys preserving a stable order
-			keys := []string{}
+			// order keys: those present, in preferred order, then any extras
 			seen := map[string]bool{}
+			keys := []string{}
+			for _, k := range order {
+				if _, ok := before[k]; ok {
+					keys = append(keys, k)
+					seen[k] = true
+				}
+				if _, ok := after[k]; ok {
+					if !seen[k] {
+						keys = append(keys, k)
+						seen[k] = true
+					}
+				}
+			}
 			for k := range before {
 				if !seen[k] {
 					keys = append(keys, k)
@@ -151,24 +174,41 @@ var funcMap = template.FuncMap{
 					seen[k] = true
 				}
 			}
-			b.WriteString(`<div class="grid grid-cols-[7rem_1fr_1fr] gap-x-3 text-xs">`)
-			b.WriteString(`<div class="font-semibold text-base-content/40 uppercase tracking-wide pb-1.5">Field</div>`)
-			b.WriteString(`<div class="font-semibold text-error/70 uppercase tracking-wide pb-1.5">Before</div>`)
-			b.WriteString(`<div class="font-semibold text-success/70 uppercase tracking-wide pb-1.5">After</div>`)
+			b.WriteString(`<ul class="space-y-2.5">`)
 			for _, k := range keys {
-				b.WriteString(`<div class="py-1 font-medium text-base-content/70">` + html.EscapeString(label[k]) + `</div>`)
-				b.WriteString(`<div class="py-1 font-mono break-all line-through decoration-error/40">` + esc(before[k]) + `</div>`)
-				b.WriteString(`<div class="py-1 font-mono break-all">` + esc(after[k]) + `</div>`)
+				b.WriteString(`<li class="flex items-start gap-3 text-sm">`)
+				b.WriteString(`<span class="w-28 shrink-0 pt-1 text-xs font-medium uppercase tracking-wide text-base-content/50">` + html.EscapeString(lab(k)) + `</span>`)
+				b.WriteString(`<div class="flex flex-wrap items-center gap-2 min-w-0">`)
+				b.WriteString(`<span class="font-mono text-xs px-2 py-1 rounded-md bg-error/10 text-error line-through decoration-error/50">` + esc(before[k]) + `</span>`)
+				b.WriteString(`<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-base-content/40 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>`)
+				b.WriteString(`<span class="font-mono text-xs px-2 py-1 rounded-md bg-success/10 text-success">` + esc(after[k]) + `</span>`)
+				b.WriteString(`</div></li>`)
 			}
-			b.WriteString(`</div>`)
+			b.WriteString(`</ul>`)
 		} else {
-			// flat snapshot: key/value list
-			b.WriteString(`<div class="grid grid-cols-[8rem_1fr] gap-x-3 text-xs">`)
-			for k, v := range generic {
-				b.WriteString(`<div class="py-1 font-medium text-base-content/70">` + html.EscapeString(label[k]) + `</div>`)
-				b.WriteString(`<div class="py-1 font-mono break-all">` + esc(v) + `</div>`)
+			// flat snapshot (create / export / login): definition list
+			keys := []string{}
+			seen := map[string]bool{}
+			for _, k := range order {
+				if _, ok := generic[k]; ok {
+					keys = append(keys, k)
+					seen[k] = true
+				}
 			}
-			b.WriteString(`</div>`)
+			for k := range generic {
+				if !seen[k] {
+					keys = append(keys, k)
+					seen[k] = true
+				}
+			}
+			b.WriteString(`<dl class="space-y-2.5">`)
+			for _, k := range keys {
+				b.WriteString(`<div class="flex items-start gap-3 text-sm">`)
+				b.WriteString(`<dt class="w-28 shrink-0 text-xs font-medium uppercase tracking-wide text-base-content/50">` + html.EscapeString(lab(k)) + `</dt>`)
+				b.WriteString(`<dd class="font-mono text-xs px-2 py-1 rounded-md bg-base-200/60 break-all">` + esc(generic[k]) + `</dd>`)
+				b.WriteString(`</div>`)
+			}
+			b.WriteString(`</dl>`)
 		}
 		return template.HTML(b.String())
 	},

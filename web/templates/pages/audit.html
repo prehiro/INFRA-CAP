@@ -119,6 +119,12 @@
 {{end}}
 
 {{define "audit_detail_content"}}{{$L := .Log}}
+{{$accent := "text-primary"}}{{$accentBg := "bg-primary/15"}}
+{{if eq $L.Action "update"}}{{$accent = "text-info"}}{{$accentBg = "bg-info/15"}}{{end}}
+{{if eq $L.Action "retired"}}{{$accent = "text-warning"}}{{$accentBg = "bg-warning/15"}}{{end}}
+{{if eq $L.Action "delete"}}{{$accent = "text-error"}}{{$accentBg = "bg-error/15"}}{{end}}
+{{if eq $L.Action "create"}}{{$accent = "text-success"}}{{$accentBg = "bg-success/15"}}{{end}}
+{{if eq $L.Action "export"}}{{$accent = "text-secondary"}}{{$accentBg = "bg-secondary/15"}}{{end}}
 <div x-data="{ open: false, close() { this.open = false; setTimeout(() => this.$refs.root.remove(), 200) } }"
      x-init="$nextTick(() => open = true)"
      x-ref="root"
@@ -142,8 +148,8 @@
        class="relative w-full max-w-lg rounded-2xl bg-base-100 border border-base-300 shadow-2xl overflow-hidden">
 
     <!-- header -->
-    <div class="flex items-center gap-3 px-6 py-5 border-b border-base-300 bg-primary/5">
-      <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-primary/15 text-primary">
+    <div class="flex items-center gap-3 px-6 py-5 border-b border-base-300">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 {{$accentBg}} {{$accent}}">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h6"/></svg>
       </div>
       <div class="min-w-0 flex-1">
@@ -158,29 +164,43 @@
       </button>
     </div>
 
-    <!-- meta -->
-    <div class="px-6 py-4 grid grid-cols-2 gap-y-3 gap-x-4 text-sm border-b border-base-300">
-      <div>
-        <p class="text-xs text-base-content/50 uppercase tracking-wide">Waktu</p>
-        <p class="font-medium">{{$L.CreatedAt.Format "2006-01-02 15:04:05"}}</p>
+    <!-- meta strip -->
+    <div class="px-6 py-4 grid grid-cols-2 gap-y-3 gap-x-4 text-sm border-b border-base-300 bg-base-200/30">
+      <div class="flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-base-content/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>
+        <div>
+          <p class="text-xs text-base-content/40 uppercase tracking-wide leading-none">Waktu</p>
+          <p class="font-medium mt-0.5">{{$L.CreatedAt.Format "2006-01-02 15:04:05"}}</p>
+        </div>
       </div>
-      <div>
-        <p class="text-xs text-base-content/50 uppercase tracking-wide">Actor</p>
-        <p class="font-medium">{{if $L.ActorName}}{{$L.ActorName}}{{else}}<span class="text-base-content/40">—</span>{{end}}</p>
+      <div class="flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-base-content/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <div>
+          <p class="text-xs text-base-content/40 uppercase tracking-wide leading-none">Actor</p>
+          <p class="font-medium mt-0.5">{{if $L.ActorName}}{{$L.ActorName}}{{else}}<span class="text-base-content/40">—</span>{{end}}</p>
+        </div>
       </div>
-      <div>
-        <p class="text-xs text-base-content/50 uppercase tracking-wide">IP Address</p>
-        <p class="font-mono">{{if $L.IP}}{{$L.IP}}{{else}}—{{end}}</p>
+      <div class="flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-base-content/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+        <div>
+          <p class="text-xs text-base-content/40 uppercase tracking-wide leading-none">IP Address</p>
+          <p class="font-mono mt-0.5">{{if $L.IP}}{{$L.IP}}{{else}}—{{end}}</p>
+        </div>
       </div>
-      <div>
-        <p class="text-xs text-base-content/50 uppercase tracking-wide">Target</p>
-        <p class="font-mono">{{if $L.EntityID}}{{$L.Entity}} #{{$L.EntityID}}{{else}}—{{end}}</p>
+      <div class="flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-base-content/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M16 8h2a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2h-2"/><path d="M9 6h2M9 10h2M9 14h2"/></svg>
+        <div>
+          <p class="text-xs text-base-content/40 uppercase tracking-wide leading-none">Target</p>
+          <p class="font-mono mt-0.5">{{if $L.EntityID}}{{$L.Entity}} #{{$L.EntityID}}{{else}}—{{end}}</p>
+        </div>
       </div>
     </div>
 
     <!-- changes -->
-    <div class="px-6 py-5">
-      <p class="text-xs font-semibold text-base-content/50 mb-3 uppercase tracking-wide">Perubahan</p>
+    <div class="px-6 py-5 max-h-[55vh] overflow-y-auto">
+      <p class="text-xs font-semibold text-base-content/50 mb-3 uppercase tracking-wide">
+        {{if eq $L.Action "create"}}Data Tercatat{{else}}Perubahan{{end}}
+      </p>
       {{if $L.Changes}}
         {{diffView $L.Changes}}
       {{else}}
