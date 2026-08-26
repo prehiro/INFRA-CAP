@@ -104,7 +104,7 @@
         <td class="text-sm"><span class="badge badge-ghost badge-sm">{{.Entity}}</span></td>
         <td class="text-sm font-mono">
           {{if .EntityID}}
-            <a hx-get="/audit/{{.ID}}" hx-target="#modal-container" hx-swap="innerHTML"
+            <a href="/audit/{{.ID}}" hx-get="/audit/{{.ID}}" hx-target="#modal-container" hx-swap="innerHTML"
                class="link link-primary link-hover">{{.EntityID}}</a>
           {{else}}<span class="text-base-content/40">—</span>{{end}}
         </td>
