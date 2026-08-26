@@ -437,9 +437,11 @@
       const w = inp.closest('[x-data]');
       if (w) { try { Alpine.$data(w).hasQ = false; } catch(e){} }
     }
+    // reset date pickers SILENTLY (do NOT call d.clear(), which dispatches 'dp-changed' and
+    // would re-trigger the form's live-search listener -> a second table swap / flicker)
     document.querySelectorAll('[x-data^="datePicker"]').forEach(function (el) {
       const d = Alpine.$data(el);
-      if (d && typeof d.clear === 'function') d.clear();
+      if (d) { d.selected = ''; d.display = ''; d.iso = ''; }
     });
     htmx.ajax('GET', '/licenses', { target: '#license-results', swap: 'outerHTML' });
   };
