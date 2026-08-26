@@ -30,7 +30,7 @@
       <div class="relative flex items-center flex-1">
         <input type="hidden" name="status" value="{{$F.Status}}">
         <input id="license-search-input" name="q" value="{{$F.Query}}" placeholder="{{if $F.Status}}Search within {{$F.Status}}...{{else}}Search licenses...{{end}}"
-               @input="hasQ = $event.target.value.length > 0"
+               @input="hasQ = $event.target.value.length > 0; resetChipsToAll()"
                class="input input-sm input-bordered w-full bg-base-200/50 pr-8">
         <button type="button" x-show="hasQ" x-cloak title="Clear search"
                 @click="const i = document.getElementById('license-search-input'); i.value=''; hasQ=false; i.dispatchEvent(new Event('input', {bubbles:true})); i.focus()"
