@@ -6,6 +6,9 @@ import (
 	"strconv"
 	"time"
 
+	"infracap/internal/audit"
+	"infracap/internal/auth"
+
 	"github.com/xuri/excelize/v2"
 )
 
@@ -79,7 +82,21 @@ func (m *Module) exportExcel(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	w.Header().Set("Content-Disposition", "attachment; filename=licenses-"+time.Now().Format("20060102")+".xlsx")
-	file.Write(w)
+	if err := file.Write(w); err != nil {
+		return
+	}
+	// audit: who exported and with what filter
+	if u := auth.FromContext(r.Context()); u != nil {
+		audit.Log(r.Context(), m.Store.DB, audit.Entry{
+			ActorID: u.ID, ActorName: u.FullName, Action: "export",
+			Entity: "licenses", EntityID: "",
+			Changes: map[string]any{"filter": map[string]any{
+				"q": f.Query, "status": f.Status, "section": f.Section,
+				"exp_from": dmyOr(f.ExpFrom), "exp_to": dmyOr(f.ExpTo),
+				"rows": len(items),
+			}}, IP: audit.ClientIP(r),
+		})
+	}
 }
 
 func deref(s *string) string {

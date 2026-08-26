@@ -74,7 +74,33 @@ var funcMap = template.FuncMap{
 		}
 		return template.URL("?" + v.Encode())
 	},
-	// dmy formats *time.Time as DD-MM-YY (empty string when nil)
+	// actionBadge renders a colored pill for an audit action. Returns template.HTML so the
+	// markup is not escaped by html/template.
+	"actionBadge": func(action string) template.HTML {
+		cls := map[string]string{
+			"create": "badge-success",
+			"update": "badge-info",
+			"delete": "badge-error",
+			"login":  "badge-primary",
+			"logout": "badge-ghost",
+			"export": "badge-warning",
+		}
+		c := cls[action]
+		if c == "" {
+			c = "badge-ghost"
+		}
+		return template.HTML(`<span class="badge badge-sm ` + c + `">` + action + `</span>`)
+	},
+	// queryStr builds a URL query string from an audit.Filter struct.
+	"queryStr": func(f any) string {
+		type filterer interface {
+			QueryString() string
+		}
+		if ff, ok := f.(filterer); ok {
+			return ff.QueryString()
+		}
+		return ""
+	},
 	"dmy": func(t *time.Time) string {
 		if t == nil {
 			return ""

@@ -1,0 +1,123 @@
+{{define "audit_content"}}
+{{$F := .F}}
+<div class="flex flex-col h-[calc(100vh-7rem)] overflow-hidden">
+
+  <!-- header -->
+  <div class="shrink-0 flex flex-wrap items-center justify-between gap-3 mb-3">
+    <div>
+      <h1 class="text-xl font-bold">Audit Trail</h1>
+      <p class="text-base-content/50 text-sm mt-0.5">Riwayat aktivitas sistem (terbaru dulu)</p>
+    </div>
+  </div>
+
+  <!-- filter bar -->
+  <form hx-get="/audit" hx-target="#audit-results" hx-swap="outerHTML"
+        hx-trigger="input changed delay:350ms from:#audit-actor-input, change"
+        class="shrink-0 rounded-box bg-base-100 border border-base-300 shadow-sm p-4 flex flex-wrap items-end gap-3 mb-3">
+    <div class="flex flex-col gap-1">
+      <label class="label text-xs font-medium text-base-content/60">Actor</label>
+      <input id="audit-actor-input" name="actor" value="{{$F.Actor}}" placeholder="Nama user..."
+             class="input input-sm input-bordered w-48 bg-base-200/50">
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="label text-xs font-medium text-base-content/60">Action</label>
+      <select name="action" class="select select-sm select-bordered w-36 bg-base-200/50">
+        <option value="" {{if eq $F.Action ""}}selected{{end}}>All</option>
+        {{range .Actions}}
+        <option value="{{.}}" {{if eq $F.Action .}}selected{{end}}>{{.}}</option>
+        {{end}}
+      </select>
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="label text-xs font-medium text-base-content/60">Entity</label>
+      <select name="entity" class="select select-sm select-bordered w-36 bg-base-200/50">
+        <option value="" {{if eq $F.Entity ""}}selected{{end}}>All</option>
+        {{range .Entities}}
+        <option value="{{.}}" {{if eq $F.Entity .}}selected{{end}}>{{.}}</option>
+        {{end}}
+      </select>
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="label text-xs font-medium text-base-content/60">From</label>
+      <input type="date" name="from" value="{{if $F.From}}{{$F.From.Format "2006-01-02"}}{{end}}"
+             class="input input-sm input-bordered w-40 bg-base-200/50">
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="label text-xs font-medium text-base-content/60">To</label>
+      <input type="date" name="to" value="{{if $F.To}}{{$F.To.Format "2006-01-02"}}{{end}}"
+             class="input input-sm input-bordered w-40 bg-base-200/50">
+    </div>
+    <button type="button" class="btn btn-ghost btn-sm" onclick="this.closest('form').reset(); this.closest('form').dispatchEvent(new Event('change',{bubbles:true}))">
+      Reset
+    </button>
+  </form>
+
+  <!-- results -->
+  <div id="audit-results" class="flex-1 min-h-0 overflow-auto">
+    {{template "audit_results_content" .}}
+  </div>
+</div>
+{{end}}
+
+{{define "audit_results_content"}}
+{{$F := .F}}
+<!-- summary bar -->
+<div class="shrink-0 flex items-center justify-between mb-2 px-1">
+  <p class="text-sm text-base-content/60">{{.Total}} event(s)</p>
+  {{if gt .TotalPages 1}}
+  <div class="flex items-center gap-1">
+    {{$prev := sub .Page 1}}{{$next := add .Page 1}}
+    <a href="/audit?{{queryStr $F}}&page={{$prev}}" hx-get="/audit?{{queryStr $F}}&page={{$prev}}" hx-target="#audit-results" hx-swap="outerHTML"
+       class="btn btn-xs {{if le .Page 1}}btn-disabled{{else}}btn-ghost{{end}}">‹ Prev</a>
+    <span class="text-sm text-base-content/60 px-1">Page {{.Page}} / {{.TotalPages}}</span>
+    <a href="/audit?{{queryStr $F}}&page={{$next}}" hx-get="/audit?{{queryStr $F}}&page={{$next}}" hx-target="#audit-results" hx-swap="outerHTML"
+       class="btn btn-xs {{if ge .Page .TotalPages}}btn-disabled{{else}}btn-ghost{{end}}">Next ›</a>
+  </div>
+  {{end}}
+</div>
+
+<div class="rounded-box bg-base-100 border border-base-300 shadow-sm overflow-hidden">
+  <table class="table table-sm">
+    <thead>
+      <tr class="bg-base-200/60 text-xs uppercase tracking-wide text-base-content/50">
+        <th class="w-10"></th>
+        <th>Time</th>
+        <th>Actor</th>
+        <th>Action</th>
+        <th>Entity</th>
+        <th>Target</th>
+        <th>IP</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{range .Items}}
+      <tr class="border-b border-base-300/50 align-top">
+        <td>
+          <button type="button" class="btn btn-ghost btn-xs" x-data="{open:false}" @click="open=!open" :title="open ? 'Hide' : 'Detail'">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transition-transform" :class="open && 'rotate-90'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </td>
+        <td class="whitespace-nowrap text-sm">{{.CreatedAt.Format "2006-01-02 15:04"}}</td>
+        <td class="text-sm">{{if .ActorName}}{{.ActorName}}{{else}}<span class="text-base-content/40">—</span>{{end}}</td>
+        <td>{{actionBadge .Action}}</td>
+        <td class="text-sm"><span class="badge badge-ghost badge-sm">{{.Entity}}</span></td>
+        <td class="text-sm font-mono">{{if .EntityID}}{{.EntityID}}{{else}}<span class="text-base-content/40">—</span>{{end}}</td>
+        <td class="text-sm font-mono text-base-content/60">{{if .IP}}{{.IP}}{{else}}—{{end}}</td>
+      </tr>
+      {{if .Changes}}
+      <tr x-data="{open:false}" x-show="open" x-cloak>
+        <td colspan="7" class="bg-base-200/30 p-0">
+          <div class="p-3">
+            <p class="text-xs font-semibold text-base-content/50 mb-1">Changes (JSON)</p>
+            <pre class="text-xs whitespace-pre-wrap break-all font-mono bg-base-100 rounded-box p-3 border border-base-300 overflow-auto max-h-64">{{.Changes}}</pre>
+          </div>
+        </td>
+      </tr>
+      {{end}}
+      {{else}}
+      <tr><td colspan="7" class="text-center text-base-content/50 py-10">No audit events found.</td></tr>
+      {{end}}
+    </tbody>
+  </table>
+</div>
+{{end}}

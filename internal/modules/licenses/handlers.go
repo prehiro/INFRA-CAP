@@ -6,6 +6,8 @@ import (	"context"
 	"strings"
 	"time"
 
+	"infracap/internal/audit"
+	"infracap/internal/auth"
 	"infracap/internal/web"
 )
 
@@ -199,6 +201,20 @@ func (m *Module) save(w http.ResponseWriter, r *http.Request) {
 		m.renderForm(w, r, l, isNew, err.Error())
 		return
 	}
+	actorID, actorName := actorInfo(r)
+	if isNew {
+		audit.Log(r.Context(), m.Store.DB, audit.Entry{
+			ActorID: actorID, ActorName: actorName, Action: "create",
+			Entity: "licenses", EntityID: strconv.Itoa(l.ID),
+			Changes: licenseSnapshot(l), IP: audit.ClientIP(r),
+		})
+	} else {
+		audit.Log(r.Context(), m.Store.DB, audit.Entry{
+			ActorID: actorID, ActorName: actorName, Action: "update",
+			Entity: "licenses", EntityID: strconv.Itoa(l.ID),
+			Changes: licenseSnapshot(l), IP: audit.ClientIP(r),
+		})
+	}
 	if r.Header.Get("HX-Request") == "true" {
 		m.hxResults(w, r)
 		return
@@ -252,6 +268,12 @@ func (m *Module) retire(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	actorID, actorName := actorInfo(r)
+	audit.Log(r.Context(), m.Store.DB, audit.Entry{
+		ActorID: actorID, ActorName: actorName, Action: "delete",
+		Entity: "licenses", EntityID: strconv.Itoa(id),
+		Changes: licenseSnapshot(l), IP: audit.ClientIP(r),
+	})
 	if r.Header.Get("HX-Request") == "true" {
 		w.Header().Set("HX-Retarget", "#license-results")
 		w.Header().Set("HX-Reswap", "outerHTML")
@@ -259,6 +281,49 @@ func (m *Module) retire(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.Redirect(w, r, "/licenses", http.StatusSeeOther)
+}
+
+// actorInfo resolves the current user id/name for audit logging.
+func actorInfo(r *http.Request) (int, string) {
+	if u := auth.FromContext(r.Context()); u != nil {
+		return u.ID, u.FullName
+	}
+	return 0, "system"
+}
+
+// licenseSnapshot returns a flat map of the license's key fields for the audit trail.
+func licenseSnapshot(l *License) map[string]any {
+	return map[string]any{
+		"id":             l.ID,
+		"maker":          l.Maker,
+		"software_name":  l.SoftwareName,
+		"version":        derefOr(l.Version),
+		"license_key":    derefOr(l.LicenseKey),
+		"activation_key": derefOr(l.ActivationKey),
+		"assigned_to":    derefOr(l.AssignedTo),
+		"device_hostname": derefOr(l.DeviceHostname),
+		"device_sn":      derefOr(l.DeviceSN),
+		"section":        derefOr(l.Section),
+		"po_no":          derefOr(l.PONo),
+		"status":         l.Status,
+		"activated_on":   dmyOr(l.ActivatedOn),
+		"expiry_date":    dmyOr(l.ExpiryDate),
+		"remarks":        derefOr(l.Remarks),
+	}
+}
+
+func derefOr(s *string) any {
+	if s == nil {
+		return nil
+	}
+	return *s
+}
+
+func dmyOr(t *time.Time) any {
+	if t == nil {
+		return nil
+	}
+	return t.Format("02-01-06")
 }
 
 var _ = context.Background

@@ -389,6 +389,9 @@
   .h-full {
     height: 100%;
   }
+  .max-h-64 {
+    max-height: calc(var(--spacing) * 64);
+  }
   .max-h-\[92vh\] {
     max-height: 92vh;
   }
@@ -427,6 +430,15 @@
   }
   .w-32 {
     width: calc(var(--spacing) * 32);
+  }
+  .w-36 {
+    width: calc(var(--spacing) * 36);
+  }
+  .w-40 {
+    width: calc(var(--spacing) * 40);
+  }
+  .w-48 {
+    width: calc(var(--spacing) * 48);
   }
   .w-56 {
     width: calc(var(--spacing) * 56);
@@ -523,6 +535,9 @@
   }
   .rotate-45 {
     rotate: 45deg;
+  }
+  .rotate-90 {
+    rotate: 90deg;
   }
   .rotate-180 {
     rotate: 180deg;
@@ -706,6 +721,9 @@
   .mask-repeat {
     mask-repeat: repeat;
   }
+  .p-0 {
+    padding: 0px;
+  }
   .p-2 {
     padding: calc(var(--spacing) * 2);
   }
@@ -726,6 +744,9 @@
   }
   .p-10 {
     padding: calc(var(--spacing) * 10);
+  }
+  .px-1 {
+    padding-inline: var(--spacing);
   }
   .px-2 {
     padding-inline: calc(var(--spacing) * 2);
@@ -789,6 +810,9 @@
   }
   .text-right {
     text-align: right;
+  }
+  .align-top {
+    vertical-align: top;
   }
   .font-mono {
     font-family: var(--font-mono);
@@ -866,6 +890,9 @@
   .tracking-wider {
     --tw-tracking: var(--tracking-wider);
     letter-spacing: var(--tracking-wider);
+  }
+  .break-all {
+    word-break: break-all;
   }
   .whitespace-nowrap {
     white-space: nowrap;

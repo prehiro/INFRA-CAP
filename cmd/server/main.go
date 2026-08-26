@@ -15,6 +15,7 @@ import (
 	"infracap/internal/db"
 	"infracap/internal/migrations"
 	"infracap/internal/auth"
+	"infracap/internal/modules/audit"
 	"infracap/internal/modules/dashboard"
 	"infracap/internal/modules/licenses"
 	"infracap/internal/web"
@@ -84,6 +85,12 @@ func run() error {
 	usersMod.RegisterRoutes(protected)
 	licMod := licenses.New(&licenses.Store{DB: database})
 	licMod.RegisterRoutes(protected)
+
+	// Audit Trail (admin only) — Fase 2b
+	auditMux := http.NewServeMux()
+	auditMod := audit.New(&audit.Store{DB: database})
+	auditMod.RegisterRoutes(auditMux)
+	protected.Handle("/audit", web.CSRFValidate(authSvc.Middleware(true)(auth.RequireRole("admin")(auditMux))))
 
 	mux.Handle("/", web.CSRFValidate(authSvc.Middleware(true)(protected)))
 

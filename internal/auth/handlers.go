@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"net/http"
 
+	"infracap/internal/audit"
 	"infracap/internal/web"
 )
 
@@ -39,21 +40,36 @@ func (m *Module) loginSubmit(w http.ResponseWriter, r *http.Request) {
 	username := template.HTMLEscapeString(r.PostFormValue("username"))
 	password := r.PostFormValue("password")
 
-	token, _, err := m.Service.Authenticate(r.Context(), username, password)
+	token, u, err := m.Service.Authenticate(r.Context(), username, password)
 	if err != nil {
+		audit.Log(r.Context(), m.Service.DB, audit.Entry{
+			ActorName: username, Action: "login", Entity: "auth", EntityID: "",
+			Changes: map[string]any{"result": "failure", "reason": err.Error()},
+			IP: audit.ClientIP(r),
+		})
 		w.WriteHeader(http.StatusUnauthorized)
 		web.RenderAuth(w, "Login", map[string]any{
-			"Error": "Username atau password salah.",
+			"Error":   "Username atau password salah.",
 			"Username": username,
 		})
 		return
 	}
 	SetSessionCookie(w, token)
+	audit.Log(r.Context(), m.Service.DB, audit.Entry{
+		ActorID: u.ID, ActorName: u.FullName, Action: "login", Entity: "auth", EntityID: "",
+		Changes: map[string]any{"result": "success"}, IP: audit.ClientIP(r),
+	})
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func (m *Module) logout(w http.ResponseWriter, r *http.Request) {
 	if c, err := r.Cookie(SessionCookie); err == nil {
+		if u := FromContext(r.Context()); u != nil {
+			audit.Log(r.Context(), m.Service.DB, audit.Entry{
+				ActorID: u.ID, ActorName: u.FullName, Action: "logout", Entity: "auth", EntityID: "",
+				IP: audit.ClientIP(r),
+			})
+		}
 		m.Service.DestroySession(r.Context(), c.Value)
 	}
 	ClearSessionCookie(w)
