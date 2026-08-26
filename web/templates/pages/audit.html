@@ -91,9 +91,10 @@
     </thead>
     <tbody>
       {{range .Items}}
-      <tr class="border-b border-base-300/50 align-top">
+      <tbody x-data="{open:false}">
+      <tr class="border-b border-base-300/50 align-top hover:bg-base-200/40">
         <td>
-          <button type="button" class="btn btn-ghost btn-xs" x-data="{open:false}" @click="open=!open" :title="open ? 'Hide' : 'Detail'">
+          <button type="button" class="btn btn-ghost btn-xs" @click="open=!open" :title="open ? 'Hide' : 'Detail'">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transition-transform" :class="open && 'rotate-90'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
           </button>
         </td>
@@ -105,15 +106,16 @@
         <td class="text-sm font-mono text-base-content/60">{{if .IP}}{{.IP}}{{else}}—{{end}}</td>
       </tr>
       {{if .Changes}}
-      <tr x-data="{open:false}" x-show="open" x-cloak>
+      <tr x-show="open" x-cloak>
         <td colspan="7" class="bg-base-200/30 p-0">
-          <div class="p-3">
-            <p class="text-xs font-semibold text-base-content/50 mb-1">Changes (JSON)</p>
-            <pre class="text-xs whitespace-pre-wrap break-all font-mono bg-base-100 rounded-box p-3 border border-base-300 overflow-auto max-h-64">{{.Changes}}</pre>
+          <div class="p-4">
+            <p class="text-xs font-semibold text-base-content/50 mb-2">Perubahan</p>
+            {{diffView .Changes}}
           </div>
         </td>
       </tr>
       {{end}}
+      </tbody>
       {{else}}
       <tr><td colspan="7" class="text-center text-base-content/50 py-10">No audit events found.</td></tr>
       {{end}}

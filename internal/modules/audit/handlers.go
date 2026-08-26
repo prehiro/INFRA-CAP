@@ -17,7 +17,7 @@ func New(s *Store) *Module { return &Module{Store: s} }
 func (m *Module) Name() string { return "audit" }
 
 // actions + entities for the filter dropdowns
-var actions = []string{"create", "update", "delete", "login", "logout", "export"}
+var actions = []string{"create", "update", "retired", "delete", "login", "logout", "export"}
 
 func (m *Module) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /audit", m.list)

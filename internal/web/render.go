@@ -1,13 +1,16 @@
 package web
 
 import (
-	"net/url"
-	"time"
 	"context"
 	"embed"
+	"encoding/json"
+	"fmt"
+	"html"
 	"html/template"
 	"net/http"
+	"net/url"
 	"strings"
+	"time"
 )
 
 //go:embed all:templates
@@ -78,18 +81,96 @@ var funcMap = template.FuncMap{
 	// markup is not escaped by html/template.
 	"actionBadge": func(action string) template.HTML {
 		cls := map[string]string{
-			"create": "badge-success",
-			"update": "badge-info",
-			"delete": "badge-error",
-			"login":  "badge-primary",
-			"logout": "badge-ghost",
-			"export": "badge-warning",
+			"create":  "badge-success",
+			"update":  "badge-info",
+			"retired": "badge-warning",
+			"delete":  "badge-error",
+			"login":   "badge-primary",
+			"logout":  "badge-ghost",
+			"export":  "badge-secondary",
 		}
 		c := cls[action]
 		if c == "" {
 			c = "badge-ghost"
 		}
 		return template.HTML(`<span class="badge badge-sm ` + c + `">` + action + `</span>`)
+	},
+	// diffView renders the audit Changes JSON as a professional before→after diff table.
+	// Accepts either a flat snapshot (create/delete) or {before:{},after:{}} (update/retired).
+	"diffView": func(raw any) template.HTML {
+		var data []byte
+		switch v := raw.(type) {
+		case *string:
+			if v == nil {
+				return template.HTML("")
+			}
+			data = []byte(*v)
+		case string:
+			data = []byte(v)
+		case json.RawMessage:
+			data = v
+		case []byte:
+			data = v
+		default:
+			return template.HTML("")
+		}
+		var generic map[string]any
+		if err := json.Unmarshal(data, &generic); err != nil {
+			return template.HTML(`<pre class="text-xs whitespace-pre-wrap break-all font-mono bg-base-100 rounded-box p-3 border border-base-300 overflow-auto max-h-72">` + html.EscapeString(string(data)) + `</pre>`)
+		}
+		// Determine if it's a before/after diff.
+		before, hasBefore := generic["before"].(map[string]any)
+		after, hasAfter := generic["after"].(map[string]any)
+		label := map[string]string{
+			"maker": "Maker", "software_name": "Software Name", "version": "Version",
+			"license_key": "License Key", "activation_key": "Activation Key",
+			"assigned_to": "Assigned To", "device_hostname": "Hostname", "device_sn": "Device S/N",
+			"section": "Section", "po_no": "PO No", "status": "Status",
+			"activated_on": "Activated On", "expiry_date": "Expiry Date", "remarks": "Remarks",
+		}
+		var b strings.Builder
+		esc := func(v any) string {
+			if v == nil {
+				return `<span class="text-base-content/30 italic">—</span>`
+			}
+			return html.EscapeString(fmt.Sprintf("%v", v))
+		}
+		if hasBefore && hasAfter {
+			// collect union of keys preserving a stable order
+			keys := []string{}
+			seen := map[string]bool{}
+			for k := range before {
+				if !seen[k] {
+					keys = append(keys, k)
+					seen[k] = true
+				}
+			}
+			for k := range after {
+				if !seen[k] {
+					keys = append(keys, k)
+					seen[k] = true
+				}
+			}
+			b.WriteString(`<div class="grid grid-cols-[7rem_1fr_1fr] gap-x-3 text-xs">`)
+			b.WriteString(`<div class="font-semibold text-base-content/40 uppercase tracking-wide pb-1.5">Field</div>`)
+			b.WriteString(`<div class="font-semibold text-error/70 uppercase tracking-wide pb-1.5">Before</div>`)
+			b.WriteString(`<div class="font-semibold text-success/70 uppercase tracking-wide pb-1.5">After</div>`)
+			for _, k := range keys {
+				b.WriteString(`<div class="py-1 font-medium text-base-content/70">` + html.EscapeString(label[k]) + `</div>`)
+				b.WriteString(`<div class="py-1 font-mono break-all line-through decoration-error/40">` + esc(before[k]) + `</div>`)
+				b.WriteString(`<div class="py-1 font-mono break-all">` + esc(after[k]) + `</div>`)
+			}
+			b.WriteString(`</div>`)
+		} else {
+			// flat snapshot: key/value list
+			b.WriteString(`<div class="grid grid-cols-[8rem_1fr] gap-x-3 text-xs">`)
+			for k, v := range generic {
+				b.WriteString(`<div class="py-1 font-medium text-base-content/70">` + html.EscapeString(label[k]) + `</div>`)
+				b.WriteString(`<div class="py-1 font-mono break-all">` + esc(v) + `</div>`)
+			}
+			b.WriteString(`</div>`)
+		}
+		return template.HTML(b.String())
 	},
 	// queryStr builds a URL query string from an audit.Filter struct.
 	"queryStr": func(f any) string {

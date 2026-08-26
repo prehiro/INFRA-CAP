@@ -6,7 +6,7 @@ BEGIN
         actor_id    INT NULL,
         actor_name  NVARCHAR(150) NULL,
         action      NVARCHAR(20) NOT NULL
-                    CONSTRAINT CK_audit_log_action CHECK (action IN ('create','update','delete','login','logout','export')),
+                    CONSTRAINT CK_audit_log_action CHECK (action IN ('create','update','retired','delete','login','logout','export')),
         entity      NVARCHAR(50) NOT NULL,
         entity_id   NVARCHAR(50) NULL,
         changes     NVARCHAR(MAX) NULL,

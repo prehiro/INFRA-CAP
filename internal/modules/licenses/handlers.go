@@ -1,6 +1,7 @@
 package licenses
 
 import (	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -197,6 +198,10 @@ func formTitle(l *License, isNew bool) string {
 func (m *Module) save(w http.ResponseWriter, r *http.Request) {
 	l := formToLicense(r)
 	isNew := l.ID == 0
+	var old *License
+	if !isNew {
+		old, _ = m.Store.GetByID(r.Context(), l.ID)
+	}
 	if err := m.Store.Save(r.Context(), l); err != nil {
 		m.renderForm(w, r, l, isNew, err.Error())
 		return
@@ -212,7 +217,7 @@ func (m *Module) save(w http.ResponseWriter, r *http.Request) {
 		audit.Log(r.Context(), m.Store.DB, audit.Entry{
 			ActorID: actorID, ActorName: actorName, Action: "update",
 			Entity: "licenses", EntityID: strconv.Itoa(l.ID),
-			Changes: licenseSnapshot(l), IP: audit.ClientIP(r),
+			Changes: diffLicenses(old, l), IP: audit.ClientIP(r),
 		})
 	}
 	if r.Header.Get("HX-Request") == "true" {
@@ -225,10 +230,17 @@ func (m *Module) save(w http.ResponseWriter, r *http.Request) {
 func (m *Module) update(w http.ResponseWriter, r *http.Request) {
 	l := formToLicense(r)
 	l.ID = atoi(r.PathValue("id"))
+	old, _ := m.Store.GetByID(r.Context(), l.ID)
 	if err := m.Store.Save(r.Context(), l); err != nil {
 		m.renderForm(w, r, l, false, err.Error())
 		return
 	}
+	actorID, actorName := actorInfo(r)
+	audit.Log(r.Context(), m.Store.DB, audit.Entry{
+		ActorID: actorID, ActorName: actorName, Action: "update",
+		Entity: "licenses", EntityID: strconv.Itoa(l.ID),
+		Changes: diffLicenses(old, l), IP: audit.ClientIP(r),
+	})
 	if r.Header.Get("HX-Request") == "true" {
 		m.hxResults(w, r)
 		return
@@ -270,9 +282,14 @@ func (m *Module) retire(w http.ResponseWriter, r *http.Request) {
 	}
 	actorID, actorName := actorInfo(r)
 	audit.Log(r.Context(), m.Store.DB, audit.Entry{
-		ActorID: actorID, ActorName: actorName, Action: "delete",
+		ActorID: actorID, ActorName: actorName, Action: "retired",
 		Entity: "licenses", EntityID: strconv.Itoa(id),
-		Changes: licenseSnapshot(l), IP: audit.ClientIP(r),
+		Changes: diffLicenses(l, &License{ID: l.ID, Maker: l.Maker, SoftwareName: l.SoftwareName,
+			Status: "Retired", AssignedTo: nil, Version: l.Version, LicenseKey: l.LicenseKey,
+			ActivationKey: l.ActivationKey, DeviceHostname: l.DeviceHostname, DeviceSN: l.DeviceSN,
+			Section: l.Section, PONo: l.PONo, Remarks: l.Remarks,
+			ActivatedOn: l.ActivatedOn, ExpiryDate: l.ExpiryDate}),
+		IP: audit.ClientIP(r),
 	})
 	if r.Header.Get("HX-Request") == "true" {
 		w.Header().Set("HX-Retarget", "#license-results")
@@ -310,6 +327,48 @@ func licenseSnapshot(l *License) map[string]any {
 		"expiry_date":    dmyOr(l.ExpiryDate),
 		"remarks":        derefOr(l.Remarks),
 	}
+}
+
+// diffLicenses returns a {"before":{...},"after":{...}} map of only the changed fields.
+func diffLicenses(old, new *License) map[string]any {
+	if old == nil {
+		return licenseSnapshot(new)
+	}
+	fields := []struct {
+		key string
+		get func(*License) any
+	}{
+		{"maker", func(l *License) any { return l.Maker }},
+		{"software_name", func(l *License) any { return l.SoftwareName }},
+		{"version", func(l *License) any { return derefOr(l.Version) }},
+		{"license_key", func(l *License) any { return derefOr(l.LicenseKey) }},
+		{"activation_key", func(l *License) any { return derefOr(l.ActivationKey) }},
+		{"assigned_to", func(l *License) any { return derefOr(l.AssignedTo) }},
+		{"device_hostname", func(l *License) any { return derefOr(l.DeviceHostname) }},
+		{"device_sn", func(l *License) any { return derefOr(l.DeviceSN) }},
+		{"section", func(l *License) any { return derefOr(l.Section) }},
+		{"po_no", func(l *License) any { return derefOr(l.PONo) }},
+		{"status", func(l *License) any { return l.Status }},
+		{"activated_on", func(l *License) any { return dmyOr(l.ActivatedOn) }},
+		{"expiry_date", func(l *License) any { return dmyOr(l.ExpiryDate) }},
+		{"remarks", func(l *License) any { return derefOr(l.Remarks) }},
+	}
+	before, after := map[string]any{}, map[string]any{}
+	for _, f := range fields {
+		ov, nv := f.get(old), f.get(new)
+		if !equalVal(ov, nv) {
+			before[f.key] = ov
+			after[f.key] = nv
+		}
+	}
+	return map[string]any{"before": before, "after": after}
+}
+
+func equalVal(a, b any) bool {
+	if a == nil || b == nil {
+		return a == nil && b == nil
+	}
+	return fmt.Sprintf("%v", a) == fmt.Sprintf("%v", b)
 }
 
 func derefOr(s *string) any {
