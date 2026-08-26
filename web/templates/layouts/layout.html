@@ -429,7 +429,14 @@
           .forEach(function (h) { h.value = ''; });
     }
     const inp = document.getElementById('license-search-input');
-    if (inp) { inp.value = ''; inp.dispatchEvent(new Event('input', { bubbles: true })); }
+    if (inp) {
+      inp.value = '';
+      // update the search wrapper's hasQ state directly (hides the clear X) WITHOUT
+      // dispatching 'input' — dispatching would re-trigger the live-search swap and
+      // cause a second table flicker.
+      const w = inp.closest('[x-data]');
+      if (w) { try { Alpine.$data(w).hasQ = false; } catch(e){} }
+    }
     document.querySelectorAll('[x-data^="datePicker"]').forEach(function (el) {
       const d = Alpine.$data(el);
       if (d && typeof d.clear === 'function') d.clear();
