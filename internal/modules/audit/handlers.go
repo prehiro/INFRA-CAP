@@ -20,7 +20,8 @@ func (m *Module) Name() string { return "audit" }
 var actions = []string{"create", "update", "retired", "delete", "login", "logout", "export"}
 
 func (m *Module) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /audit", m.list)
+	mux.HandleFunc("GET /audit/", m.list)
+	mux.HandleFunc("GET /audit/{id}", m.detail)
 }
 
 func atoi(s string) int {
@@ -86,6 +87,17 @@ func (m *Module) list(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	web.RenderNamed(w, r, "audit_content", "Audit Trail", data)
+}
+
+// detail renders the audit event in a modal (HTMX target #modal-container).
+func (m *Module) detail(w http.ResponseWriter, r *http.Request) {
+	id := atoi(r.PathValue("id"))
+	l, err := m.Store.GetByID(r.Context(), id)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	web.RenderNamed(w, r, "audit_detail_content", "Audit Detail", map[string]any{"Log": l})
 }
 
 // actorFrom resolves the current user (if any) for logging convenience.

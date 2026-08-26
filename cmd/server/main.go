@@ -90,7 +90,7 @@ func run() error {
 	auditMux := http.NewServeMux()
 	auditMod := audit.New(&audit.Store{DB: database})
 	auditMod.RegisterRoutes(auditMux)
-	protected.Handle("/audit", web.CSRFValidate(authSvc.Middleware(true)(auth.RequireRole("admin")(auditMux))))
+	protected.Handle("/audit/", web.CSRFValidate(authSvc.Middleware(true)(auth.RequireRole("admin")(auditMux))))
 
 	mux.Handle("/", web.CSRFValidate(authSvc.Middleware(true)(protected)))
 

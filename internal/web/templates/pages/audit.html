@@ -91,35 +91,107 @@
     </thead>
     <tbody>
       {{range .Items}}
-      <tbody x-data="{open:false}">
       <tr class="border-b border-base-300/50 align-top hover:bg-base-200/40">
         <td>
-          <button type="button" class="btn btn-ghost btn-xs" @click="open=!open" :title="open ? 'Hide' : 'Detail'">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transition-transform" :class="open && 'rotate-90'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          <button type="button" class="btn btn-ghost btn-xs" title="Detail"
+                  hx-get="/audit/{{.ID}}" hx-target="#modal-container" hx-swap="innerHTML">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
           </button>
         </td>
         <td class="whitespace-nowrap text-sm">{{.CreatedAt.Format "2006-01-02 15:04"}}</td>
         <td class="text-sm">{{if .ActorName}}{{.ActorName}}{{else}}<span class="text-base-content/40">—</span>{{end}}</td>
         <td>{{actionBadge .Action}}</td>
         <td class="text-sm"><span class="badge badge-ghost badge-sm">{{.Entity}}</span></td>
-        <td class="text-sm font-mono">{{if .EntityID}}{{.EntityID}}{{else}}<span class="text-base-content/40">—</span>{{end}}</td>
+        <td class="text-sm font-mono">
+          {{if .EntityID}}
+            <a hx-get="/audit/{{.ID}}" hx-target="#modal-container" hx-swap="innerHTML"
+               class="link link-primary link-hover">{{.EntityID}}</a>
+          {{else}}<span class="text-base-content/40">—</span>{{end}}
+        </td>
         <td class="text-sm font-mono text-base-content/60">{{if .IP}}{{.IP}}{{else}}—{{end}}</td>
       </tr>
-      {{if .Changes}}
-      <tr x-show="open" x-cloak>
-        <td colspan="7" class="bg-base-200/30 p-0">
-          <div class="p-4">
-            <p class="text-xs font-semibold text-base-content/50 mb-2">Perubahan</p>
-            {{diffView .Changes}}
-          </div>
-        </td>
-      </tr>
-      {{end}}
-      </tbody>
       {{else}}
       <tr><td colspan="7" class="text-center text-base-content/50 py-10">No audit events found.</td></tr>
       {{end}}
     </tbody>
   </table>
+</div>
+{{end}}
+
+{{define "audit_detail_content"}}{{$L := .Log}}
+<div x-data="{ open: false, close() { this.open = false; setTimeout(() => this.$refs.root.remove(), 200) } }"
+     x-init="$nextTick(() => open = true)"
+     x-ref="root"
+     @keydown.escape.window="close()"
+     @modal-close.document="close()"
+     class="fixed inset-0 z-[90] flex items-center justify-center p-4">
+
+  <div x-show="open" @click="close()"
+       x-transition:enter="transition ease-out duration-200"
+       x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+       x-transition:leave="transition ease-in duration-150"
+       x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+       class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+
+  <div x-show="open"
+       x-transition:enter="transition ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-300"
+       x-transition:enter-start="opacity-0 scale-90 translate-y-6"
+       x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+       x-transition:leave="transition ease-in duration-150"
+       x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+       class="relative w-full max-w-lg rounded-2xl bg-base-100 border border-base-300 shadow-2xl overflow-hidden">
+
+    <!-- header -->
+    <div class="flex items-center gap-3 px-6 py-5 border-b border-base-300 bg-primary/5">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-primary/15 text-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h6"/></svg>
+      </div>
+      <div class="min-w-0 flex-1">
+        <h2 class="font-bold text-base leading-tight">Audit Detail</h2>
+        <div class="flex items-center gap-2 mt-0.5">
+          {{actionBadge $L.Action}}
+          <span class="text-xs text-base-content/50 font-mono">{{$L.Entity}}{{if $L.EntityID}} #{{$L.EntityID}}{{end}}</span>
+        </div>
+      </div>
+      <button type="button" @click="close()" class="btn btn-ghost btn-sm btn-square" title="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- meta -->
+    <div class="px-6 py-4 grid grid-cols-2 gap-y-3 gap-x-4 text-sm border-b border-base-300">
+      <div>
+        <p class="text-xs text-base-content/50 uppercase tracking-wide">Waktu</p>
+        <p class="font-medium">{{$L.CreatedAt.Format "2006-01-02 15:04:05"}}</p>
+      </div>
+      <div>
+        <p class="text-xs text-base-content/50 uppercase tracking-wide">Actor</p>
+        <p class="font-medium">{{if $L.ActorName}}{{$L.ActorName}}{{else}}<span class="text-base-content/40">—</span>{{end}}</p>
+      </div>
+      <div>
+        <p class="text-xs text-base-content/50 uppercase tracking-wide">IP Address</p>
+        <p class="font-mono">{{if $L.IP}}{{$L.IP}}{{else}}—{{end}}</p>
+      </div>
+      <div>
+        <p class="text-xs text-base-content/50 uppercase tracking-wide">Target</p>
+        <p class="font-mono">{{if $L.EntityID}}{{$L.Entity}} #{{$L.EntityID}}{{else}}—{{end}}</p>
+      </div>
+    </div>
+
+    <!-- changes -->
+    <div class="px-6 py-5">
+      <p class="text-xs font-semibold text-base-content/50 mb-3 uppercase tracking-wide">Perubahan</p>
+      {{if $L.Changes}}
+        {{diffView $L.Changes}}
+      {{else}}
+        <p class="text-sm text-base-content/40">Tidak ada detail perubahan untuk event ini.</p>
+      {{end}}
+    </div>
+
+    <!-- footer -->
+    <div class="px-6 py-4 border-t border-base-300 bg-base-200/30 flex justify-end shrink-0">
+      <button type="button" @click="close()" class="btn btn-primary btn-sm">Tutup</button>
+    </div>
+  </div>
 </div>
 {{end}}

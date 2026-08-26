@@ -153,6 +153,13 @@ func (s *Store) List(ctx context.Context, f Filter) ([]*Log, int, error) {
 	return out, total, rows.Err()
 }
 
+// GetByID returns a single audit event by id.
+func (s *Store) GetByID(ctx context.Context, id int) (*Log, error) {
+	q := fmt.Sprintf(`SELECT %s FROM audit_log WHERE id = @p1`, auditCols)
+	row := s.DB.QueryRowContext(ctx, q, id)
+	return scanLog(row)
+}
+
 // DistinctActors returns actor names that have logged activity (for the filter dropdown).
 func (s *Store) DistinctActors(ctx context.Context) ([]string, error) {
 	rows, err := s.DB.QueryContext(ctx,
