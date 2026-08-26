@@ -230,6 +230,9 @@
   .inset-0 {
     inset: 0px;
   }
+  .-top-1\.5 {
+    top: calc(var(--spacing) * -1.5);
+  }
   .top-0 {
     top: 0px;
   }
@@ -239,11 +242,20 @@
   .top-1\/2 {
     top: calc(1 / 2 * 100%);
   }
+  .top-full {
+    top: 100%;
+  }
+  .right-0 {
+    right: 0px;
+  }
   .right-1 {
     right: var(--spacing);
   }
   .right-2 {
     right: calc(var(--spacing) * 2);
+  }
+  .right-4 {
+    right: calc(var(--spacing) * 4);
   }
   .left-0 {
     left: 0px;
@@ -422,6 +434,9 @@
   .w-64 {
     width: calc(var(--spacing) * 64);
   }
+  .w-96 {
+    width: calc(var(--spacing) * 96);
+  }
   .w-full {
     width: 100%;
   }
@@ -446,9 +461,6 @@
   .min-w-0 {
     min-width: 0px;
   }
-  .min-w-\[220px\] {
-    min-width: 220px;
-  }
   .flex-1 {
     flex: 1;
   }
@@ -463,6 +475,9 @@
   }
   .border-collapse {
     border-collapse: collapse;
+  }
+  .origin-top-right {
+    transform-origin: 100% 0;
   }
   .-translate-y-1 {
     --tw-translate-y: calc(var(--spacing) * -1);
@@ -505,6 +520,9 @@
     --tw-scale-y: 100%;
     --tw-scale-z: 100%;
     scale: var(--tw-scale-x) var(--tw-scale-y);
+  }
+  .rotate-45 {
+    rotate: 45deg;
   }
   .rotate-180 {
     rotate: 180deg;
@@ -645,6 +663,10 @@
   .border-b {
     border-bottom-style: var(--tw-border-style);
     border-bottom-width: 1px;
+  }
+  .border-l {
+    border-left-style: var(--tw-border-style);
+    border-left-width: 1px;
   }
   .border-dashed {
     --tw-border-style: dashed;
