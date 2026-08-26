@@ -404,17 +404,13 @@
   // Select a status chip: keep filter state in the live DOM so the search box (and dates)
   // combine with it. Updates the hidden status field, syncs chip active styling, then refetches.
   window.selectStatus = function(status) {
+    // keep the chips Alpine state authoritative so active styling is always correct
+    const chipsDiv = document.getElementById('status-chips');
+    if (chipsDiv) { try { Alpine.$data(chipsDiv).status = status; } catch(e){} }
     const form = document.querySelector('form[hx-get="/licenses"]');
     if (form) {
       const hid = form.querySelector('input[type="hidden"][name="status"]');
       if (hid) hid.value = status;
-      // reflect active class immediately
-      const chips = document.querySelectorAll('#status-chips .status-chip');
-      chips.forEach(function (c) {
-        const isAll = c.getAttribute('title') === 'Show all (reset filters)';
-        const isThis = c.getAttribute('title') === 'Filter: ' + status;
-        c.classList.toggle('status-chip-active', isThis && !isAll);
-      });
       // trigger live filter (uses current search + dates + this status)
       form.dispatchEvent(new Event('input', { bubbles: true }));
     }
@@ -423,8 +419,10 @@
   };
   // Master reset: clear the search input + both date pickers + status, then refetch all.
   window.clearAllFilters = function() {
+    // reset the chips Alpine state so "All" shows active (indigo) and others don't
+    const chipsDiv = document.getElementById('status-chips');
+    if (chipsDiv) { try { Alpine.$data(chipsDiv).status = ''; } catch(e){} }
     // blank the form's hidden status/date fields so no stale filter leaks back via live-search
-    document.querySelectorAll('#license-results').forEach(()=>{});
     const form = document.querySelector('form[hx-get="/licenses"]');
     if (form) {
       form.querySelectorAll('input[type="hidden"][name="status"], input[type="hidden"][name="exp_from"], input[type="hidden"][name="exp_to"]')
