@@ -235,11 +235,24 @@
 
 /* ===== page entrance (audit + generic pages) ===== */
 @keyframes page-in {
-  from { opacity: 0; transform: translateY(14px) scale(0.992); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translateY(26px) scale(0.985); filter: blur(2px); }
+  to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
 }
 .page-enter {
-  animation: page-in 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation: page-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+/* child cascade: each direct child of a .page-enter container slides up in sequence */
+.page-enter > * {
+  animation: page-child-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.page-enter > *:nth-child(1) { animation-delay: 0.06s; }
+.page-enter > *:nth-child(2) { animation-delay: 0.12s; }
+.page-enter > *:nth-child(3) { animation-delay: 0.18s; }
+.page-enter > *:nth-child(4) { animation-delay: 0.24s; }
+.page-enter > *:nth-child(n+5) { animation-delay: 0.30s; }
+@keyframes page-child-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ===== modal diff rows (staggered) ===== */
