@@ -228,6 +228,37 @@ var funcMap = template.FuncMap{
 		}
 		return t.Format("02-01-06")
 	},
+	// pageWindow returns the page numbers to show in a compact pager.
+	// 0 in the slice means an ellipsis gap.
+	"pageWindow": func(cur, total int) []int {
+		if total <= 7 {
+			out := make([]int, total)
+			for i := range out {
+				out[i] = i + 1
+			}
+			return out
+		}
+		out := []int{1}
+		start := cur - 2
+		if start < 2 {
+			start = 2
+		}
+		end := cur + 2
+		if end > total-1 {
+			end = total - 1
+		}
+		if start > 2 {
+			out = append(out, 0) // ellipsis
+		}
+		for i := start; i <= end; i++ {
+			out = append(out, i)
+		}
+		if end < total-1 {
+			out = append(out, 0) // ellipsis
+		}
+		out = append(out, total)
+		return out
+	},
 }
 
 func init() {

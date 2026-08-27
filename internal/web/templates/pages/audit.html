@@ -65,13 +65,27 @@
 <div class="shrink-0 flex items-center justify-between mb-2 px-1">
   <p class="text-sm text-base-content/60">{{.Total}} event(s)</p>
   {{if gt .TotalPages 1}}
-  <div class="flex items-center gap-1">
+  <div class="join">
     {{$prev := sub .Page 1}}{{$next := add .Page 1}}
     <a href="/audit?{{queryStr $F}}&page={{$prev}}" hx-get="/audit?{{queryStr $F}}&page={{$prev}}" hx-target="#audit-results" hx-swap="outerHTML"
-       class="btn btn-xs {{if le .Page 1}}btn-disabled{{else}}btn-ghost{{end}}">‹ Prev</a>
-    <span class="text-sm text-base-content/60 px-1">Page {{.Page}} / {{.TotalPages}}</span>
+       aria-label="Previous page"
+       class="join-item btn btn-sm {{if le .Page 1}}btn-disabled{{else}}btn-ghost{{end}}">‹</a>
+    {{range pageWindow .Page .TotalPages}}
+      {{if eq . 0}}
+        <span class="join-item btn btn-sm btn-disabled no-animate">…</span>
+      {{else}}
+        {{if eq . $.Page}}
+          <a href="/audit?{{queryStr $F}}&page={{.}}" hx-get="/audit?{{queryStr $F}}&page={{.}}" hx-target="#audit-results" hx-swap="outerHTML"
+             class="join-item btn btn-sm btn-primary">{{.}}</a>
+        {{else}}
+          <a href="/audit?{{queryStr $F}}&page={{.}}" hx-get="/audit?{{queryStr $F}}&page={{.}}" hx-target="#audit-results" hx-swap="outerHTML"
+             class="join-item btn btn-sm btn-ghost">{{.}}</a>
+        {{end}}
+      {{end}}
+    {{end}}
     <a href="/audit?{{queryStr $F}}&page={{$next}}" hx-get="/audit?{{queryStr $F}}&page={{$next}}" hx-target="#audit-results" hx-swap="outerHTML"
-       class="btn btn-xs {{if ge .Page .TotalPages}}btn-disabled{{else}}btn-ghost{{end}}">Next ›</a>
+       aria-label="Next page"
+       class="join-item btn btn-sm {{if ge .Page .TotalPages}}btn-disabled{{else}}btn-ghost{{end}}">›</a>
   </div>
   {{end}}
 </div>
