@@ -64,29 +64,29 @@
     <div>
       <label class="label text-sm font-medium pb-1">Username</label>
       <input name="username" value="{{$u.Username}}" {{if not $IsNew}}disabled{{end}} required
-             class="input input-bordered w-full bg-base-200/50 {{if not $IsNew}}opacity-60{{end}}">
+             class="input input-bordered w-full bg-base-100 {{if not $IsNew}}opacity-60{{end}}">
     </div>
     {{if $IsNew}}
     <div>
       <label class="label text-sm font-medium pb-1">Password</label>
       <input name="password" type="password" required minlength="8"
-             class="input input-bordered w-full bg-base-200/50">
+             class="input input-bordered w-full bg-base-100">
     </div>
     {{else}}
     <div>
       <label class="label text-sm font-medium pb-1">New Password <span class="text-base-content/40 font-normal">(kosongkan jika tidak diubah)</span></label>
       <input name="new_password" type="password"
-             class="input input-bordered w-full bg-base-200/50">
+             class="input input-bordered w-full bg-base-100">
     </div>
     {{end}}
     <div>
       <label class="label text-sm font-medium pb-1">Full Name</label>
       <input name="full_name" value="{{$u.FullName}}" required
-             class="input input-bordered w-full bg-base-200/50">
+             class="input input-bordered w-full bg-base-100">
     </div>
     <div>
       <label class="label text-sm font-medium pb-1">Role</label>
-      <select name="role" class="select select-bordered w-full bg-base-200/50">
+      <select name="role" class="select select-bordered w-full bg-base-100">
         <option value="user" {{if eq $u.Role "user"}}selected{{end}}>user</option>
         <option value="admin" {{if eq $u.Role "admin"}}selected{{end}}>admin</option>
       </select>

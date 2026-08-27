@@ -31,7 +31,7 @@
         <input type="hidden" name="status" value="{{$F.Status}}">
         <input id="license-search-input" name="q" value="{{$F.Query}}" placeholder="{{if $F.Status}}Search within {{$F.Status}}...{{else}}Search licenses...{{end}}"
                @input="hasQ = $event.target.value.length > 0"
-               class="input input-sm input-bordered w-full bg-base-200/50 pr-8">
+               class="input input-sm input-bordered w-full bg-base-100 pr-8">
         <button type="button" x-show="hasQ" x-cloak title="Clear search"
                 @click="const i = document.getElementById('license-search-input'); i.value=''; hasQ=false; i.dispatchEvent(new Event('input', {bubbles:true})); i.focus()"
                 class="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center text-white bg-error/80 hover:bg-error transition-colors shrink-0">
@@ -208,38 +208,38 @@
   </div>
 {{end}}{{define "license_fields_content"}}{{$L := .L}}{{$d := .}}
     <div><label class="label text-xs font-medium pb-1">Maker *</label>
-      <input name="maker" value="{{$L.Maker}}" required class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}></div>
+      <input name="maker" value="{{$L.Maker}}" required class="input input-sm input-bordered w-full bg-base-100" {{if $d.ViewOnly}}disabled{{end}}></div>
     <div><label class="label text-xs font-medium pb-1">Software Name *</label>
-      <input name="software_name" value="{{$L.SoftwareName}}" required class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}></div>
+      <input name="software_name" value="{{$L.SoftwareName}}" required class="input input-sm input-bordered w-full bg-base-100" {{if $d.ViewOnly}}disabled{{end}}></div>
     <div><label class="label text-xs font-medium pb-1">Version</label>
-      <input name="version" value="{{if $L.Version}}{{$L.Version}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}></div>
+      <input name="version" value="{{if $L.Version}}{{$L.Version}}{{end}}" class="input input-sm input-bordered w-full bg-base-100" {{if $d.ViewOnly}}disabled{{end}}></div>
     <div><label class="label text-xs font-medium pb-1">Status</label>
-      <select name="status" {{if $d.ViewOnly}}disabled{{end}} class="select select-sm select-bordered w-full bg-base-200/50">
+      <select name="status" {{if $d.ViewOnly}}disabled{{end}} class="select select-sm select-bordered w-full bg-base-100">
         {{$st := $L.Status}}
         {{range licenseStatuses}}
         <option value="{{.}}" {{if eq $st .}}selected{{end}}>{{.}}</option>
         {{end}}
       </select></div>
     <div class="sm:col-span-2"><label class="label text-xs font-medium pb-1">License Key</label>
-      <input name="license_key" value="{{if $L.LicenseKey}}{{$L.LicenseKey}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50 font-mono" {{if $d.ViewOnly}}disabled{{end}}></div>
+      <input name="license_key" value="{{if $L.LicenseKey}}{{$L.LicenseKey}}{{end}}" class="input input-sm input-bordered w-full bg-base-100 font-mono" {{if $d.ViewOnly}}disabled{{end}}></div>
     <div class="sm:col-span-2"><label class="label text-xs font-medium pb-1">Activation Key</label>
-      <input name="activation_key" value="{{if $L.ActivationKey}}{{$L.ActivationKey}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50 font-mono" {{if $d.ViewOnly}}disabled{{end}}></div>
+      <input name="activation_key" value="{{if $L.ActivationKey}}{{$L.ActivationKey}}{{end}}" class="input input-sm input-bordered w-full bg-base-100 font-mono" {{if $d.ViewOnly}}disabled{{end}}></div>
     <div><label class="label text-xs font-medium pb-1">Assigned To</label>
-      <input name="assigned_to" value="{{if $L.AssignedTo}}{{$L.AssignedTo}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}></div>
+      <input name="assigned_to" value="{{if $L.AssignedTo}}{{$L.AssignedTo}}{{end}}" class="input input-sm input-bordered w-full bg-base-100" {{if $d.ViewOnly}}disabled{{end}}></div>
     <div><label class="label text-xs font-medium pb-1">Section</label>
-      <input name="section" value="{{if $L.Section}}{{$L.Section}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}></div>
+      <input name="section" value="{{if $L.Section}}{{$L.Section}}{{end}}" class="input input-sm input-bordered w-full bg-base-100" {{if $d.ViewOnly}}disabled{{end}}></div>
     <div><label class="label text-xs font-medium pb-1">Device Hostname</label>
-      <input name="device_hostname" value="{{if $L.DeviceHostname}}{{$L.DeviceHostname}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}></div>
+      <input name="device_hostname" value="{{if $L.DeviceHostname}}{{$L.DeviceHostname}}{{end}}" class="input input-sm input-bordered w-full bg-base-100" {{if $d.ViewOnly}}disabled{{end}}></div>
     <div><label class="label text-xs font-medium pb-1">Device SN</label>
-      <input name="device_sn" value="{{if $L.DeviceSN}}{{$L.DeviceSN}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}></div>
+      <input name="device_sn" value="{{if $L.DeviceSN}}{{$L.DeviceSN}}{{end}}" class="input input-sm input-bordered w-full bg-base-100" {{if $d.ViewOnly}}disabled{{end}}></div>
     <div><label class="label text-xs font-medium pb-1">PO No</label>
-      <input name="po_no" value="{{if $L.PONo}}{{$L.PONo}}{{end}}" class="input input-sm input-bordered w-full bg-base-200/50" {{if $d.ViewOnly}}disabled{{end}}></div>
+      <input name="po_no" value="{{if $L.PONo}}{{$L.PONo}}{{end}}" class="input input-sm input-bordered w-full bg-base-100" {{if $d.ViewOnly}}disabled{{end}}></div>
     {{template "license_datepicker_content" (dict "Name" "activated_on" "Label" "Activated On" "Value" (dmy $L.ActivatedOn) "Disabled" $d.ViewOnly)}}
     {{template "license_datepicker_content" (dict "Name" "expiry_date" "Label" "Expiry Date" "Value" (dmy $L.ExpiryDate) "Disabled" $d.ViewOnly)}}
     <div class="sm:col-span-2">
       <label class="label text-xs font-medium pb-1">Remarks</label>
       <textarea name="remarks" rows="2" placeholder="Additional notes (optional)" {{if $d.ViewOnly}}disabled{{end}}
-                class="textarea textarea-sm textarea-bordered w-full bg-base-200/50">{{if $L.Remarks}}{{$L.Remarks}}{{end}}</textarea>
+                class="textarea textarea-sm textarea-bordered w-full bg-base-100">{{if $L.Remarks}}{{$L.Remarks}}{{end}}</textarea>
     </div>
 {{end}}
 
@@ -248,7 +248,7 @@
 <div x-data="dpField('{{$name}}', '{{$value}}', {{if $disabled}}true{{else}}false{{end}})" @click.outside="open=false" class="relative">
   <label class="label text-xs font-medium pb-1">{{$label}}</label>
   <button type="button" @click="toggle()"
-          class="input input-sm input-bordered w-full flex items-center justify-between gap-1 bg-base-200/50 hover:border-primary transition-colors"
+          class="input input-sm input-bordered w-full flex items-center justify-between gap-1 bg-base-100 hover:border-primary transition-colors"
           :class="open && 'border-primary'" {{if $disabled}}disabled{{end}}>
     <span class="text-sm" x-text="display || 'DD-MM-YY'" :class="!display && 'text-base-content/40'"></span>
     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-base-content/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>

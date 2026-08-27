@@ -17,11 +17,11 @@
     <div class="flex flex-col gap-1">
       <label class="label text-xs font-medium text-base-content/60">Actor</label>
       <input id="audit-actor-input" name="actor" value="{{$F.Actor}}" placeholder="Nama user..."
-             class="input input-sm input-bordered w-48 bg-base-200/50">
+             class="input input-sm input-bordered w-48 bg-base-100">
     </div>
     <div class="flex flex-col gap-1">
       <label class="label text-xs font-medium text-base-content/60">Action</label>
-      <select name="action" class="select select-sm select-bordered w-36 bg-base-200/50">
+      <select name="action" class="select select-sm select-bordered w-36 bg-base-100">
         <option value="" {{if eq $F.Action ""}}selected{{end}}>All</option>
         {{range .Actions}}
         <option value="{{.}}" {{if eq $F.Action .}}selected{{end}}>{{.}}</option>
@@ -30,7 +30,7 @@
     </div>
     <div class="flex flex-col gap-1">
       <label class="label text-xs font-medium text-base-content/60">Entity</label>
-      <select name="entity" class="select select-sm select-bordered w-36 bg-base-200/50">
+      <select name="entity" class="select select-sm select-bordered w-36 bg-base-100">
         <option value="" {{if eq $F.Entity ""}}selected{{end}}>All</option>
         {{range .Entities}}
         <option value="{{.}}" {{if eq $F.Entity .}}selected{{end}}>{{.}}</option>
@@ -40,12 +40,12 @@
     <div class="flex flex-col gap-1">
       <label class="label text-xs font-medium text-base-content/60">From</label>
       <input type="date" name="from" value="{{if $F.From}}{{$F.From.Format "2006-01-02"}}{{end}}"
-             class="input input-sm input-bordered w-40 bg-base-200/50">
+             class="input input-sm input-bordered w-40 bg-base-100">
     </div>
     <div class="flex flex-col gap-1">
       <label class="label text-xs font-medium text-base-content/60">To</label>
       <input type="date" name="to" value="{{if $F.To}}{{$F.To.Format "2006-01-02"}}{{end}}"
-             class="input input-sm input-bordered w-40 bg-base-200/50">
+             class="input input-sm input-bordered w-40 bg-base-100">
     </div>
     <button type="button" class="btn btn-ghost btn-sm" onclick="this.closest('form').reset(); this.closest('form').dispatchEvent(new Event('change',{bubbles:true}))">
       Reset
