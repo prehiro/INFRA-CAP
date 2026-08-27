@@ -232,3 +232,40 @@
   .row-action-edit:hover   { color: #b45309; }   /* amber-700 */
   .row-action-retire:hover { color: #b91c1c; }   /* red-700 */
 }
+
+/* ===== page entrance (audit + generic pages) ===== */
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.992); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.page-enter {
+  animation: page-in 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* ===== modal diff rows (staggered) ===== */
+@keyframes diff-row-in {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.diff-row {
+  animation: diff-row-in 0.34s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.diff-row:nth-child(1) { animation-delay: 0.04s; }
+.diff-row:nth-child(2) { animation-delay: 0.08s; }
+.diff-row:nth-child(3) { animation-delay: 0.12s; }
+.diff-row:nth-child(4) { animation-delay: 0.16s; }
+.diff-row:nth-child(5) { animation-delay: 0.20s; }
+.diff-row:nth-child(n+6) { animation-delay: 0.24s; }
+
+/* ===== modal meta strip (staggered) ===== */
+@keyframes meta-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.meta-item {
+  animation: meta-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.meta-item:nth-child(1) { animation-delay: 0.10s; }
+.meta-item:nth-child(2) { animation-delay: 0.14s; }
+.meta-item:nth-child(3) { animation-delay: 0.18s; }
+.meta-item:nth-child(4) { animation-delay: 0.22s; }

@@ -176,7 +176,7 @@ var funcMap = template.FuncMap{
 			}
 			b.WriteString(`<ul class="space-y-2.5">`)
 			for _, k := range keys {
-				b.WriteString(`<li class="flex items-start gap-3 text-sm">`)
+				b.WriteString(`<li class="flex items-start gap-3 text-sm diff-row">`)
 				b.WriteString(`<span class="w-28 shrink-0 pt-1 text-xs font-medium uppercase tracking-wide text-base-content/50">` + html.EscapeString(lab(k)) + `</span>`)
 				b.WriteString(`<div class="flex flex-wrap items-center gap-2 min-w-0">`)
 				b.WriteString(`<span class="font-mono text-xs px-2 py-1 rounded-md bg-error/10 text-error line-through decoration-error/50">` + esc(before[k]) + `</span>`)
@@ -203,7 +203,7 @@ var funcMap = template.FuncMap{
 			}
 			b.WriteString(`<dl class="space-y-2.5">`)
 			for _, k := range keys {
-				b.WriteString(`<div class="flex items-start gap-3 text-sm">`)
+				b.WriteString(`<div class="flex items-start gap-3 text-sm diff-row">`)
 				b.WriteString(`<dt class="w-28 shrink-0 text-xs font-medium uppercase tracking-wide text-base-content/50">` + html.EscapeString(lab(k)) + `</dt>`)
 				b.WriteString(`<dd class="font-mono text-xs px-2 py-1 rounded-md bg-base-200/60 break-all">` + esc(generic[k]) + `</dd>`)
 				b.WriteString(`</div>`)
