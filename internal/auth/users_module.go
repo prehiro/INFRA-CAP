@@ -36,6 +36,12 @@ func (m *AdminUsersModule) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /users/{id}", m.update)
 }
 
+// isHTMX reports whether the request came from HTMX (so we render the
+// modal fragment instead of the full page fallback).
+func isHTMX(r *http.Request) bool {
+	return r.Header.Get("HX-Request") == "true"
+}
+
 func (m *AdminUsersModule) list(w http.ResponseWriter, r *http.Request) {
 	users, err := m.Service.List(r.Context())
 	if err != nil {
@@ -50,7 +56,11 @@ func (m *AdminUsersModule) list(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m *AdminUsersModule) newForm(w http.ResponseWriter, r *http.Request) {
-	web.RenderNamed(w, r, "new_user_content", "New User", map[string]any{
+	tpl := "user_form_content"
+	if isHTMX(r) {
+		tpl = "user_modal_content"
+	}
+	web.RenderNamed(w, r, tpl, "New User", map[string]any{
 		"User":  userView{},
 		"IsNew": true,
 		"Error": "",
@@ -68,11 +78,24 @@ func (m *AdminUsersModule) create(w http.ResponseWriter, r *http.Request) {
 	}
 	err := m.Service.Create(r.Context(), username, password, fullName, role)
 	if err != nil {
-		web.RenderNamed(w, r, "new_user_content", "New User", map[string]any{
+		// On error, re-render the modal WITH the error so user can correct.
+		if isHTMX(r) {
+			web.RenderNamed(w, r, "user_modal_content", "New User", map[string]any{
+				"User":  userView{Username: username, FullName: fullName, Role: role},
+				"IsNew": true,
+				"Error": "Failed to save: username may already exist or password too weak.",
+			})
+			return
+		}
+		web.RenderNamed(w, r, "user_form_content", "New User", map[string]any{
 			"User":  userView{Username: username, FullName: fullName, Role: role},
 			"IsNew": true,
-			"Error": "Gagal menyimpan: username mungkin sudah dipakai atau password terlalu lemah.",
+			"Error": "Failed to save: username may already exist or password too weak.",
 		})
+		return
+	}
+	if isHTMX(r) {
+		m.refreshResults(w, r)
 		return
 	}
 	http.Redirect(w, r, "/users", http.StatusSeeOther)
@@ -85,7 +108,11 @@ func (m *AdminUsersModule) editForm(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	web.RenderNamed(w, r, "edit_user_content", "Edit User", map[string]any{
+	tpl := "user_form_content"
+	if isHTMX(r) {
+		tpl = "user_modal_content"
+	}
+	web.RenderNamed(w, r, tpl, "Edit User", map[string]any{
 		"User":  toView(u),
 		"IsNew": false,
 		"Error": "",
@@ -104,8 +131,36 @@ func (m *AdminUsersModule) update(w http.ResponseWriter, r *http.Request) {
 	newPass := r.PostFormValue("new_password")
 
 	if err := m.Service.Update(r.Context(), id, fullName, role, isActive, newPass); err != nil {
+		// On error, fetch user back + re-render modal with error.
+		if isHTMX(r) {
+			u, _ := m.Service.GetByID(r.Context(), id)
+			view := userView{ID: id, FullName: fullName, Role: role, IsActive: isActive}
+			if u != nil {
+				view.Username = u.Username
+			}
+			web.RenderNamed(w, r, "user_modal_content", "Edit User", map[string]any{
+				"User":  view,
+				"IsNew": false,
+				"Error": "Failed to save: " + err.Error(),
+			})
+			return
+		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if isHTMX(r) {
+		m.refreshResults(w, r)
 		return
 	}
 	http.Redirect(w, r, "/users", http.StatusSeeOther)
 }
+
+// refreshResults sends HX-Retarget/HX-Reswap so the #user-results table
+// re-renders with the latest data, while the layout's afterRequest
+// listener (also matched for #user-results) closes the modal.
+func (m *AdminUsersModule) refreshResults(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("HX-Retarget", "#user-results")
+	w.Header().Set("HX-Reswap", "outerHTML")
+	m.list(w, r)
+}
+

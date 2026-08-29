@@ -368,7 +368,7 @@
     // HX-Retarget is set on the RESPONSE, read it from the xhr
     const xhr = e.detail.xhr;
     const rt = xhr && xhr.getResponseHeader ? xhr.getResponseHeader('HX-Retarget') : null;
-    if (!rt || !rt.includes('license-results')) return;
+    if (!rt || (!rt.includes('license-results') && !rt.includes('user-results'))) return;
     const modal = document.querySelector('#modal-container > div');
     // error responses re-render the modal WITH an alert — don't close those
     if (modal && modal.querySelector('.alert-error')) return;
