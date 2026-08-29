@@ -23,10 +23,11 @@ type userView struct {
 	FullName string
 	Role     string
 	IsActive bool
+	GID      string
 }
 
 func toView(u *User) userView {
-	return userView{u.ID, u.Username, u.FullName, u.Role, u.IsActive}
+	return userView{u.ID, u.Username, u.FullName, u.Role, u.IsActive, u.GID}
 }
 
 func (m *AdminUsersModule) RegisterRoutes(mux *http.ServeMux) {
@@ -35,6 +36,7 @@ func (m *AdminUsersModule) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /users", m.create)
 	mux.HandleFunc("GET /users/{id}/edit", m.editForm)
 	mux.HandleFunc("POST /users/{id}", m.update)
+	mux.HandleFunc("POST /users/{id}/toggle-active", m.toggleActive)
 }
 
 // isHTMX reports whether the request came from HTMX (so we render the
@@ -80,22 +82,23 @@ func (m *AdminUsersModule) create(w http.ResponseWriter, r *http.Request) {
 	password := r.PostFormValue("password")
 	fullName := r.PostFormValue("full_name")
 	role := r.PostFormValue("role")
+	gid := r.PostFormValue("gid")
 	if role != "admin" && role != "user" {
 		role = "user"
 	}
-	err := m.Service.Create(r.Context(), username, password, fullName, role)
+	err := m.Service.Create(r.Context(), username, password, fullName, role, gid)
 	if err != nil {
 		// On error, re-render the modal WITH the error so user can correct.
 		if isHTMX(r) {
 			web.RenderNamed(w, r, "user_modal_content", "New User", map[string]any{
-				"User":  userView{Username: username, FullName: fullName, Role: role},
+				"User":  userView{Username: username, FullName: fullName, Role: role, GID: gid},
 				"IsNew": true,
 				"Error": "Failed to save: username may already exist or password too weak.",
 			})
 			return
 		}
 		web.RenderNamed(w, r, "user_form_content", "New User", map[string]any{
-			"User":  userView{Username: username, FullName: fullName, Role: role},
+			"User":  userView{Username: username, FullName: fullName, Role: role, GID: gid},
 			"IsNew": true,
 			"Error": "Failed to save: username may already exist or password too weak.",
 		})
@@ -117,6 +120,7 @@ func (m *AdminUsersModule) create(w http.ResponseWriter, r *http.Request) {
 		Changes: map[string]any{
 			"id":        newID,
 			"username":  username,
+			"gid":       gid,
 			"full_name": fullName,
 			"role":      role,
 			"is_active": true,
@@ -158,15 +162,16 @@ func (m *AdminUsersModule) update(w http.ResponseWriter, r *http.Request) {
 		role = "user"
 	}
 	isActive := r.PostFormValue("is_active") == "on" || r.PostFormValue("is_active") == "1"
+	gid := r.PostFormValue("gid")
 	newPass := r.PostFormValue("new_password")
 
 	// Snapshot before the update so the audit log can show a clean diff.
 	oldUser, _ := m.Service.GetByID(r.Context(), id)
 
-	if err := m.Service.Update(r.Context(), id, fullName, role, isActive, newPass); err != nil {
+	if err := m.Service.Update(r.Context(), id, fullName, role, isActive, gid, newPass); err != nil {
 		// On error, fetch user back + re-render modal with error.
 		if isHTMX(r) {
-			view := userView{ID: id, FullName: fullName, Role: role, IsActive: isActive}
+			view := userView{ID: id, FullName: fullName, Role: role, IsActive: isActive, GID: gid}
 			if oldUser != nil {
 				view.Username = oldUser.Username
 			}
@@ -192,6 +197,7 @@ func (m *AdminUsersModule) update(w http.ResponseWriter, r *http.Request) {
 			"id":        id,
 			"full_name": fullName,
 			"role":      role,
+			"gid":       gid,
 			"is_active": isActive,
 		}
 	}
@@ -211,6 +217,45 @@ func (m *AdminUsersModule) update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.Redirect(w, r, "/users", http.StatusSeeOther)
+}
+
+// toggleActive flips the is_active flag for a user. Wired to the per-row
+// "Deactivate / Activate" button in the table. Always HTMX — there's no
+// page navigation for this action, just an in-place table refresh.
+func (m *AdminUsersModule) toggleActive(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(r.PathValue("id"))
+	oldUser, err := m.Service.GetByID(r.Context(), id)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	// Refuse to lock the admin out of their own seat — this is the single
+	// admin account or the seeded one. Per Hiro: never disable the only admin.
+	if oldUser.Role == "admin" && oldUser.Username == "admin" && oldUser.IsActive {
+		// Re-render the table so the button visually snaps back.
+		m.refreshResults(w, r)
+		return
+	}
+
+	newActive := !oldUser.IsActive
+	if err := m.Service.SetActive(r.Context(), id, newActive); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	actorID, actorName := userActorInfo(r)
+	audit.Log(r.Context(), m.Service.DB, audit.Entry{
+		ActorID:   actorID,
+		ActorName: actorName,
+		Action:    "update",
+		Entity:    "users",
+		EntityID:  strconv.Itoa(id),
+		Changes: map[string]any{
+			"before": map[string]any{"is_active": oldUser.IsActive},
+			"after":  map[string]any{"is_active": newActive},
+		},
+		IP: audit.ClientIP(r),
+	})
+	m.refreshResults(w, r)
 }
 
 // userActorInfo returns the current logged-in user's id + full name for
@@ -235,6 +280,10 @@ func userDiff(old, new *User, passwordChanged bool) map[string]any {
 	if old.Role != new.Role {
 		before["role"] = old.Role
 		after["role"] = new.Role
+	}
+	if old.GID != new.GID {
+		before["gid"] = old.GID
+		after["gid"] = new.GID
 	}
 	if old.IsActive != new.IsActive {
 		before["is_active"] = old.IsActive

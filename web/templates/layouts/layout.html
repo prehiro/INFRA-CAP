@@ -378,7 +378,11 @@
       if (data && typeof data.close === 'function') { data.close(); closed = true; }
     }
     if (!closed && modal) modal.remove();          // hard fallback
-    window.__showSavedToast();
+    // Only show the success toast if a modal was actually closed
+    // (i.e. the request originated from the create/edit modal). The
+    // toggle-active action also sets HX-Retarget=#user-results but no
+    // modal is involved, so we don't want a celebratory toast for that.
+    if (modal) window.__showSavedToast();
   });
 
   window.__showSavedToast = function() {

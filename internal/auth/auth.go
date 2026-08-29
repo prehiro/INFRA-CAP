@@ -24,6 +24,7 @@ type User struct {
 	FullName     string
 	Role         string
 	IsActive     bool
+	GID          string
 }
 
 type Service struct {
