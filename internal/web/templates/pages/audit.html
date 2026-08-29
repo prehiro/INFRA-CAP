@@ -61,6 +61,7 @@
 
 {{define "audit_results_content"}}
 {{$F := .F}}
+<div class="results-anim flex-1 min-h-0 flex flex-col">
 <!-- summary bar -->
 <div class="shrink-0 flex items-center justify-between mb-2 px-1">
   <p class="text-sm text-base-content/60">{{.Total}} event(s)</p>
@@ -129,6 +130,7 @@
       {{end}}
     </tbody>
   </table>
+</div>
 </div>
 {{end}}
 
