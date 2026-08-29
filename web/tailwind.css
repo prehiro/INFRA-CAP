@@ -176,17 +176,22 @@
   }
 
   /* live presence ping — expanding halo behind the dot (Active users only).
-     Two layers stacked: a wrapper .status-live that has both the static dot
-     (the ::before) AND an absolutely-positioned halo (::after) that scales
-     and fades. The badge keeps its pill bg/text — only the dot pulses. */
+     The ::before pseudo (from .status-badge) IS the dot itself; we layer a
+     second pseudo ::after on top of it as the expanding halo. Positioning
+     is anchored to the dot's CENTER, not its left edge:
+       dot ::before sits at 0.45rem (left padding) + 0.2rem (half of 0.4rem) = 0.65rem
+     so the halo's left = 0.65rem with translateX(-50%) lands it dead-center
+     on the dot. Vertical alignment uses top:50% + translateY(-50%).
+     Keyframes animate scale + opacity ONLY (not translate) so the
+     translate(-50%,-50%) centering stays locked. */
   .status-live {
     position: relative;
   }
   .status-live::after {
     content: "";
     position: absolute;
+    left: 0.65rem;            /* dead center of the ::before dot */
     top: 50%;
-    left: 0.45rem;                 /* matches ::before left padding */
     width: 0.4rem;
     height: 0.4rem;
     border-radius: 9999px;
@@ -198,7 +203,7 @@
   }
   @keyframes status-ping {
     0%   { transform: translate(-50%, -50%) scale(1);   opacity: 0.55; }
-    75%  { transform: translate(-50%, -50%) scale(2.4); opacity: 0;    }
+    75%,
     100% { transform: translate(-50%, -50%) scale(2.4); opacity: 0;    }
   }
   /* respect reduced motion: keep the dot, drop the halo */

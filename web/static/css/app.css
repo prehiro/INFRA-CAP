@@ -360,9 +360,6 @@
   .table {
     display: table;
   }
-  .h-1\.5 {
-    height: calc(var(--spacing) * 1.5);
-  }
   .h-2 {
     height: calc(var(--spacing) * 2);
   }
@@ -407,9 +404,6 @@
   }
   .min-h-screen {
     min-height: 100vh;
-  }
-  .w-1\.5 {
-    width: calc(var(--spacing) * 1.5);
   }
   .w-2 {
     width: calc(var(--spacing) * 2);
@@ -49966,8 +49960,8 @@
   .status-live::after {
     content: "";
     position: absolute;
+    left: 0.65rem;
     top: 50%;
-    left: 0.45rem;
     width: 0.4rem;
     height: 0.4rem;
     border-radius: 9999px;
@@ -49982,11 +49976,7 @@
       transform: translate(-50%, -50%) scale(1);
       opacity: 0.55;
     }
-    75% {
-      transform: translate(-50%, -50%) scale(2.4);
-      opacity: 0;
-    }
-    100% {
+    75%, 100% {
       transform: translate(-50%, -50%) scale(2.4);
       opacity: 0;
     }
