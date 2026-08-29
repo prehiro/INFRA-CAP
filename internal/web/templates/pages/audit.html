@@ -141,6 +141,8 @@
 {{if eq $L.Action "delete"}}{{$accent = "text-error"}}{{$accentBg = "bg-error/15"}}{{end}}
 {{if eq $L.Action "create"}}{{$accent = "text-success"}}{{$accentBg = "bg-success/15"}}{{end}}
 {{if eq $L.Action "export"}}{{$accent = "text-secondary"}}{{$accentBg = "bg-secondary/15"}}{{end}}
+{{if eq $L.Action "login_success"}}{{$accent = "text-success"}}{{$accentBg = "bg-success/15"}}{{end}}
+{{if eq $L.Action "login_failure"}}{{$accent = "text-error"}}{{$accentBg = "bg-error/15"}}{{end}}
 <div x-data="{ open: false, close() { this.open = false; setTimeout(() => this.$refs.root.remove(), 200) } }"
      x-init="$nextTick(() => open = true)"
      x-ref="root"

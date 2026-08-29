@@ -81,13 +81,15 @@ var funcMap = template.FuncMap{
 	// markup is not escaped by html/template.
 	"actionBadge": func(action string) template.HTML {
 		cls := map[string]string{
-			"create":  "badge-success",
-			"update":  "badge-info",
-			"retired": "badge-warning",
-			"delete":  "badge-error",
-			"login":   "badge-primary",
-			"logout":  "badge-ghost",
-			"export":  "badge-secondary",
+			"create":        "badge-success",
+			"update":        "badge-info",
+			"retired":       "badge-warning",
+			"delete":        "badge-error",
+			"login_success": "badge-success",
+			"login_failure": "badge-error",
+			"login":         "badge-primary",
+			"logout":        "badge-ghost",
+			"export":        "badge-secondary",
 		}
 		c := cls[action]
 		if c == "" {

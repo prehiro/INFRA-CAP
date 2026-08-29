@@ -56,7 +56,8 @@ func (f Filter) QueryString() string {
 
 var validAction = map[string]bool{
 	"create": true, "update": true, "delete": true, "retired": true,
-	"login": true, "logout": true, "export": true,
+	"login": true, "login_success": true, "login_failure": true,
+	"logout": true, "export": true,
 }
 
 func (f *Filter) normalize() {

@@ -43,7 +43,7 @@ func (m *Module) loginSubmit(w http.ResponseWriter, r *http.Request) {
 	token, u, err := m.Service.Authenticate(r.Context(), username, password)
 	if err != nil {
 		audit.Log(r.Context(), m.Service.DB, audit.Entry{
-			ActorName: username, Action: "login", Entity: "auth", EntityID: "",
+			ActorName: username, Action: "login_failure", Entity: "auth", EntityID: "",
 			Changes: map[string]any{"result": "failure", "reason": err.Error()},
 			IP: audit.ClientIP(r),
 		})
@@ -56,7 +56,7 @@ func (m *Module) loginSubmit(w http.ResponseWriter, r *http.Request) {
 	}
 	SetSessionCookie(w, token)
 	audit.Log(r.Context(), m.Service.DB, audit.Entry{
-		ActorID: u.ID, ActorName: u.FullName, Action: "login", Entity: "auth", EntityID: "",
+		ActorID: u.ID, ActorName: u.FullName, Action: "login_success", Entity: "auth", EntityID: "",
 		Changes: map[string]any{"result": "success"}, IP: audit.ClientIP(r),
 	})
 	http.Redirect(w, r, "/", http.StatusSeeOther)
