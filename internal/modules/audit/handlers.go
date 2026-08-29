@@ -63,6 +63,7 @@ func (m *Module) list(w http.ResponseWriter, r *http.Request) {
 		Page:     atoi(q.Get("page")),
 		PageSize: 25,
 	}
+	f.normalize() // ensure Page is at least 1 for template display
 	items, total, err := m.Store.List(r.Context(), f)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -64,7 +64,7 @@
 <!-- summary bar -->
 <div class="shrink-0 flex items-center justify-between mb-2 px-1">
   <p class="text-sm text-base-content/60">{{.Total}} event(s)</p>
-  {{if gt .TotalPages 1}}
+  {{if gt .Total 0}}
   <div class="join">
     {{$prev := sub .Page 1}}{{$next := add .Page 1}}
     <a href="/audit?{{queryStr $F}}&page={{$prev}}" hx-get="/audit?{{queryStr $F}}&page={{$prev}}" hx-target="#audit-results" hx-swap="innerHTML"
