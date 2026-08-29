@@ -22,6 +22,7 @@
 {{end}}
 
 {{define "user_results_content"}}
+<div id="user-results" class="results-anim flex-1 min-h-0 overflow-auto rounded-box bg-base-100 border border-base-300 shadow-sm">
 <table class="table table-sm">
   <thead class="sticky top-0 z-10">
     <tr class="bg-base-200/95 backdrop-blur-sm text-xs uppercase tracking-wide text-base-content/50">
@@ -85,6 +86,7 @@
     {{end}}
   </tbody>
 </table>
+</div>
 {{end}}
 
 {{define "user_modal_content"}}{{$d := .}}{{$u := .User}}
@@ -152,13 +154,13 @@
         <div>
           <label class="label text-xs font-medium pb-1">GID <span class="text-base-content/40 font-normal">(leave blank for n/a)</span></label>
           <input name="gid" value="{{$u.GID}}" maxlength="50" placeholder="n/a"
-                 class="input input-sm input-bordered w-full bg-base-100 font-mono">
+                 class="input input-sm input-bordered w-full bg-base-100 font-mono uppercase">
         </div>
         {{else}}
         <div>
           <label class="label text-xs font-medium pb-1">GID <span class="text-base-content/40 font-normal">(leave blank for n/a)</span></label>
           <input name="gid" value="{{$u.GID}}" maxlength="50" placeholder="n/a"
-                 class="input input-sm input-bordered w-full bg-base-100 font-mono">
+                 class="input input-sm input-bordered w-full bg-base-100 font-mono uppercase">
         </div>
         {{end}}
         {{if $d.IsNew}}
@@ -177,7 +179,7 @@
         <div>
           <label class="label text-xs font-medium pb-1">Full Name</label>
           <input name="full_name" value="{{$u.FullName}}" required
-                 class="input input-sm input-bordered w-full bg-base-100">
+                 class="input input-sm input-bordered w-full bg-base-100 uppercase">
         </div>
         <div>
           <label class="label text-xs font-medium pb-1">Role</label>
@@ -226,7 +228,7 @@
     <div>
       <label class="label text-sm font-medium pb-1">GID <span class="text-base-content/40 font-normal">(leave blank for n/a)</span></label>
       <input name="gid" value="{{$u.GID}}" maxlength="50" placeholder="n/a"
-             class="input input-bordered w-full bg-base-100 font-mono">
+             class="input input-bordered w-full bg-base-100 font-mono uppercase">
     </div>
     {{if $IsNew}}
     <div>
@@ -244,7 +246,7 @@
     <div>
       <label class="label text-sm font-medium pb-1">Full Name</label>
       <input name="full_name" value="{{$u.FullName}}" required
-             class="input input-bordered w-full bg-base-100">
+             class="input input-bordered w-full bg-base-100 uppercase">
     </div>
     <div>
       <label class="label text-sm font-medium pb-1">Role</label>

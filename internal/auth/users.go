@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"os"
+	"strings"
 )
 
 // adminGID is the fixed GID for the seeded admin account.
@@ -50,24 +51,16 @@ func (s *Service) SeedFirstAdmin(ctx context.Context) {
 	log.Printf("seed admin: created initial admin user %q (gid=%s)", user, adminGID)
 }
 
-// normalizeGID returns the value to store for the GID column. Whitespace
-// gets trimmed; empty input becomes the default 'n/a' so the column is
-// never NULL and the table always has something to show.
+// normalizeGID trims whitespace and forces uppercase. The GID is an
+// identifier, not free text, so admins don't get to type 'emp001' and
+// have the system treat it as different from 'EMP001'. Empty input
+// becomes the 'n/a' placeholder.
 func normalizeGID(s string) string {
+	s = strings.TrimSpace(s)
 	if s == "" {
 		return defaultGID
 	}
-	// Tidy common whitespace without reformatting the value.
-	for len(s) > 0 && (s[0] == ' ' || s[0] == '\t') {
-		s = s[1:]
-	}
-	for len(s) > 0 && (s[len(s)-1] == ' ' || s[len(s)-1] == '\t') {
-		s = s[:len(s)-1]
-	}
-	if s == "" {
-		return defaultGID
-	}
-	return s
+	return strings.ToUpper(s)
 }
 
 // List returns all users (admin view).
@@ -90,7 +83,9 @@ func (s *Service) List(ctx context.Context) ([]User, error) {
 }
 
 // Create inserts a new user. The GID is whatever the admin typed in the
-// form; an empty input becomes 'n/a' (see normalizeGID).
+// form; an empty input becomes 'n/a' (see normalizeGID). The full name
+// is uppercased on save so 'hiro' and 'Hiro' don't end up mixed in the
+// directory.
 func (s *Service) Create(ctx context.Context, username, password, fullName, role, gid string) error {
 	exists := 0
 	s.DB.QueryRowContext(ctx, `SELECT CASE WHEN EXISTS(SELECT 1 FROM users WHERE username=@p1) THEN 1 ELSE 0 END`, username).Scan(&exists)
@@ -102,6 +97,7 @@ func (s *Service) Create(ctx context.Context, username, password, fullName, role
 		return err
 	}
 	gid = normalizeGID(gid)
+	fullName = strings.TrimSpace(strings.ToUpper(fullName))
 	_, err = s.DB.ExecContext(ctx,
 		`INSERT INTO users (username, password_hash, full_name, role, gid) VALUES (@p1, @p2, @p3, @p4, @p5)`,
 		username, hash, fullName, role, gid)
@@ -111,6 +107,7 @@ func (s *Service) Create(ctx context.Context, username, password, fullName, role
 // Update modifies full name/role/active/gid; optional new password.
 func (s *Service) Update(ctx context.Context, id int, fullName, role string, isActive bool, gid, newPassword string) error {
 	gid = normalizeGID(gid)
+	fullName = strings.TrimSpace(strings.ToUpper(fullName))
 	if newPassword != "" {
 		hash, err := HashPassword(newPassword)
 		if err != nil {
