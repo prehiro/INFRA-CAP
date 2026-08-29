@@ -107,3 +107,16 @@ func (s *Service) GetByID(ctx context.Context, id int) (*User, error) {
 	}
 	return &u, nil
 }
+
+// GetByUsername fetches a single user by username. Used by the create
+// handler to look up the new id right after insert for the audit log.
+func (s *Service) GetByUsername(ctx context.Context, username string) (*User, error) {
+	var u User
+	err := s.DB.QueryRowContext(ctx,
+		`SELECT id, username, password_hash, full_name, role, is_active FROM users WHERE username=@p1`, username).
+		Scan(&u.ID, &u.Username, &u.PasswordHash, &u.FullName, &u.Role, &u.IsActive)
+	if err != nil {
+		return nil, err
+	}
+	return &u, nil
+}

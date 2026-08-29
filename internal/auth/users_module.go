@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"infracap/internal/audit"
 	"infracap/internal/web"
 )
 
@@ -52,7 +53,13 @@ func (m *AdminUsersModule) list(w http.ResponseWriter, r *http.Request) {
 	for i := range users {
 		views = append(views, toView(&users[i]))
 	}
-	web.RenderNamed(w, r, "users_content", "Users", map[string]any{"Users": views})
+	// HTMX callers (the modal-success refresh) want just the table fragment;
+	// full-page navigation wants the wrapped page.
+	tpl := "users_content"
+	if isHTMX(r) {
+		tpl = "user_results_content"
+	}
+	web.RenderNamed(w, r, tpl, "Users", map[string]any{"Users": views})
 }
 
 func (m *AdminUsersModule) newForm(w http.ResponseWriter, r *http.Request) {
@@ -94,6 +101,29 @@ func (m *AdminUsersModule) create(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+
+	// Look up the new user's id for the audit log.
+	newID := 0
+	if u, _ := m.Service.GetByUsername(r.Context(), username); u != nil {
+		newID = u.ID
+	}
+	actorID, actorName := userActorInfo(r)
+	audit.Log(r.Context(), m.Service.DB, audit.Entry{
+		ActorID:   actorID,
+		ActorName: actorName,
+		Action:    "create",
+		Entity:    "users",
+		EntityID:  strconv.Itoa(newID),
+		Changes: map[string]any{
+			"id":        newID,
+			"username":  username,
+			"full_name": fullName,
+			"role":      role,
+			"is_active": true,
+		},
+		IP: audit.ClientIP(r),
+	})
+
 	if isHTMX(r) {
 		m.refreshResults(w, r)
 		return
@@ -130,13 +160,15 @@ func (m *AdminUsersModule) update(w http.ResponseWriter, r *http.Request) {
 	isActive := r.PostFormValue("is_active") == "on" || r.PostFormValue("is_active") == "1"
 	newPass := r.PostFormValue("new_password")
 
+	// Snapshot before the update so the audit log can show a clean diff.
+	oldUser, _ := m.Service.GetByID(r.Context(), id)
+
 	if err := m.Service.Update(r.Context(), id, fullName, role, isActive, newPass); err != nil {
 		// On error, fetch user back + re-render modal with error.
 		if isHTMX(r) {
-			u, _ := m.Service.GetByID(r.Context(), id)
 			view := userView{ID: id, FullName: fullName, Role: role, IsActive: isActive}
-			if u != nil {
-				view.Username = u.Username
+			if oldUser != nil {
+				view.Username = oldUser.Username
 			}
 			web.RenderNamed(w, r, "user_modal_content", "Edit User", map[string]any{
 				"User":  view,
@@ -148,11 +180,70 @@ func (m *AdminUsersModule) update(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	// Build a before/after diff so the audit detail modal can render
+	// only the changed fields with the line-through red -> green pills.
+	newUser, _ := m.Service.GetByID(r.Context(), id)
+	var changes map[string]any
+	if oldUser != nil && newUser != nil {
+		changes = userDiff(oldUser, newUser, newPass != "")
+	} else {
+		changes = map[string]any{
+			"id":        id,
+			"full_name": fullName,
+			"role":      role,
+			"is_active": isActive,
+		}
+	}
+	actorID, actorName := userActorInfo(r)
+	audit.Log(r.Context(), m.Service.DB, audit.Entry{
+		ActorID:   actorID,
+		ActorName: actorName,
+		Action:    "update",
+		Entity:    "users",
+		EntityID:  strconv.Itoa(id),
+		Changes:   changes,
+		IP:        audit.ClientIP(r),
+	})
+
 	if isHTMX(r) {
 		m.refreshResults(w, r)
 		return
 	}
 	http.Redirect(w, r, "/users", http.StatusSeeOther)
+}
+
+// userActorInfo returns the current logged-in user's id + full name for
+// audit logging. Mirrors licenses.actorInfo.
+func userActorInfo(r *http.Request) (int, string) {
+	if u := FromContext(r.Context()); u != nil {
+		return u.ID, u.FullName
+	}
+	return 0, "system"
+}
+
+// userDiff returns a {before, after} map of only the user fields that
+// changed. passwordChanged is reported as a one-way marker so the audit
+// trail can show the password was rotated without leaking the new value.
+func userDiff(old, new *User, passwordChanged bool) map[string]any {
+	before := map[string]any{}
+	after := map[string]any{}
+	if old.FullName != new.FullName {
+		before["full_name"] = old.FullName
+		after["full_name"] = new.FullName
+	}
+	if old.Role != new.Role {
+		before["role"] = old.Role
+		after["role"] = new.Role
+	}
+	if old.IsActive != new.IsActive {
+		before["is_active"] = old.IsActive
+		after["is_active"] = new.IsActive
+	}
+	if passwordChanged {
+		after["password"] = "rotated"
+	}
+	return map[string]any{"before": before, "after": after}
 }
 
 // refreshResults sends HX-Retarget/HX-Reswap so the #user-results table
