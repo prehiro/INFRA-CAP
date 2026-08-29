@@ -6,7 +6,7 @@
   <div class="shrink-0 flex flex-wrap items-center justify-between gap-3 mb-3">
     <div>
       <h1 class="text-xl font-bold">Audit Trail</h1>
-      <p class="text-base-content/50 text-sm mt-0.5">Riwayat aktivitas sistem (terbaru dulu)</p>
+      <p class="text-base-content/50 text-sm mt-0.5">System activity history (newest first)</p>
     </div>
   </div>
 
@@ -47,8 +47,9 @@
       <input type="date" name="to" value="{{if $F.To}}{{$F.To.Format "2006-01-02"}}{{end}}"
              class="input input-sm input-bordered w-40 bg-base-100">
     </div>
-    <button type="button" class="btn btn-ghost btn-sm" onclick="this.closest('form').reset(); this.closest('form').dispatchEvent(new Event('change',{bubbles:true}))">
-      Reset
+    <button type="button" class="btn btn-soft btn-error btn-sm gap-1.5" onclick="this.closest('form').reset(); this.closest('form').dispatchEvent(new Event('change',{bubbles:true}))">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      reset
     </button>
   </form>
 
