@@ -95,7 +95,7 @@ var funcMap = template.FuncMap{
 		if c == "" {
 			c = "badge-ghost"
 		}
-		return template.HTML(`<span class="badge badge-sm ` + c + `">` + action + `</span>`)
+		return template.HTML(`<span class="badge badge-soft badge-sm ` + c + `">` + action + `</span>`)
 	},
 	// diffView renders the audit Changes JSON as a professional before→after diff table.
 	// Accepts either a flat snapshot (create/delete) or {before:{},after:{}} (update/retired).
