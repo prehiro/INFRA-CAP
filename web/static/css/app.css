@@ -635,6 +635,11 @@
     margin-block-start: calc(var(--spacing) * var(--tw-space-y-reverse));
     margin-block-end: calc(var(--spacing) * calc(1 - var(--tw-space-y-reverse)));
   }
+  :where(.space-y-2 > :not(:last-child)) {
+    --tw-space-y-reverse: 0;
+    margin-block-start: calc(calc(var(--spacing) * 2) * var(--tw-space-y-reverse));
+    margin-block-end: calc(calc(var(--spacing) * 2) * calc(1 - var(--tw-space-y-reverse)));
+  }
   :where(.space-y-2\.5 > :not(:last-child)) {
     --tw-space-y-reverse: 0;
     margin-block-start: calc(calc(var(--spacing) * 2.5) * var(--tw-space-y-reverse));
@@ -665,11 +670,17 @@
     margin-block-start: calc(calc(var(--spacing) * 6) * var(--tw-space-y-reverse));
     margin-block-end: calc(calc(var(--spacing) * 6) * calc(1 - var(--tw-space-y-reverse)));
   }
+  .gap-x-3 {
+    column-gap: calc(var(--spacing) * 3);
+  }
   .gap-x-4 {
     column-gap: calc(var(--spacing) * 4);
   }
   .gap-x-8 {
     column-gap: calc(var(--spacing) * 8);
+  }
+  .gap-y-1 {
+    row-gap: var(--spacing);
   }
   .gap-y-3 {
     row-gap: calc(var(--spacing) * 3);
@@ -839,9 +850,6 @@
   }
   .py-10 {
     padding-block: calc(var(--spacing) * 10);
-  }
-  .py-12 {
-    padding-block: calc(var(--spacing) * 12);
   }
   .py-16 {
     padding-block: calc(var(--spacing) * 16);
@@ -1129,6 +1137,12 @@
     }
   }
   @media (width >= 48rem) {
+    .md\:hidden {
+      display: none;
+    }
+    .md\:table-row {
+      display: table-row;
+    }
     .md\:grid-cols-2 {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -49852,6 +49866,26 @@
     height: 3.5rem;
     display: block;
     stroke-width: 1.5;
+  }
+  .lic-thead, .user-thead, .audit-thead {
+    display: none;
+  }
+  .lic-row-desktop, .user-row-desktop, .audit-row-desktop {
+    display: none;
+  }
+  .lic-row-mobile, .user-row-mobile, .audit-row-mobile {
+    display: table-row;
+  }
+  @media (min-width: 768px) {
+    .lic-thead, .user-thead, .audit-thead {
+      display: table-header-group;
+    }
+    .lic-row-desktop, .user-row-desktop, .audit-row-desktop {
+      display: table-row;
+    }
+    .lic-row-mobile, .user-row-mobile, .audit-row-mobile {
+      display: none;
+    }
   }
 }
 .htmx-indicator {

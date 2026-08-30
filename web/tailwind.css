@@ -68,6 +68,35 @@
   }
 }
 
+/* ===== responsive tables (Phase 3.D) =====
+   The license/users/audit tables render two parallel <tr>s per record:
+   one for desktop (md+), one for mobile (<md). Tailwind v4 doesn't ship
+   `md:table-row` / `md:table-header-group` as utilities, so we define
+   custom responsive classes. Default is mobile-first (display: none at
+   md+), inverse for desktop rows (display: none below md). */
+@layer components {
+  .lic-thead, .user-thead, .audit-thead {
+    display: none;
+  }
+  .lic-row-desktop, .user-row-desktop, .audit-row-desktop {
+    display: none;
+  }
+  .lic-row-mobile, .user-row-mobile, .audit-row-mobile {
+    display: table-row;
+  }
+  @media (min-width: 768px) {
+    .lic-thead, .user-thead, .audit-thead {
+      display: table-header-group;
+    }
+    .lic-row-desktop, .user-row-desktop, .audit-row-desktop {
+      display: table-row;
+    }
+    .lic-row-mobile, .user-row-mobile, .audit-row-mobile {
+      display: none;
+    }
+  }
+}
+
 /* ===== htmx global loader (Phase 3.A) ===== */
 /* Override the default HTMX inline style for .htmx-indicator (which uses
    opacity:0; visibility:hidden) with our own visible/hidden rules. Spinner

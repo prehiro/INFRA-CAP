@@ -173,7 +173,7 @@
   <div id="license-results" class="results-anim flex-1 min-h-0 flex flex-col mt-4">
   <div class="rounded-box bg-base-100 border border-base-300 shadow-sm overflow-auto flex-1 min-h-0">
     <table class="table table-sm w-full">
-      <thead class="sticky top-0 z-20">
+      <thead class="lic-thead sticky top-0 z-20">
         <tr class="bg-base-200/95 backdrop-blur-sm text-xs uppercase tracking-wide text-base-content/50">
           <th>Maker</th><th>Software Name</th><th>Version</th><th>Assigned To</th>
           <th>Hostname</th><th>SN</th><th>Section</th><th>PO No</th><th>Status</th>
@@ -183,7 +183,15 @@
       <tbody>
         {{if .Items}}
         {{range .Items}}
-        <tr class="hover:bg-base-200/40 border-b border-base-300/50">
+        {{/*
+          Each row renders two siblings:
+          - Desktop (md+): standard <tr> with all columns. class="hidden md:table-row".
+          - Mobile (<md):  a single-cell <tr> that holds a styled card with the most
+            important fields. class="md:hidden".
+          Both share the same action buttons so HTMX modal triggers work
+          regardless of which view is active.
+        */}}
+        <tr class="lic-row-desktop hover:bg-base-200/40 border-b border-base-300/50">
           <td class="whitespace-nowrap">{{.Maker}}</td>
           <td class="whitespace-nowrap">
             <div class="font-medium">{{.SoftwareName}}</div>
@@ -214,8 +222,54 @@
             </button>
             <button type="button" class="row-action row-action-retire" title="Retire license"
                     hx-get="/licenses/{{.ID}}/retire-confirm" hx-target="#modal-container" hx-swap="innerHTML">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="14" y2="17"/></svg>
             </button>
+          </td>
+        </tr>
+        <tr class="lic-row-mobile border-b border-base-300/50">
+          <td colspan="13" class="p-2">
+            <div class="rounded-box bg-base-100 border border-base-300 shadow-sm p-3 space-y-2">
+              <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0 flex-1">
+                  <div class="font-semibold text-sm truncate">{{.SoftwareName}}</div>
+                  <div class="text-xs text-base-content/60 truncate">{{.Maker}}{{if .Version}} · v{{.Version}}{{end}}</div>
+                </div>
+                <div class="shrink-0">
+                  {{if eq .Status "In use"}}<span class="status-badge status-in-use">In use</span>
+                  {{else if eq .Status "Available"}}<span class="status-badge status-available">Available</span>
+                  {{else if eq .Status "Expired"}}<span class="status-badge status-expired">Expired</span>
+                  {{else}}<span class="status-badge status-retired">Retired</span>{{end}}
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                {{if .AssignedTo}}
+                <div><span class="text-base-content/50">Assigned:</span> <span class="font-medium">{{.AssignedTo}}</span></div>
+                {{end}}
+                {{if .DeviceHostname}}
+                <div><span class="text-base-content/50">Host:</span> <span class="font-mono text-[11px]">{{.DeviceHostname}}</span></div>
+                {{end}}
+                {{if .Section}}
+                <div><span class="text-base-content/50">Section:</span> {{.Section}}</div>
+                {{end}}
+                {{if .ExpiryDate}}
+                <div><span class="text-base-content/50">Expires:</span> <span class="{{if isExpiringSoon .ExpiryDate .Status}}text-warning font-semibold{{end}}">{{.ExpiryDate.Format "02-01-06"}}</span></div>
+                {{end}}
+              </div>
+              <div class="flex items-center justify-end gap-1 pt-1 border-t border-base-300/60">
+                <button type="button" class="row-action row-action-view" title="View license"
+                        hx-get="/licenses/{{.ID}}" hx-target="#modal-container" hx-swap="innerHTML">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+                <button type="button" class="row-action row-action-edit" title="Edit license"
+                        hx-get="/licenses/{{.ID}}/edit" hx-target="#modal-container" hx-swap="innerHTML">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
+                </button>
+                <button type="button" class="row-action row-action-retire" title="Retire license"
+                        hx-get="/licenses/{{.ID}}/retire-confirm" hx-target="#modal-container" hx-swap="innerHTML">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="14" y2="17"/></svg>
+                </button>
+              </div>
+            </div>
           </td>
         </tr>
         {{end}}
