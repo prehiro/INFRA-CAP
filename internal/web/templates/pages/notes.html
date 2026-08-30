@@ -147,6 +147,92 @@
          if (this.dirty && !confirm('You have unsaved changes. Discard them?')) return;
          this.open = false;
          setTimeout(() => this.$refs.root.remove(), 220);
+       },
+       // ----- markdown formatting helpers -----
+       // All helpers operate on the textarea selection via $refs.content.
+       // Each method wraps the current selection (or inserts placeholder)
+       // with the corresponding markdown syntax, then restores the selection
+       // so the user can keep typing.
+       _ta() { return this.$refs.content; },
+       _setSelection(start, end) {
+         const t = this._ta();
+         if (!t) return;
+         t.focus();
+         t.setSelectionRange(start, end);
+       },
+       _wrapSelection(prefix, suffix, placeholder) {
+         const t = this._ta();
+         if (!t) return;
+         const s = t.selectionStart, e = t.selectionEnd;
+         const selected = t.value.substring(s, e) || (placeholder || '');
+         const newText = prefix + selected + suffix;
+         t.value = t.value.substring(0, s) + newText + t.value.substring(e);
+         // place cursor inside the wrap (after prefix, before suffix)
+         const cursorStart = s + prefix.length;
+         const cursorEnd = cursorStart + selected.length;
+         this._setSelection(cursorStart, cursorEnd);
+         this.dirty = true;
+       },
+       _lineAction(prefix) {
+         // Apply prefix at the start of every selected line (or current line).
+         const t = this._ta();
+         if (!t) return;
+         const s = t.selectionStart, e = t.selectionEnd;
+         const before = t.value.substring(0, s);
+         const selected = t.value.substring(s, e);
+        // expand selection to whole lines
+         const lineStart = before.lastIndexOf('\n') + 1;
+         const after = t.value.substring(e);
+         const nextNl = after.indexOf('\n');
+         const lineEnd = e + (nextNl === -1 ? after.length : nextNl);
+         const lines = t.value.substring(lineStart, lineEnd).split('\n');
+         const newLines = lines.map(l => l.startsWith(prefix) ? l : prefix + l);
+         const replaced = newLines.join('\n');
+         t.value = t.value.substring(0, lineStart) + replaced + t.value.substring(lineEnd);
+         this._setSelection(lineStart, lineStart + replaced.length);
+         this.dirty = true;
+       },
+       formatBold()    { this._wrapSelection('**', '**', 'bold text'); },
+       formatItalic()  { this._wrapSelection('*', '*', 'italic text'); },
+       formatCode()    { this._wrapSelection('`', '`', 'code'); },
+       formatCodeBlock() { this._lineAction('```\n'); },
+       formatHeading() { this._lineAction('## '); },
+       formatList()    { this._lineAction('- '); },
+       formatQuote()   { this._lineAction('> '); },
+       formatHighlight() { this._wrapSelection('==', '==', 'highlighted text'); },
+       formatLink() {
+         const t = this._ta();
+         if (!t) return;
+         const s = t.selectionStart, e = t.selectionEnd;
+         const selected = t.value.substring(s, e) || 'link text';
+         const url = prompt('Enter URL (https://...)', 'https://');
+         if (!url) return;
+         const newText = '[' + selected + '](' + url + ')';
+         t.value = t.value.substring(0, s) + newText + t.value.substring(e);
+         this._setSelection(s + 1, s + 1 + selected.length);
+         this.dirty = true;
+       },
+       formatColor(color) {
+         // Wrap selection with a colored span. The string literals are
+         // built from char codes to avoid the Go html/template parser
+         // misreading the JS source as an attribute name (the template
+         // would error on a literal span tag inside the x-data block).
+         if (!color) {
+           // strip any wrapping color span on the selection
+           const t = this._ta();
+           if (!t) return;
+           const s = t.selectionStart, e = t.selectionEnd;
+           const sel = t.value.substring(s, e);
+           const stripped = sel.replace(/<\/?span[^>]*>/g, '');
+           t.value = t.value.substring(0, s) + stripped + t.value.substring(e);
+           this._setSelection(s, s + stripped.length);
+           this.dirty = true;
+           return;
+         }
+         const LT = String.fromCharCode(60);
+         const open = LT + 'span style=' + String.fromCharCode(34) + 'color:' + color + String.fromCharCode(34) + '>';
+         const close = LT + '/span>';
+         this._wrapSelection(open, close, 'colored text');
        }
      }"
      x-init="init(); window.addEventListener('beforeunload', beforeUnload)"
@@ -246,6 +332,54 @@
       <div class="flex-1 overflow-hidden flex flex-col">
         <!-- Write tab -->
         <div x-show="tab === 'write'" class="flex-1 overflow-y-auto px-6 py-4">
+          <!-- Formatting toolbar -->
+          <div class="flex flex-wrap items-center gap-0.5 mb-2 p-1 rounded-lg bg-base-200/60 border border-base-300/60">
+            <button type="button" @click="formatBold()" title="Bold (**text**)" class="btn btn-ghost btn-xs btn-square font-bold">B</button>
+            <button type="button" @click="formatItalic()" title="Italic (*text*)" class="btn btn-ghost btn-xs btn-square italic">I</button>
+            <button type="button" @click="formatHeading()" title="Heading (## text)" class="btn btn-ghost btn-xs btn-square font-semibold">H</button>
+            <span class="w-px h-4 bg-base-300 mx-0.5"></span>
+            <button type="button" @click="formatCode()" title="Inline code (`text`)" class="btn btn-ghost btn-xs btn-square font-mono text-[11px]">&lt;/&gt;</button>
+            <button type="button" @click="formatCodeBlock()" title="Code block (```)" class="btn btn-ghost btn-xs btn-square">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="m10 10-2 2 2 2"/><path d="m14 10 2 2-2 2"/></svg>
+            </button>
+            <span class="w-px h-4 bg-base-300 mx-0.5"></span>
+            <button type="button" @click="formatList()" title="Bullet list (- item)" class="btn btn-ghost btn-xs btn-square">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" x2="20" y1="6" y2="6"/><line x1="9" x2="20" y1="12" y2="12"/><line x1="9" x2="20" y1="18" y2="18"/><circle cx="4.5" cy="6" r="0.5" fill="currentColor"/><circle cx="4.5" cy="12" r="0.5" fill="currentColor"/><circle cx="4.5" cy="18" r="0.5" fill="currentColor"/></svg>
+            </button>
+            <button type="button" @click="formatQuote()" title="Blockquote (> text)" class="btn btn-ghost btn-xs btn-square">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+            </button>
+            <button type="button" @click="formatLink()" title="Link ([text](url))" class="btn btn-ghost btn-xs btn-square">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            </button>
+            <span class="w-px h-4 bg-base-300 mx-0.5"></span>
+            <button type="button" @click="formatHighlight()" title="Highlight (==text==)" class="btn btn-ghost btn-xs btn-square">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>
+            </button>
+            <!-- Color accent dropdown -->
+            <div class="relative" x-data="{ open: false }" @click.outside="open = false" @keydown.escape="open = false">
+              <button type="button" @click="open = !open" title="Text color"
+                      class="btn btn-ghost btn-xs btn-square"
+                      :class="open ? 'bg-base-300' : ''">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.072 0 5.564-2.494 5.564-5.564C21.968 5.39 17.477 2 12 2z"/></svg>
+              </button>
+              <div x-show="open" x-cloak
+                   x-transition:enter="transition ease-out duration-100"
+                   x-transition:enter-start="opacity-0 scale-95"
+                   x-transition:enter-end="opacity-100 scale-100"
+                   class="absolute left-0 mt-1 z-10 p-2 rounded-lg bg-base-100 border border-base-300 shadow-lg flex gap-1">
+                <button type="button" @click="formatColor(''); open=false" title="Default (remove color)" class="w-6 h-6 rounded hover:bg-base-200 flex items-center justify-center text-base-content/40">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+                <button type="button" @click="formatColor('#dc2626'); open=false" title="Red" class="w-6 h-6 rounded-full bg-red-600 hover:ring-2 hover:ring-offset-1 hover:ring-red-600"></button>
+                <button type="button" @click="formatColor('#ea580c'); open=false" title="Orange" class="w-6 h-6 rounded-full bg-orange-600 hover:ring-2 hover:ring-offset-1 hover:ring-orange-600"></button>
+                <button type="button" @click="formatColor('#ca8a04'); open=false" title="Yellow" class="w-6 h-6 rounded-full bg-yellow-600 hover:ring-2 hover:ring-offset-1 hover:ring-yellow-600"></button>
+                <button type="button" @click="formatColor('#16a34a'); open=false" title="Green" class="w-6 h-6 rounded-full bg-green-600 hover:ring-2 hover:ring-offset-1 hover:ring-green-600"></button>
+                <button type="button" @click="formatColor('#2563eb'); open=false" title="Blue" class="w-6 h-6 rounded-full bg-blue-600 hover:ring-2 hover:ring-offset-1 hover:ring-blue-600"></button>
+                <button type="button" @click="formatColor('#9333ea'); open=false" title="Purple" class="w-6 h-6 rounded-full bg-purple-600 hover:ring-2 hover:ring-offset-1 hover:ring-purple-600"></button>
+              </div>
+            </div>
+          </div>
           <textarea name="content" x-ref="content" rows="14"
                     placeholder="Write your note here...&#10;&#10;# Heading&#10;**bold** *italic*&#10;- bullet 1&#10;- bullet 2&#10;> A quote&#10;[link](https://example.com)"
                     class="textarea textarea-bordered w-full font-mono text-sm leading-relaxed" required>{{$N.Content}}</textarea>

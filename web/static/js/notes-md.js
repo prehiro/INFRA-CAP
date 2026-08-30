@@ -27,6 +27,23 @@
 
   function inline(s) {
     s = esc(s);
+    // Whitelist <span style="color:#xxx">…</span> so the toolbar's color
+    // accent passes through. Anything else with angle brackets is left
+    // escaped from the initial esc() call. We do this BEFORE the rest
+    // of the formatting so the spans don't get re-escaped.
+    var whitelisted = [];
+    s = s.replace(/&lt;span\s+style="color:#[0-9a-fA-F]{3,8}"\s*&gt;[\s\S]*?&lt;\/span&gt;/g, function (m) {
+      // restore the actual angle brackets for the safe span tag
+      var restored = m.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+      var key = '\x00TAG' + whitelisted.length + '\x00';
+      whitelisted.push(restored);
+      return key;
+    });
+
+    // highlight: ==text== → <mark>text</mark>
+    s = s.replace(/==([^=\n]+?)==/g, function (_, c) {
+      return '<mark>' + c + '</mark>';
+    });
     // inline code first — its content must not be re-formatted
     s = s.replace(/`([^`\n]+?)`/g, function (_, c) {
       return '<code>' + c + '</code>';
@@ -48,6 +65,10 @@
     s = s.replace(/(^|[^*\w])\*([^*\n]+?)\*([^*\w]|$)/g, function (m, p, t, s2) {
       return p + '<em>' + t + '</em>' + s2;
     });
+    // restore whitelisted color spans
+    for (var i = 0; i < whitelisted.length; i++) {
+      s = s.replace('\x00TAG' + i + '\x00', whitelisted[i]);
+    }
     return s;
   }
 
