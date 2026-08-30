@@ -12,9 +12,13 @@
       </p>
     </div>
     <div class="flex gap-2">
-      <button type="button" class="btn btn-primary btn-sm shiny-hover"
-              hx-get="/notes/new" hx-target="#modal-container" hx-swap="innerHTML">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+      <button type="button" class="btn btn-primary btn-sm shiny-hover" hx-get="/notes/new" hx-target="#modal-container"
+        hx-swap="innerHTML">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round">
+          <path d="M5 12h14" />
+          <path d="M12 5v14" />
+        </svg>
         New Note
       </button>
     </div>
@@ -22,18 +26,21 @@
 
   <!-- search bar -->
   <form hx-get="/notes" hx-target="#notes-results" hx-swap="outerHTML"
-        hx-trigger="input changed delay:300ms from:#note-search-input"
-        class="shrink-0 rounded-box bg-base-100 border border-base-300 shadow-sm p-4 flex items-center gap-3 mb-4">
+    hx-trigger="input changed delay:300ms from:#note-search-input"
+    class="shrink-0 rounded-box bg-base-100 border border-base-300 shadow-sm p-4 flex items-center gap-3 mb-4">
     <div class="w-96 shrink-0 flex items-center gap-2" x-data="{ hasQ: {{if $Q}}true{{else}}false{{end}} }">
       <label class="label text-xs font-medium text-base-content/60 whitespace-nowrap">Search</label>
       <div class="relative flex items-center flex-1">
         <input id="note-search-input" name="q" value="{{$Q}}" placeholder="Search notes by title or content..."
-               @input="hasQ = $event.target.value.length > 0"
-               class="input input-sm input-bordered w-full bg-base-100 pr-8">
+          @input="hasQ = $event.target.value.length > 0" class="input input-sm input-bordered w-full bg-base-100 pr-8">
         <button type="button" x-show="hasQ" x-cloak title="Clear search"
-                @click="$el.previousElementSibling.value=''; $el.previousElementSibling.dispatchEvent(new Event('input',{bubbles:true}))"
-                class="absolute right-2 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content/70">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          @click="$el.previousElementSibling.value=''; $el.previousElementSibling.dispatchEvent(new Event('input',{bubbles:true}))"
+          class="absolute right-2 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content/70">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+          </svg>
         </button>
       </div>
     </div>
@@ -50,92 +57,125 @@
 {{define "notes_results_content"}}
 {{$C := .CurrentUser}}
 <div id="notes-results" class="results-anim flex-1 min-h-0 flex flex-col">
-<div class="flex-1 min-h-0 overflow-y-auto">
-  {{if .Notes}}
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-    {{range .Notes}}
-    {{$N := .}}
-    <div class="note-card group relative rounded-box bg-base-100 border border-base-300 shadow-sm hover:shadow-md hover:border-primary/40 transition-all duration-200 cursor-pointer overflow-hidden flex flex-col"
-         hx-get="/notes/{{$N.ID}}" hx-target="#modal-container" hx-swap="innerHTML">
-      <!-- card header strip (color cue: private = warning, public = primary,
+  <div class="flex-1 min-h-0 overflow-y-auto">
+    {{if .Notes}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      {{range .Notes}}
+      {{$N := .}}
+      <div
+        class="note-card group relative rounded-box bg-base-100 border border-base-300 shadow-sm hover:shadow-md hover:border-primary/40 transition-all duration-200 cursor-pointer overflow-hidden flex flex-col"
+        hx-get="/notes/{{$N.ID}}" hx-target="#modal-container" hx-swap="innerHTML">
+        <!-- card header strip (color cue: private = warning, public = primary,
            custom accent = user-picked). When AccentColor is set we override
            the class via inline style — Tailwind v4 doesn't emit dynamic
            arbitrary color classes. -->
-      {{if $N.AccentColor}}
-      <div class="h-1" style="background-color: {{$N.AccentColor}}"></div>
-      {{else if $N.IsPrivate}}
-      <div class="h-1 bg-warning"></div>
-      {{else}}
-      <div class="h-1 bg-primary/60"></div>
-      {{end}}
-      <div class="p-4 flex-1 flex flex-col">
-        <!-- title + private badge -->
-        <div class="flex items-start justify-between gap-2 mb-2">
-          <h3 class="font-semibold text-sm leading-snug line-clamp-2 flex-1">{{$N.Title}}</h3>
-          {{if $N.IsPrivate}}
-          <span class="badge badge-soft badge-warning badge-sm shrink-0" title="Private — only you can see this">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          </span>
-          {{end}}
-        </div>
-        <!-- preview -->
-        <p class="text-xs text-base-content/60 line-clamp-4 flex-1">{{preview $N.Content 200}}</p>
-        <!-- footer: author + updated + actions -->
-        <div class="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-base-300/60 text-xs text-base-content/50">
-          <div class="min-w-0 flex-1">
-            <div class="font-medium text-base-content/70 truncate">@{{$N.CreatedByName}}</div>
-            <div title="{{$N.UpdatedAt.Format "2006-01-02 15:04"}}">
-              Updated {{$N.UpdatedAt.Format "02-01-06 15:04"}}
-            </div>
-          </div>
-          <!-- action buttons (stop propagation so they don't trigger card click) -->
-          <div class="flex items-center gap-1 shrink-0" onclick="event.stopPropagation()">
-            <button type="button" class="row-action row-action-edit" title="Edit note"
-                    hx-get="/notes/{{$N.ID}}/edit" hx-target="#modal-container" hx-swap="innerHTML">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
-            </button>
-            {{if eq $N.CreatedBy $C.ID}}
-            <button type="button" class="row-action row-action-retire" title="Delete (owner only)"
-                    hx-post="/notes/{{$N.ID}}/delete"
-                    hx-target="#notes-results" hx-swap="outerHTML"
-                    hx-confirm="Delete this note? This cannot be undone.">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="17"/></svg>
-            </button>
+        {{if $N.AccentColor}}
+        <div class="h-1" style="background-color: {{$N.AccentColor}}"></div>
+        {{else if $N.IsPrivate}}
+        <div class="h-1 bg-warning"></div>
+        {{else}}
+        <div class="h-1 bg-primary/60"></div>
+        {{end}}
+        <div class="p-4 flex-1 flex flex-col">
+          <!-- title + private badge -->
+          <div class="flex items-start justify-between gap-2 mb-2">
+            <h3 class="font-semibold text-sm leading-snug line-clamp-2 flex-1">{{$N.Title}}</h3>
+            {{if $N.IsPrivate}}
+            <span class="badge badge-soft badge-warning badge-sm shrink-0" title="Private — only you can see this">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </span>
             {{end}}
+          </div>
+          <!-- preview -->
+          <p class="text-xs text-base-content/60 line-clamp-4 flex-1">{{preview $N.Content 200}}</p>
+          <!-- footer: author + updated + actions -->
+          <div
+            class="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-base-300/60 text-xs text-base-content/50">
+            <div class="min-w-0 flex-1">
+              <div class="font-medium text-base-content/70 truncate">@{{$N.CreatedByName}}</div>
+              <div title="{{$N.UpdatedAt.Format " 2006-01-02 15:04"}}">
+                Updated {{$N.UpdatedAt.Format "02-01-06 15:04"}}
+              </div>
+            </div>
+            <!-- action buttons (stop propagation so they don't trigger card click) -->
+            <div class="flex items-center gap-1 shrink-0" onclick="event.stopPropagation()">
+              <button type="button" class="row-action row-action-edit" title="Edit note" hx-get="/notes/{{$N.ID}}/edit"
+                hx-target="#modal-container" hx-swap="innerHTML">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path
+                    d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
+                  <path d="m15 5 4 4" />
+                </svg>
+              </button>
+              {{if eq $N.CreatedBy $C.ID}}
+              <button type="button" class="row-action row-action-retire" title="Delete (owner only)"
+                hx-post="/notes/{{$N.ID}}/delete" hx-target="#notes-results" hx-swap="outerHTML"
+                hx-confirm="Delete this note? This cannot be undone.">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 6h18" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  <line x1="10" x2="10" y1="11" y2="17" />
+                  <line x1="14" x2="14" y1="17" />
+                </svg>
+              </button>
+              {{end}}
+            </div>
           </div>
         </div>
       </div>
+      {{end}}
+    </div>
+    {{else}}
+    <!-- empty state -->
+    <div class="rounded-box bg-base-100 border border-base-300 shadow-sm p-12 text-center">
+      {{if $.Q}}
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto text-base-content/30 mb-3" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8" />
+        <path d="m21 21-4.3-4.3" />
+      </svg>
+      <h3 class="text-base font-semibold text-base-content/80 mb-1">No notes match "{{$.Q}}"</h3>
+      <p class="text-sm text-base-content/50 mb-4">Try a different search term, or clear the search to see all notes.
+      </p>
+      <a href="/notes" class="btn btn-soft btn-sm">Clear search</a>
+      {{else}}
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto text-base-content/30 mb-3" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <path d="M14 2v6h6" />
+        <path d="M9 13h6" />
+        <path d="M9 17h4" />
+      </svg>
+      <h3 class="text-base font-semibold text-base-content/80 mb-1">No notes yet</h3>
+      <p class="text-sm text-base-content/50 mb-4">Start the shared workspace by creating the first note. Anyone can
+        read and edit.</p>
+      <button type="button" class="btn btn-primary btn-sm" hx-get="/notes/new" hx-target="#modal-container"
+        hx-swap="innerHTML">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round">
+          <path d="M5 12h14" />
+          <path d="M12 5v14" />
+        </svg>
+        New Note
+      </button>
+      {{end}}
     </div>
     {{end}}
   </div>
-  {{else}}
-  <!-- empty state -->
-  <div class="rounded-box bg-base-100 border border-base-300 shadow-sm p-12 text-center">
-    {{if $.Q}}
-    <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto text-base-content/30 mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-    <h3 class="text-base font-semibold text-base-content/80 mb-1">No notes match "{{$.Q}}"</h3>
-    <p class="text-sm text-base-content/50 mb-4">Try a different search term, or clear the search to see all notes.</p>
-    <a href="/notes" class="btn btn-soft btn-sm">Clear search</a>
-    {{else}}
-    <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto text-base-content/30 mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h4"/></svg>
-    <h3 class="text-base font-semibold text-base-content/80 mb-1">No notes yet</h3>
-    <p class="text-sm text-base-content/50 mb-4">Start the shared workspace by creating the first note. Anyone can read and edit.</p>
-    <button type="button" class="btn btn-primary btn-sm"
-            hx-get="/notes/new" hx-target="#modal-container" hx-swap="innerHTML">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-      New Note
-    </button>
-    {{end}}
-  </div>
   {{end}}
-</div>
-{{end}}
 
-{{define "note_modal_content"}}
-{{$N := .N}}
-{{$IsNew := .IsNew}}
-{{$Err := .Error}}
-<div x-data="{
+  {{define "note_modal_content"}}
+  {{$N := .N}}
+  {{$IsNew := .IsNew}}
+  {{$Err := .Error}}
+  <div x-data="{
        open: true,
        tab: 'write',                          // 'write' | 'preview'
        dirty: false,
@@ -254,167 +294,229 @@
          const close = LT + '/span>';
          this._wrapSelection(open, close, 'colored text');
        }
-     }"
-     x-init="init(); window.addEventListener('beforeunload', beforeUnload)"
-     x-show="open"
-     @keydown.escape.window="close()"
-     class="fixed inset-0 z-[90] flex items-center justify-center p-4">
+     }" x-init="init(); window.addEventListener('beforeunload', beforeUnload)" x-show="open"
+    @keydown.escape.window="close()" class="fixed inset-0 z-[90] flex items-center justify-center p-4">
 
-  <div x-show="open" @click="close()"
-       x-transition:enter="transition ease-out duration-200"
-       x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-       x-transition:leave="transition ease-in duration-150"
-       x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-       class="absolute inset-0 bg-black/50 backdrop-blur-sm">
-  </div>
-
-  <div x-ref="root" x-show="open"
-       x-transition:enter="transition ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-300"
-       x-transition:enter-start="opacity-0 scale-90 translate-y-6"
-       x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-       x-transition:leave="transition ease-in duration-200"
-       x-transition:leave-start="opacity-100 scale-100"
-       x-transition:leave-end="opacity-0 scale-95"
-       class="relative w-full max-w-2xl max-h-[92vh] flex flex-col rounded-2xl bg-base-100 border border-base-300 shadow-2xl overflow-hidden">
-    <!-- Header: status icon + title + dirty indicator + close -->
-    <div class="px-6 pt-6 pb-5 border-b border-base-300 shrink-0">
-      <div class="flex items-start gap-3">
-        <div class="shrink-0 w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center mt-0.5">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-        </div>
-        <div class="min-w-0 flex-1">
-          <div class="flex items-center gap-2">
-            <h2 class="text-lg font-semibold leading-tight break-words mt-0.5">
-              {{if $IsNew}}New Note{{else}}Edit Note{{end}}
-            </h2>
-            <span x-show="dirty" x-cloak class="inline-flex items-center gap-1 text-xs text-warning font-medium">
-              <span class="w-1.5 h-1.5 rounded-full bg-warning"></span>
-              unsaved
-            </span>
-            <span x-show="saving" x-cloak class="inline-flex items-center gap-1 text-xs text-primary font-medium">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-              saving
-            </span>
-          </div>
-          <p class="text-xs text-base-content/60 mt-0.5">
-            {{if $IsNew}}Create a new shared note. Markdown supported, anyone can edit after you save.{{else}}Edit this note. Changes are visible to all users after save.{{end}}
-          </p>
-        </div>
-        <button type="button" @click="close()" class="btn btn-ghost btn-xs btn-square shrink-0 -mt-1 -mr-1" title="Close (Esc)">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-        </button>
-      </div>
+    <div x-show="open" @click="close()" x-transition:enter="transition ease-out duration-200"
+      x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+      x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
+      x-transition:leave-end="opacity-0" class="absolute inset-0 bg-black/50 backdrop-blur-sm">
     </div>
-    <!-- Body: form -->
-    <form {{if $IsNew}}hx-post="/notes"{{else}}hx-post="/notes/{{$N.ID}}"{{end}}
-          hx-target="#notes-results" hx-swap="outerHTML"
-          @htmx:after-request="dirty = false; saving = false"
-          @submit="saving = true"
-          x-ref="form"
-          class="flex-1 overflow-hidden flex flex-col">
-      {{if $Err}}
-      <div class="alert alert-error text-sm rounded-none border-x-0">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
-        <div>
-          {{range $k, $v := $Err}}<div>{{$v}}</div>{{end}}
+
+    <div x-ref="root" x-show="open" x-transition:enter="transition ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-300"
+      x-transition:enter-start="opacity-0 scale-90 translate-y-6"
+      x-transition:enter-end="opacity-100 scale-100 translate-y-0" x-transition:leave="transition ease-in duration-200"
+      x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+      class="relative w-full max-w-2xl max-h-[92vh] flex flex-col rounded-2xl bg-base-100 border border-base-300 shadow-2xl overflow-hidden">
+      <!-- Header: status icon + title + dirty indicator + close -->
+      <div class="px-6 pt-6 pb-5 border-b border-base-300 shrink-0">
+        <div class="flex items-start gap-3">
+          <div class="shrink-0 w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center mt-0.5">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+            </svg>
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2">
+              <h2 class="text-lg font-semibold leading-tight break-words mt-0.5">
+                {{if $IsNew}}New Note{{else}}Edit Note{{end}}
+              </h2>
+              <span x-show="dirty" x-cloak class="inline-flex items-center gap-1 text-xs text-warning font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-warning"></span>
+                unsaved
+              </span>
+              <span x-show="saving" x-cloak class="inline-flex items-center gap-1 text-xs text-primary font-medium">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                </svg>
+                saving
+              </span>
+            </div>
+            <p class="text-xs text-base-content/60 mt-0.5">
+              {{if $IsNew}}Create a new shared note. Markdown supported, anyone can edit after you save.{{else}}Edit
+              this note. Changes are visible to all users after save.{{end}}
+            </p>
+          </div>
+          <button type="button" @click="close()" class="btn btn-ghost btn-xs btn-square shrink-0 -mt-1 -mr-1"
+            title="Close (Esc)">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
+            </svg>
+          </button>
         </div>
       </div>
-      {{end}}
+      <!-- Body: form -->
+      <form {{if $IsNew}}hx-post="/notes" {{else}}hx-post="/notes/{{$N.ID}}" {{end}} hx-target="#notes-results"
+        hx-swap="outerHTML" @htmx:after-request="dirty = false; saving = false" @submit="saving = true" x-ref="form"
+        class="flex-1 overflow-hidden flex flex-col">
+        {{if $Err}}
+        <div class="alert alert-error text-sm rounded-none border-x-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" x2="12" y1="8" y2="12" />
+            <line x1="12" x2="12.01" y1="16" y2="16" />
+          </svg>
+          <div>
+            {{range $k, $v := $Err}}<div>{{$v}}</div>{{end}}
+          </div>
+        </div>
+        {{end}}
 
-      <!-- Title input — compact, single line, big font -->
-      <div class="px-6 pt-4 pb-3 shrink-0">
-        <label class="label pb-1.5">
-          <span class="label-text text-xs font-semibold text-base-content/70 uppercase tracking-wide">Title</span>
-        </label>
-        <input type="text" name="title" x-ref="title" value="{{$N.Title}}" maxlength="{{.MaxTitle}}"
-               placeholder="e.g. Office Wi-Fi password reset steps"
-               class="input input-bordered w-full text-base font-medium" required>
-      </div>
+        <!-- Title input — compact, single line, big font -->
+        <div class="px-6 pt-4 pb-3 shrink-0">
+          <label class="label pb-1.5">
+            <span class="label-text text-xs font-semibold text-base-content/70 uppercase tracking-wide">Title</span>
+          </label>
+          <input type="text" name="title" x-ref="title" value="{{$N.Title}}" maxlength="{{.MaxTitle}}"
+            placeholder="e.g. Office Wi-Fi password reset steps"
+            class="input input-bordered w-full text-base font-medium" required>
+        </div>
 
-      <!-- Tabs + content area -->
-      <div class="px-6 pb-2 shrink-0 flex items-center gap-1 border-b border-base-300">
-        <button type="button" @click="tab='write'"
-                :class="tab === 'write' ? 'border-primary text-primary' : 'border-transparent text-base-content/60 hover:text-base-content'"
-                class="px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors inline-flex items-center gap-1.5">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-          Write
-        </button>
-        <button type="button" @click="tab='preview'"
-                :class="tab === 'preview' ? 'border-primary text-primary' : 'border-transparent text-base-content/60 hover:text-base-content'"
-                class="px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors inline-flex items-center gap-1.5">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          Preview
-        </button>
-        <span x-show="getContent().trim().length === 0" x-cloak class="text-xs text-base-content/40 italic ml-2">empty</span>
-      </div>
+        <!-- Tabs + content area -->
+        <div class="px-6 pb-2 shrink-0 flex items-center gap-1 border-b border-base-300">
+          <button type="button" @click="tab='write'"
+            :class="tab === 'write' ? 'border-primary text-primary' : 'border-transparent text-base-content/60 hover:text-base-content'"
+            class="px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors inline-flex items-center gap-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+            </svg>
+            Write
+          </button>
+          <button type="button" @click="tab='preview'"
+            :class="tab === 'preview' ? 'border-primary text-primary' : 'border-transparent text-base-content/60 hover:text-base-content'"
+            class="px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors inline-flex items-center gap-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            Preview
+          </button>
+          <span x-show="getContent().trim().length === 0" x-cloak
+            class="text-xs text-base-content/40 italic ml-2">empty</span>
+        </div>
 
-      <!-- Edit area: write or preview -->
-      <div class="flex-1 overflow-hidden flex flex-col">
-        <!-- Write tab -->
-        <div x-show="tab === 'write'" class="flex-1 overflow-y-auto px-6 py-4">
-          <!-- Formatting toolbar -->
-          <div class="flex flex-wrap items-center gap-0.5 mb-2 p-1 rounded-lg bg-base-200/60 border border-base-300/60">
-            <button type="button" @click="formatBold()" title="Bold (**text**)" class="btn btn-ghost btn-xs btn-square font-bold">B</button>
-            <button type="button" @click="formatItalic()" title="Italic (*text*)" class="btn btn-ghost btn-xs btn-square italic">I</button>
-            <button type="button" @click="formatHeading()" title="Heading (## text)" class="btn btn-ghost btn-xs btn-square font-semibold">H</button>
-            <span class="w-px h-4 bg-base-300 mx-0.5"></span>
-            <button type="button" @click="formatCode()" title="Inline code (`text`)" class="btn btn-ghost btn-xs btn-square font-mono text-[11px]">&lt;/&gt;</button>
-            <button type="button" @click="formatCodeBlock()" title="Code block (```)" class="btn btn-ghost btn-xs btn-square">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="m10 10-2 2 2 2"/><path d="m14 10 2 2-2 2"/></svg>
-            </button>
-            <span class="w-px h-4 bg-base-300 mx-0.5"></span>
-            <button type="button" @click="formatList()" title="Bullet list (- item)" class="btn btn-ghost btn-xs btn-square">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" x2="20" y1="6" y2="6"/><line x1="9" x2="20" y1="12" y2="12"/><line x1="9" x2="20" y1="18" y2="18"/><circle cx="4.5" cy="6" r="0.5" fill="currentColor"/><circle cx="4.5" cy="12" r="0.5" fill="currentColor"/><circle cx="4.5" cy="18" r="0.5" fill="currentColor"/></svg>
-            </button>
-            <button type="button" @click="formatQuote()" title="Blockquote (> text)" class="btn btn-ghost btn-xs btn-square">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
-            </button>
-            <button type="button" @click="formatLink()" title="Link ([text](url))" class="btn btn-ghost btn-xs btn-square">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-            </button>
-            <span class="w-px h-4 bg-base-300 mx-0.5"></span>
-            <button type="button" @click="formatHighlight()" title="Highlight (==text==)" class="btn btn-ghost btn-xs btn-square">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>
-            </button>
-            <!-- Color accent dropdown -->
-            <div class="relative" x-data="{ open: false }" @click.outside="open = false" @keydown.escape="open = false">
-              <button type="button" @click="open = !open" title="Text color"
-                      class="btn btn-ghost btn-xs btn-square"
-                      :class="open ? 'bg-base-300' : ''">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.072 0 5.564-2.494 5.564-5.564C21.968 5.39 17.477 2 12 2z"/></svg>
+        <!-- Edit area: write or preview -->
+        <div class="flex-1 overflow-hidden flex flex-col">
+          <!-- Write tab -->
+          <div x-show="tab === 'write'" class="flex-1 overflow-y-auto px-6 py-4">
+            <!-- Formatting toolbar -->
+            <div
+              class="flex flex-wrap items-center gap-0.5 mb-2 p-1 rounded-lg bg-base-200/60 border border-base-300/60">
+              <button type="button" @click="formatBold()" title="Bold (**text**)"
+                class="btn btn-ghost btn-xs btn-square font-bold">B</button>
+              <button type="button" @click="formatItalic()" title="Italic (*text*)"
+                class="btn btn-ghost btn-xs btn-square italic">I</button>
+              <button type="button" @click="formatHeading()" title="Heading (## text)"
+                class="btn btn-ghost btn-xs btn-square font-semibold">H</button>
+              <span class="w-px h-4 bg-base-300 mx-0.5"></span>
+              <button type="button" @click="formatCode()" title="Inline code (`text`)"
+                class="btn btn-ghost btn-xs btn-square font-mono text-[11px]">&lt;/&gt;</button>
+              <button type="button" @click="formatCodeBlock()" title="Code block (```)"
+                class="btn btn-ghost btn-xs btn-square">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <path d="m10 10-2 2 2 2" />
+                  <path d="m14 10 2 2-2 2" />
+                </svg>
               </button>
-              <div x-show="open" x-cloak
-                   x-transition:enter="transition ease-out duration-100"
-                   x-transition:enter-start="opacity-0 scale-95"
-                   x-transition:enter-end="opacity-100 scale-100"
-                   class="absolute left-0 mt-1 z-10 p-2 rounded-lg bg-base-100 border border-base-300 shadow-lg flex gap-1">
-                <button type="button" @click="formatColor(''); open=false" title="Default (remove color)" class="w-6 h-6 rounded hover:bg-base-200 flex items-center justify-center text-base-content/40">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              <span class="w-px h-4 bg-base-300 mx-0.5"></span>
+              <button type="button" @click="formatList()" title="Bullet list (- item)"
+                class="btn btn-ghost btn-xs btn-square">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="9" x2="20" y1="6" y2="6" />
+                  <line x1="9" x2="20" y1="12" y2="12" />
+                  <line x1="9" x2="20" y1="18" y2="18" />
+                  <circle cx="4.5" cy="6" r="0.5" fill="currentColor" />
+                  <circle cx="4.5" cy="12" r="0.5" fill="currentColor" />
+                  <circle cx="4.5" cy="18" r="0.5" fill="currentColor" />
+                </svg>
+              </button>
+              <button type="button" @click="formatQuote()" title="Blockquote (> text)"
+                class="btn btn-ghost btn-xs btn-square">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path
+                    d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z" />
+                  <path
+                    d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z" />
+                </svg>
+              </button>
+              <button type="button" @click="formatLink()" title="Link ([text](url))"
+                class="btn btn-ghost btn-xs btn-square">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                </svg>
+              </button>
+              <span class="w-px h-4 bg-base-300 mx-0.5"></span>
+              <button type="button" @click="formatHighlight()" title="Highlight (==text==)"
+                class="btn btn-ghost btn-xs btn-square">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m9 11-6 6v3h9l3-3" />
+                  <path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4" />
+                </svg>
+              </button>
+              <!-- Color accent dropdown -->
+              <div class="relative" x-data="{ open: false }" @click.outside="open = false"
+                @keydown.escape="open = false">
+                <button type="button" @click="open = !open" title="Text color" class="btn btn-ghost btn-xs btn-square"
+                  :class="open ? 'bg-base-300' : ''">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" />
+                    <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" />
+                    <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" />
+                    <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" />
+                    <path
+                      d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.072 0 5.564-2.494 5.564-5.564C21.968 5.39 17.477 2 12 2z" />
+                  </svg>
                 </button>
-                <button type="button" @click="formatColor('#dc2626'); open=false" title="Red" class="w-6 h-6 rounded-full bg-red-600 hover:ring-2 hover:ring-offset-1 hover:ring-red-600"></button>
-                <button type="button" @click="formatColor('#ea580c'); open=false" title="Orange" class="w-6 h-6 rounded-full bg-orange-600 hover:ring-2 hover:ring-offset-1 hover:ring-orange-600"></button>
-                <button type="button" @click="formatColor('#ca8a04'); open=false" title="Yellow" class="w-6 h-6 rounded-full bg-yellow-600 hover:ring-2 hover:ring-offset-1 hover:ring-yellow-600"></button>
-                <button type="button" @click="formatColor('#16a34a'); open=false" title="Green" class="w-6 h-6 rounded-full bg-green-600 hover:ring-2 hover:ring-offset-1 hover:ring-green-600"></button>
-                <button type="button" @click="formatColor('#2563eb'); open=false" title="Blue" class="w-6 h-6 rounded-full bg-blue-600 hover:ring-2 hover:ring-offset-1 hover:ring-blue-600"></button>
-                <button type="button" @click="formatColor('#9333ea'); open=false" title="Purple" class="w-6 h-6 rounded-full bg-purple-600 hover:ring-2 hover:ring-offset-1 hover:ring-purple-600"></button>
+                <div x-show="open" x-cloak x-transition:enter="transition ease-out duration-100"
+                  x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                  class="absolute left-0 mt-1 z-10 p-2 rounded-lg bg-base-100 border border-base-300 shadow-lg flex gap-1">
+                  <button type="button" @click="formatColor(''); open=false" title="Default (remove color)"
+                    class="w-6 h-6 rounded hover:bg-base-200 flex items-center justify-center text-base-content/40">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                      <path d="M18 6 6 18" />
+                      <path d="m6 6 12 12" />
+                    </svg>
+                  </button>
+                  <button type="button" @click="formatColor('#dc2626'); open=false" title="Red"
+                    class="w-6 h-6 rounded-full bg-red-600 hover:ring-2 hover:ring-offset-1 hover:ring-red-600"></button>
+                  <button type="button" @click="formatColor('#ea580c'); open=false" title="Orange"
+                    class="w-6 h-6 rounded-full bg-orange-600 hover:ring-2 hover:ring-offset-1 hover:ring-orange-600"></button>
+                  <button type="button" @click="formatColor('#ca8a04'); open=false" title="Yellow"
+                    class="w-6 h-6 rounded-full bg-yellow-600 hover:ring-2 hover:ring-offset-1 hover:ring-yellow-600"></button>
+                  <button type="button" @click="formatColor('#16a34a'); open=false" title="Green"
+                    class="w-6 h-6 rounded-full bg-green-600 hover:ring-2 hover:ring-offset-1 hover:ring-green-600"></button>
+                  <button type="button" @click="formatColor('#2563eb'); open=false" title="Blue"
+                    class="w-6 h-6 rounded-full bg-blue-600 hover:ring-2 hover:ring-offset-1 hover:ring-blue-600"></button>
+                  <button type="button" @click="formatColor('#9333ea'); open=false" title="Purple"
+                    class="w-6 h-6 rounded-full bg-purple-600 hover:ring-2 hover:ring-offset-1 hover:ring-purple-600"></button>
+                </div>
               </div>
             </div>
+            <textarea name="content" x-ref="content" rows="14"
+              placeholder="Write your note here...&#10;&#10;# Heading&#10;**bold** *italic*&#10;- bullet 1&#10;- bullet 2&#10;> A quote&#10;[link](https://example.com)"
+              class="textarea textarea-bordered w-full font-mono text-sm leading-relaxed"
+              required>{{$N.Content}}</textarea>
           </div>
-          <textarea name="content" x-ref="content" rows="14"
-                    placeholder="Write your note here...&#10;&#10;# Heading&#10;**bold** *italic*&#10;- bullet 1&#10;- bullet 2&#10;> A quote&#10;[link](https://example.com)"
-                    class="textarea textarea-bordered w-full font-mono text-sm leading-relaxed" required>{{$N.Content}}</textarea>
-          <p class="text-xs text-base-content/50 mt-2">
-            Supports: <code class="text-[10px] px-1 py-0.5 rounded bg-base-200"># heading</code>
-            <code class="text-[10px] px-1 py-0.5 rounded bg-base-200">**bold**</code>
-            <code class="text-[10px] px-1 py-0.5 rounded bg-base-200">*italic*</code>
-            <code class="text-[10px] px-1 py-0.5 rounded bg-base-200">`code`</code>
-            <code class="text-[10px] px-1 py-0.5 rounded bg-base-200">- list</code>
-            <code class="text-[10px] px-1 py-0.5 rounded bg-base-200">&gt; quote</code>
-            <code class="text-[10px] px-1 py-0.5 rounded bg-base-200">[link](url)</code>
-          </p>
-        </div>
-        <!-- Preview tab -->
-        <div x-show="tab === 'preview'" class="flex-1 overflow-y-auto px-6 py-5 prose prose-sm max-w-none
+          <!-- Preview tab -->
+          <div x-show="tab === 'preview'" class="flex-1 overflow-y-auto px-6 py-5 prose prose-sm max-w-none
                     prose-headings:font-semibold prose-h1:text-2xl prose-h1:mb-3 prose-h1:mt-5 prose-h1:pb-2 prose-h1:border-b prose-h1:border-base-300
                     prose-h2:text-lg prose-h2:mt-4 prose-h2:mb-2
                     prose-h3:text-base prose-h3:mt-3 prose-h3:mb-1.5
@@ -425,158 +527,195 @@
                     prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-a:font-medium
                     prose-hr:my-4 prose-hr:border-base-300
                     prose-strong:font-semibold prose-strong:text-base-content
-                    prose-em:text-base-content/80"
-             x-html="window.notesRender ? window.notesRender(getContent()) : ''">
+                    prose-em:text-base-content/80" x-html="window.notesRender ? window.notesRender(getContent()) : ''">
+          </div>
         </div>
-      </div>
 
-      <!-- Privacy + accent + footer -->
-      <div class="px-6 py-3 border-t border-base-300 bg-base-200/40 flex items-center justify-between gap-3 shrink-0 flex-wrap">
-        <div class="flex items-center gap-3">
-          <label class="cursor-pointer flex items-center gap-2 select-none">
-            <input type="checkbox" name="is_private" value="1" class="checkbox checkbox-xs checkbox-warning"
-                   {{if $N.IsPrivate}}checked{{end}}>
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-warning" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <span class="text-xs">Private</span>
-          </label>
-          <!-- Accent color picker — user clicks a color circle to select.
+        <!-- Privacy + accent + footer -->
+        <div
+          class="px-6 py-3 border-t border-base-300 bg-base-200/40 flex items-center justify-between gap-3 shrink-0 flex-wrap">
+          <div class="flex items-center gap-3">
+            <label class="cursor-pointer flex items-center gap-2 select-none">
+              <input type="checkbox" name="is_private" value="1" class="checkbox checkbox-xs checkbox-warning" {{if
+                $N.IsPrivate}}checked{{end}}>
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-warning" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+              <span class="text-xs">Private</span>
+            </label>
+            <!-- Accent color picker — user clicks a color circle to select.
                Each swatch is a button (not a radio) that sets x-data.accent.
                The hidden input below submits the value on save. -->
-          {{ $swatches := list
-              (dict "key" "" "hex" "" "title" "Default")
-              (dict "key" "red" "hex" "#dc2626" "title" "Red")
-              (dict "key" "orange" "hex" "#ea580c" "title" "Orange")
-              (dict "key" "yellow" "hex" "#ca8a04" "title" "Yellow")
-              (dict "key" "green" "hex" "#16a34a" "title" "Green")
-              (dict "key" "blue" "hex" "#2563eb" "title" "Blue")
-              (dict "key" "purple" "hex" "#9333ea" "title" "Purple")
-          }}
-          <input type="hidden" name="accent_color" :value="accent">
-          <div class="flex items-center gap-1.5 ml-1" title="Card accent color">
-            <span class="text-xs text-base-content/50">Accent</span>
-            <div class="flex items-center gap-1.5">
-              {{ range $s := $swatches }}
-              {{ $isSelected := "" }}{{ if eq $s.hex $N.AccentColor }}{{ $isSelected = "1" }}{{ end }}
-              <button type="button"
-                      @click="accent = '{{$s.hex}}'; dirty = true"
-                      title="{{$s.title}}{{ if eq $s.hex $N.AccentColor }} (current){{ end }}"
-                      data-key="{{$s.key}}"
-                      data-hex="{{$s.hex}}"
-                      {{ if $isSelected }}data-selected="true"{{ end }}
-                      class="accent-swatch relative w-5 h-5 rounded-full transition-all duration-150 hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 {{ if eq $s.hex "" }}border-2 border-dashed border-base-content/30 hover:border-base-content/60{{ end }}"
-                      {{ if ne $s.hex "" }}style="background-color: {{$s.hex}}"{{ end }}
-                      :style="accent === '{{$s.hex}}'
-                        ? 'transform: scale(1.3); box-shadow: 0 0 0 3px #2563eb, 0 0 0 5px #ffffff, 0 2px 6px rgba(0,0,0,0.15);'
-                        : 'transform: scale(1); box-shadow: none; z-index: 0;'">
-                {{ if eq $s.key "" }}
-                <!-- Default = no color: dashed box with X icon when not selected -->
-                <svg x-show="accent !== ''" xmlns="http://www.w3.org/2000/svg" class="w-2.5 h-2.5 mx-auto text-base-content/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                {{ else }}
-                <!-- Checkmark on selected (white over the color) -->
-                <svg x-show="accent === '{{$s.hex}}'" x-cloak xmlns="http://www.w3.org/2000/svg" class="absolute inset-0 m-auto w-3 h-3 text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            {{ $swatches := list
+            (dict "key" "" "hex" "" "title" "Default")
+            (dict "key" "red" "hex" "#dc2626" "title" "Red")
+            (dict "key" "orange" "hex" "#ea580c" "title" "Orange")
+            (dict "key" "yellow" "hex" "#ca8a04" "title" "Yellow")
+            (dict "key" "green" "hex" "#16a34a" "title" "Green")
+            (dict "key" "blue" "hex" "#2563eb" "title" "Blue")
+            (dict "key" "purple" "hex" "#9333ea" "title" "Purple")
+            }}
+            <input type="hidden" name="accent_color" :value="accent">
+            <div class="flex items-center gap-1.5 ml-1" title="Card accent color">
+              <span class="text-xs text-base-content/50">Accent</span>
+              <div class="flex items-center gap-1.5">
+                {{ range $s := $swatches }}
+                {{ $isSelected := "" }}{{ if eq $s.hex $N.AccentColor }}{{ $isSelected = "1" }}{{ end }}
+                <button type="button" @click="accent = '{{$s.hex}}'; dirty = true"
+                  title="{{$s.title}}{{ if eq $s.hex $N.AccentColor }} (current){{ end }}" data-key="{{$s.key}}"
+                  data-hex="{{$s.hex}}" {{ if $isSelected }}data-selected="true" {{ end }}
+                  class="accent-swatch relative w-5 h-5 rounded-full transition-all duration-150 hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 {{ if eq $s.hex "" }}border-2 border-dashed border-base-content/30 hover:border-base-content/60{{ end }}"
+                  :style="(accent === '{{$s.hex}}'
+                    ? 'transform: scale(1.3); box-shadow: 0 0 0 3px #2563eb, 0 0 0 5px #ffffff, 0 2px 6px rgba(0,0,0,0.15);'
+                    : 'transform: scale(1); box-shadow: none;') + ('{{$s.hex}}' === '' ? '; background-color: transparent' : '; background-color: {{$s.hex}}')">
+                  {{ if eq $s.key "" }}
+                  <!-- Default = no color: dashed box with X icon when not selected -->
+                  <svg x-show="accent !== ''" xmlns="http://www.w3.org/2000/svg"
+                    class="w-2.5 h-2.5 mx-auto text-base-content/40" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="3" stroke-linecap="round">
+                    <path d="M18 6 6 18" />
+                    <path d="m6 6 12 12" />
+                  </svg>
+                  {{ else }}
+                  <!-- Checkmark on selected (white over the color) -->
+                  <svg x-show="accent === '{{$s.hex}}'" x-cloak xmlns="http://www.w3.org/2000/svg"
+                    class="absolute inset-0 m-auto w-3 h-3 text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]"
+                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  {{ end }}
+                </button>
                 {{ end }}
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="text-xs text-base-content/50 hidden sm:flex items-center gap-2">
+              <span x-text="getWordCount() + ' words'"></span>
+              <span class="text-base-content/30">·</span>
+              <span x-text="getCharCount() + ' chars'"></span>
+            </div>
+            <div class="flex items-center gap-1">
+              <button type="button" @click="close()" class="btn btn-ghost btn-sm">Cancel</button>
+              <button type="submit" class="btn btn-primary btn-sm shiny-hover" :disabled="saving">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                  <polyline points="17 21 17 13 7 13 7 21" />
+                  <polyline points="7 3 7 8 15 8" />
+                </svg>
+                <span x-text="saving ? 'Saving...' : '{{if $IsNew}}Create{{else}}Save{{end}}'"></span>
               </button>
-              {{ end }}
             </div>
           </div>
         </div>
-        <div class="flex items-center gap-3">
-          <div class="text-xs text-base-content/50 hidden sm:flex items-center gap-2">
-            <span x-text="getWordCount() + ' words'"></span>
-            <span class="text-base-content/30">·</span>
-            <span x-text="getCharCount() + ' chars'"></span>
-          </div>
-          <div class="flex items-center gap-1">
-            <button type="button" @click="close()" class="btn btn-ghost btn-sm">Cancel</button>
-            <button type="submit" class="btn btn-primary btn-sm shiny-hover" :disabled="saving">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-              <span x-text="saving ? 'Saving...' : '{{if $IsNew}}Create{{else}}Save{{end}}'"></span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </form>
+      </form>
+    </div>
   </div>
-</div>
-{{end}}
+  {{end}}
 
-{{define "note_view_modal_content"}}
-{{$N := .N}}
-{{$Rendered := .Rendered}}
-{{$charCount := len $N.Content}}
-{{$wordCount := len (splitWords $N.Content)}}
-{{$lineCount := len (splitLines $N.Content)}}
-<div x-data="{
+  {{define "note_view_modal_content"}}
+  {{$N := .N}}
+  {{$Rendered := .Rendered}}
+  {{$charCount := len $N.Content}}
+  {{$wordCount := len (splitWords $N.Content)}}
+  {{$lineCount := len (splitLines $N.Content)}}
+  <div x-data="{
        open: true,
        close() { this.open = false; setTimeout(() => this.$refs.root.remove(), 220) }
-     }"
-     x-init="$nextTick(() => open = true)"
-     x-show="open"
-     @keydown.escape.window="close()"
-     class="fixed inset-0 z-[90] flex items-center justify-center p-4">
+     }" x-init="$nextTick(() => open = true)" x-show="open" @keydown.escape.window="close()"
+    class="fixed inset-0 z-[90] flex items-center justify-center p-4">
 
-  <div x-show="open" @click="close()"
-       x-transition:enter="transition ease-out duration-200"
-       x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-       x-transition:leave="transition ease-in duration-150"
-       x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-       class="absolute inset-0 bg-black/50 backdrop-blur-sm">
-  </div>
-
-  <div x-ref="root" x-show="open"
-       x-transition:enter="transition ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-300"
-       x-transition:enter-start="opacity-0 scale-90 translate-y-6"
-       x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-       x-transition:leave="transition ease-in duration-200"
-       x-transition:leave-start="opacity-100 scale-100"
-       x-transition:leave-end="opacity-0 scale-95"
-       class="relative w-full max-w-3xl max-h-[92vh] flex flex-col rounded-2xl bg-base-100 border border-base-300 shadow-2xl overflow-hidden">
-    <!-- Header: icon + title + metadata -->
-    <div class="px-6 pt-6 pb-5 border-b border-base-300 shrink-0">
-      <div class="flex items-start gap-3">
-        <!-- icon -->
-        <div class="shrink-0 w-10 h-10 rounded-lg {{if $N.IsPrivate}}bg-warning/15 text-warning{{else}}bg-primary/10 text-primary{{end}} flex items-center justify-center mt-0.5">
-          {{if $N.IsPrivate}}
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          {{else}}
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h4"/></svg>
-          {{end}}
-        </div>
-        <!-- title + meta -->
-        <div class="min-w-0 flex-1">
-          <div class="flex items-center gap-2 mb-1">
-            <h2 class="text-lg font-semibold leading-tight break-words mt-0.5">{{$N.Title}}</h2>
-            {{if $N.IsPrivate}}
-            <span class="badge badge-soft badge-warning badge-sm shrink-0">Private</span>
-            {{end}}
-          </div>
-          <div class="flex items-center gap-x-3 gap-y-0.5 flex-wrap text-xs text-base-content/60">
-            <span class="inline-flex items-center gap-1">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              <span class="font-medium text-base-content/80">@{{$N.CreatedByName}}</span>
-            </span>
-            <span class="text-base-content/30">·</span>
-            <span class="inline-flex items-center gap-1" title="{{$N.CreatedAt.Format "2006-01-02 15:04"}}">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-              created {{$N.CreatedAt.Format "02-01-06 15:04"}}
-            </span>
-            {{if not (eq $N.CreatedAt.Unix $N.UpdatedAt.Unix)}}
-            <span class="text-base-content/30">·</span>
-            <span class="inline-flex items-center gap-1" title="{{$N.UpdatedAt.Format "2006-01-02 15:04"}}">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
-              edited {{$N.UpdatedAt.Format "02-01-06 15:04"}}
-            </span>
-            {{end}}
-          </div>
-        </div>
-        <!-- top-right action: close -->
-        <button type="button" @click="close()" class="btn btn-ghost btn-xs btn-square shrink-0 -mt-1 -mr-1" title="Close (Esc)">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-        </button>
-      </div>
+    <div x-show="open" @click="close()" x-transition:enter="transition ease-out duration-200"
+      x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+      x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
+      x-transition:leave-end="opacity-0" class="absolute inset-0 bg-black/50 backdrop-blur-sm">
     </div>
-    <!-- Rendered markdown body -->
-    <div class="flex-1 overflow-y-auto px-6 py-5 prose prose-sm max-w-none
+
+    <div x-ref="root" x-show="open" x-transition:enter="transition ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-300"
+      x-transition:enter-start="opacity-0 scale-90 translate-y-6"
+      x-transition:enter-end="opacity-100 scale-100 translate-y-0" x-transition:leave="transition ease-in duration-200"
+      x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+      class="relative w-full max-w-3xl max-h-[92vh] flex flex-col rounded-2xl bg-base-100 border border-base-300 shadow-2xl overflow-hidden">
+      <!-- Header: icon + title + metadata -->
+      <div class="px-6 pt-6 pb-5 border-b border-base-300 shrink-0">
+        <div class="flex items-start gap-3">
+          <!-- icon -->
+          <div
+            class="shrink-0 w-10 h-10 rounded-lg {{if $N.IsPrivate}}bg-warning/15 text-warning{{else}}bg-primary/10 text-primary{{end}} flex items-center justify-center mt-0.5">
+            {{if $N.IsPrivate}}
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            {{else}}
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <path d="M14 2v6h6" />
+              <path d="M9 13h6" />
+              <path d="M9 17h4" />
+            </svg>
+            {{end}}
+          </div>
+          <!-- title + meta -->
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <h2 class="text-lg font-semibold leading-tight break-words mt-0.5">{{$N.Title}}</h2>
+              {{if $N.IsPrivate}}
+              <span class="badge badge-soft badge-warning badge-sm shrink-0">Private</span>
+              {{end}}
+            </div>
+            <div class="flex items-center gap-x-3 gap-y-0.5 flex-wrap text-xs text-base-content/60">
+              <span class="inline-flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+                <span class="font-medium text-base-content/80">@{{$N.CreatedByName}}</span>
+              </span>
+              <span class="text-base-content/30">·</span>
+              <span class="inline-flex items-center gap-1" title="{{$N.CreatedAt.Format " 2006-01-02 15:04"}}">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                  <line x1="16" x2="16" y1="2" y2="6" />
+                  <line x1="8" x2="8" y1="2" y2="6" />
+                  <line x1="3" x2="21" y1="10" y2="10" />
+                </svg>
+                created {{$N.CreatedAt.Format "02-01-06 15:04"}}
+              </span>
+              {{if not (eq $N.CreatedAt.Unix $N.UpdatedAt.Unix)}}
+              <span class="text-base-content/30">·</span>
+              <span class="inline-flex items-center gap-1" title="{{$N.UpdatedAt.Format " 2006-01-02 15:04"}}">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+                  <path d="M21 3v5h-5" />
+                </svg>
+                edited {{$N.UpdatedAt.Format "02-01-06 15:04"}}
+              </span>
+              {{end}}
+            </div>
+          </div>
+          <!-- top-right action: close -->
+          <button type="button" @click="close()" class="btn btn-ghost btn-xs btn-square shrink-0 -mt-1 -mr-1"
+            title="Close (Esc)">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <!-- Rendered markdown body -->
+      <div class="flex-1 overflow-y-auto px-6 py-5 prose prose-sm max-w-none
                 prose-headings:font-semibold prose-h1:text-2xl prose-h1:mb-3 prose-h1:mt-5 prose-h1:pb-2 prose-h1:border-b prose-h1:border-base-300
                 prose-h2:text-lg prose-h2:mt-4 prose-h2:mb-2
                 prose-h3:text-base prose-h3:mt-3 prose-h3:mb-1.5
@@ -589,35 +728,48 @@
                 prose-hr:my-4 prose-hr:border-base-300
                 prose-strong:font-semibold prose-strong:text-base-content
                 prose-em:text-base-content/80">
-      {{safe $Rendered}}
-    </div>
-    <!-- Footer: stats + actions -->
-    <div class="px-6 py-3 border-t border-base-300 bg-base-200/40 flex items-center justify-between gap-3 shrink-0">
-      <div class="text-xs text-base-content/50 flex items-center gap-3">
-        <span class="inline-flex items-center gap-1">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
-          {{$wordCount}} words
-        </span>
-        <span class="text-base-content/30">·</span>
-        <span>{{$charCount}} chars</span>
-        <span class="text-base-content/30">·</span>
-        <span>{{$lineCount}} lines</span>
+        {{safe $Rendered}}
       </div>
-      <div class="flex items-center gap-1">
-        <button type="button" @click="navigator.clipboard.writeText('{{$N.Title}}\n\n' + document.querySelector('[x-ref=root] .prose').innerText).then(() => { const t = $el; const orig = t.innerHTML; t.innerHTML = '<svg xmlns=\'http://www.w3.org/2000/svg\' class=\'w-3 h-3\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2.5\' stroke-linecap=\'round\'><path d=\'M20 6 9 17l-5-5\'/></svg> Copied!'; setTimeout(() => t.innerHTML = orig, 1500) })"
-                class="btn btn-ghost btn-xs gap-1" title="Copy note text to clipboard">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          Copy
-        </button>
-        <button type="button"
-                hx-get="/notes/{{$N.ID}}/edit" hx-target="#modal-container" hx-swap="innerHTML"
-                class="btn btn-soft btn-primary btn-xs gap-1"
-                title="Edit note">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
-          Edit
-        </button>
+      <!-- Footer: stats + actions -->
+      <div class="px-6 py-3 border-t border-base-300 bg-base-200/40 flex items-center justify-between gap-3 shrink-0">
+        <div class="text-xs text-base-content/50 flex items-center gap-3">
+          <span class="inline-flex items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 7V4h16v3" />
+              <path d="M9 20h6" />
+              <path d="M12 4v16" />
+            </svg>
+            {{$wordCount}} words
+          </span>
+          <span class="text-base-content/30">·</span>
+          <span>{{$charCount}} chars</span>
+          <span class="text-base-content/30">·</span>
+          <span>{{$lineCount}} lines</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <button type="button"
+            @click="navigator.clipboard.writeText('{{$N.Title}}\n\n' + document.querySelector('[x-ref=root] .prose').innerText).then(() => { const t = $el; const orig = t.innerHTML; t.innerHTML = '<svg xmlns=\'http://www.w3.org/2000/svg\' class=\'w-3 h-3\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2.5\' stroke-linecap=\'round\'><path d=\'M20 6 9 17l-5-5\'/></svg> Copied!'; setTimeout(() => t.innerHTML = orig, 1500) })"
+            class="btn btn-ghost btn-xs gap-1" title="Copy note text to clipboard">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+            Copy
+          </button>
+          <button type="button" hx-get="/notes/{{$N.ID}}/edit" hx-target="#modal-container" hx-swap="innerHTML"
+            class="btn btn-soft btn-primary btn-xs gap-1" title="Edit note">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path
+                d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
+              <path d="m15 5 4 4" />
+            </svg>
+            Edit
+          </button>
+        </div>
       </div>
     </div>
   </div>
-</div>
-{{end}}
+  {{end}}
