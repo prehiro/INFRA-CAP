@@ -183,6 +183,7 @@
        // Initialised from the loaded note, mutated by clicking a swatch
        // in the footer. The hidden input below submits the value.
        accent: '{{if $N.AccentColor}}{{$N.AccentColor}}{{end}}',
+       showDiscardConfirm: false,
        init() {
          // Track unsaved changes so we can warn on close
          const ta = this.$refs.content;
@@ -198,10 +199,12 @@
        close() {
         // Skip the unsaved-changes prompt when the user explicitly hit
         // Save (we already committed) or when there are no changes.
-        if (this.dirty && !this.saving && !confirm('You have unsaved changes. Discard them?')) return;
+        if (this.dirty && !this.saving) { this.showDiscardConfirm = true; return; }
         this.open = false;
         setTimeout(() => this.$refs.root.remove(), 220);
       },
+      confirmDiscard() { this.showDiscardConfirm = false; this.open = false; setTimeout(() => this.$refs.root.remove(), 220); },
+      cancelDiscard() { this.showDiscardConfirm = false; },
       closeQuiet() {
         // For programmatic close after a successful save — no confirm.
         this.open = false;
