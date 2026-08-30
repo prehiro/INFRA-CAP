@@ -194,7 +194,7 @@
        beforeUnload(e) { if (this.dirty) { e.preventDefault(); e.returnValue = ''; } },
        getContent() { return (this.$refs.content?.value || ''); },
        getTitle()   { return (this.$refs.title?.value   || ''); },
-       getWordCount() { const t = (this.getContent() || '').trim(); return t ? t.split(/\\s+/).length : 0; },
+       getLineCount() { return (this.getContent() || '').split("\n").length; },
        getCharCount() { return (this.getContent() || '').length; },
        close() {
         // Skip the unsaved-changes prompt when the user explicitly hit
@@ -575,7 +575,7 @@
           </div>
           <div class="flex items-center gap-3">
             <div class="text-xs text-base-content/50 hidden sm:flex items-center gap-2">
-              <span x-text="getWordCount() + ' words'"></span>
+              <span x-text="getLineCount() + ' lines'"></span>
               <span class="text-base-content/30">·</span>
               <span x-text="getCharCount() + ' chars'"></span>
             </div>
@@ -602,7 +602,6 @@
   {{$N := .N}}
   {{$Rendered := .Rendered}}
   {{$charCount := len $N.Content}}
-  {{$wordCount := len (splitWords $N.Content)}}
   {{$lineCount := len (splitLines $N.Content)}}
   <div x-data="{
        open: true,
@@ -721,12 +720,10 @@
               <path d="M9 20h6" />
               <path d="M12 4v16" />
             </svg>
-            {{$wordCount}} words
+            {{$lineCount}} lines
           </span>
           <span class="text-base-content/30">·</span>
           <span>{{$charCount}} chars</span>
-          <span class="text-base-content/30">·</span>
-          <span>{{$lineCount}} lines</span>
         </div>
         <div class="flex items-center gap-1">
           <button type="button"
