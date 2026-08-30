@@ -65,6 +65,17 @@ var funcMap = template.FuncMap{
 	// and inline code/backtick markers; collapses whitespace; truncates to ~max
 	// bytes at a word boundary. The Notes module is the only caller.
 	"preview": notesPreview,
+	// splitLines / splitWords return []string for the note footer stats.
+	// (Length of the slice is the count, content of slice is unused in
+	// the template — only the count is rendered.)
+	"splitLines": func(s string) []string { return strings.Split(s, "\n") },
+	"splitWords": func(s string) []string {
+		fields := strings.Fields(s)
+		if len(fields) == 0 {
+			return nil
+		}
+		return fields
+	},
 	// chipQuery builds a trusted filter query string for status chips (avoids
 	// html/template stripping dynamically-built URLs in attribute context).
 	"chipQuery": func(status, q, expFrom, expTo string) template.URL {
