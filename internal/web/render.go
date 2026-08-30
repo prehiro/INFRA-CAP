@@ -56,6 +56,10 @@ var funcMap = template.FuncMap{
 		}
 		return m
 	},
+	// safe marks a string as trusted HTML so html/template does not escape it.
+	// Use ONLY for static markup authored by us (e.g. SVG icons, hx-get buttons
+	// in partials). Never pass user input here.
+	"safe": func(s string) template.HTML { return template.HTML(s) },
 	// chipQuery builds a trusted filter query string for status chips (avoids
 	// html/template stripping dynamically-built URLs in attribute context).
 	"chipQuery": func(status, q, expFrom, expTo string) template.URL {
@@ -267,6 +271,7 @@ func init() {
 	tmpl = template.Must(template.New("").Funcs(funcMap).ParseFS(templateFS,
 		"templates/layouts/*.html",
 		"templates/pages/*.html",
+		"templates/partials/*.html",
 	))
 }
 

@@ -1,0 +1,34 @@
+{{/*
+  empty_state — shared empty state component (Phase 3.C)
+
+  Usage in a template:
+    {{template "empty_state" (dict
+        "Icon"     "..."        ; template.HTML — large decorative icon (SVG)
+        "Title"    "..."        ; string — bold heading
+        "Subtitle" "..."        ; string — muted subtitle (optional)
+        "CTA"      "..."        ; template.HTML — full <button> markup (optional)
+    )}}
+
+  The CTA field is rendered as trusted HTML so callers can include hx-get etc.
+  Animation: page-child-in (existing keyframe, cubic-bezier spring).
+*/}}
+{{define "empty_state"}}
+<div class="empty-state flex flex-col items-center justify-center text-center py-16 px-6">
+  {{with .Icon}}
+  <div class="empty-state-icon mb-4 text-primary/30">
+    {{.}}
+  </div>
+  {{end}}
+  {{with .Title}}
+  <h3 class="text-base font-semibold text-base-content/80 mb-1">{{.}}</h3>
+  {{end}}
+  {{with .Subtitle}}
+  <p class="text-sm text-base-content/50 max-w-sm mb-5">{{.}}</p>
+  {{else}}
+  <div class="mb-5"></div>
+  {{end}}
+  {{with .CTA}}
+  <div class="empty-state-cta">{{.}}</div>
+  {{end}}
+</div>
+{{end}}
