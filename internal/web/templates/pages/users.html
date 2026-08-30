@@ -70,8 +70,13 @@
             </td>
           </tr>
           {{else}}
-          <tr><td colspan="6" class="text-center py-12 text-base-content/40">
-            No users yet. <button type="button" class="link link-primary" hx-get="/users/new" hx-target="#modal-container" hx-swap="innerHTML">Add the first one</button>.
+          <tr><td colspan="6" class="p-0 border-0">
+            {{template "empty_state" (dict
+              "Icon"     (safe `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`)
+              "Title"    "No users yet"
+              "Subtitle" "Add your first user account to grant access to INFRA-CAP. New users can be assigned the admin or user role."
+              "CTA"      (safe `<button type="button" class="btn btn-primary btn-sm shiny-hover" hx-get="/users/new" hx-target="#modal-container" hx-swap="innerHTML"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>Add User</button>`)
+            )}}
           </td></tr>
           {{end}}
         </tbody>
@@ -137,8 +142,13 @@
       </td>
     </tr>
     {{else}}
-    <tr><td colspan="6" class="text-center py-12 text-base-content/40">
-      No users yet. <button type="button" class="link link-primary" hx-get="/users/new" hx-target="#modal-container" hx-swap="innerHTML">Add the first one</button>.
+    <tr><td colspan="6" class="p-0 border-0">
+      {{template "empty_state" (dict
+        "Icon"     (safe `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`)
+        "Title"    "No users yet"
+        "Subtitle" "Add your first user account to grant access to INFRA-CAP. New users can be assigned the admin or user role."
+        "CTA"      (safe `<button type="button" class="btn btn-primary btn-sm shiny-hover" hx-get="/users/new" hx-target="#modal-container" hx-swap="innerHTML"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>Add User</button>`)
+      )}}
     </td></tr>
     {{end}}
   </tbody>
