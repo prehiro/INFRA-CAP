@@ -38,6 +38,7 @@
 @media (prefers-reduced-motion: reduce) {
   .notes-page-enter, .note-card-enter, .note-card { animation: none !important; transition: none !important; }
 }
+    .results-scroll { scrollbar-gutter: stable; }
 </style>
 <div class="flex flex-col h-[calc(100vh-7rem)] overflow-hidden notes-page-enter">
 
@@ -95,7 +96,7 @@
 {{define "notes_results_content"}}
 {{$C := .CurrentUser}}
 <div id="notes-results" class="results-anim flex-1 min-h-0 flex flex-col">
-  <div class="flex-1 min-h-0 overflow-y-auto">
+  <div class="flex-1 min-h-0 overflow-y-auto results-scroll">
     {{if .Notes}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {{range .Notes}}
