@@ -31,6 +31,7 @@ func (m *Module) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /notes/{id}", m.view)
 	mux.HandleFunc("GET /notes/{id}/edit", m.editForm)
 	mux.HandleFunc("POST /notes/{id}", m.update)
+	mux.HandleFunc("GET /notes/{id}/delete-confirm", m.deleteConfirm)
 	mux.HandleFunc("POST /notes/{id}/delete", m.delete)
 }
 
@@ -264,6 +265,27 @@ func (m *Module) update(w http.ResponseWriter, r *http.Request) {
 		"CurrentUser": u,
 	}
 	web.RenderNamed(w, r, "notes_results_content", "Notes", data)
+}
+
+// deleteConfirm returns a styled confirmation modal.
+func (m *Module) deleteConfirm(w http.ResponseWriter, r *http.Request) {
+	u := auth.FromContext(r.Context())
+	if u == nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	id, _ := strconv.Atoi(r.PathValue("id"))
+	n, err := m.Store.Get(r.Context(), id)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	if n.CreatedBy != u.ID {
+		http.Error(w, "only the creator can delete a note", http.StatusForbidden)
+		return
+	}
+	data := map[string]any{"N": n}
+	web.RenderNamed(w, r, "note_delete_confirm_content", "Delete Note", data)
 }
 
 // delete is owner-only. Admin does NOT get implicit permission. The
