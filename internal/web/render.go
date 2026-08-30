@@ -56,6 +56,23 @@ var funcMap = template.FuncMap{
 		}
 		return m
 	},
+	// list returns a slice of the given values. Used to iterate a
+	// static set of keys (e.g. accent color names) inside a template.
+	"list": func(vs ...any) []any { return vs },
+	// index returns the value at key k from a map. Convenience wrapper
+	// around Go template's index function for typed map lookups.
+	"index": func(m any, k any) any {
+		switch mm := m.(type) {
+		case map[string]any:
+			return mm[fmt.Sprintf("%v", k)]
+		case map[string]string:
+			if s, ok := mm[fmt.Sprintf("%v", k)]; ok {
+				return s
+			}
+			return ""
+		}
+		return ""
+	},
 	// safe marks a string as trusted HTML so html/template does not escape it.
 	// Use ONLY for static markup authored by us (e.g. SVG icons, hx-get buttons
 	// in partials). Never pass user input here.

@@ -92,6 +92,11 @@ func (m *Module) create(w http.ResponseWriter, r *http.Request) {
 	title := strings.TrimSpace(r.PostFormValue("title"))
 	content := r.PostFormValue("content")
 	isPrivate := r.PostFormValue("is_private") == "1"
+	// accent_color is the user-friendly key (e.g. "red"). We resolve it
+	// to the canonical hex via the whitelist so we never store anything
+	// the picker didn't offer.
+	accentKey := r.PostFormValue("accent_color")
+	accentColor := ResolveAccentColor(accentKey)
 
 	errors := map[string]string{}
 	if title == "" {
@@ -102,7 +107,7 @@ func (m *Module) create(w http.ResponseWriter, r *http.Request) {
 	}
 	if len(errors) > 0 {
 		data := map[string]any{
-			"N":        &Note{Title: title, Content: content, IsPrivate: isPrivate},
+			"N":        &Note{Title: title, Content: content, IsPrivate: isPrivate, AccentColor: accentColor},
 			"IsNew":    true,
 			"Error":    errors,
 			"MaxTitle": 200,
@@ -111,7 +116,7 @@ func (m *Module) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := m.Store.Create(r.Context(), u.ID, title, content, isPrivate)
+	id, err := m.Store.Create(r.Context(), u.ID, title, content, isPrivate, accentColor)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -217,6 +222,8 @@ func (m *Module) update(w http.ResponseWriter, r *http.Request) {
 	title := strings.TrimSpace(r.PostFormValue("title"))
 	content := r.PostFormValue("content")
 	isPrivate := r.PostFormValue("is_private") == "1"
+	accentKey := r.PostFormValue("accent_color")
+	accentColor := ResolveAccentColor(accentKey)
 
 	errors := map[string]string{}
 	if title == "" {
@@ -227,7 +234,7 @@ func (m *Module) update(w http.ResponseWriter, r *http.Request) {
 	}
 	if len(errors) > 0 {
 		data := map[string]any{
-			"N":        &Note{ID: id, Title: title, Content: content, IsPrivate: isPrivate, CreatedBy: existing.CreatedBy, CreatedAt: existing.CreatedAt},
+			"N":        &Note{ID: id, Title: title, Content: content, IsPrivate: isPrivate, AccentColor: accentColor, CreatedBy: existing.CreatedBy, CreatedAt: existing.CreatedAt},
 			"IsNew":    false,
 			"Error":    errors,
 			"MaxTitle": 200,
@@ -236,7 +243,7 @@ func (m *Module) update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := m.Store.Update(r.Context(), id, u.ID, title, content, isPrivate); err != nil {
+	if err := m.Store.Update(r.Context(), id, u.ID, title, content, isPrivate, accentColor); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

@@ -15,6 +15,7 @@ type Note struct {
 	Title      string
 	Content    string    // raw markdown source
 	IsPrivate  bool
+	AccentColor string   // custom color for the card's top stripe ("" = use default)
 	CreatedBy  int
 	CreatedAt  time.Time
 	UpdatedBy  int
@@ -22,6 +23,29 @@ type Note struct {
 	// Derived (joined) — populated by List/Get for display
 	CreatedByName string
 	UpdatedByName string
+}
+
+// AllowedAccentColors is the strict whitelist of colors users can pick
+// for the card's accent stripe. Empty string means "use default".
+// We don't accept arbitrary CSS colors so a malicious user can't inject
+// HTML/JS via the field (defence in depth — the form is also escaped).
+var AllowedAccentColors = map[string]string{
+	"":       "",
+	"red":    "#dc2626",
+	"orange": "#ea580c",
+	"yellow": "#ca8a04",
+	"green":  "#16a34a",
+	"blue":   "#2563eb",
+	"purple": "#9333ea",
+}
+
+// ResolveAccentColor maps a user-friendly key (e.g. "red") to the
+// canonical hex (e.g. "#dc2626"). Unknown keys collapse to "".
+func ResolveAccentColor(key string) string {
+	if v, ok := AllowedAccentColors[strings.ToLower(strings.TrimSpace(key))]; ok {
+		return v
+	}
+	return ""
 }
 
 // Store is the DB layer for the notes module. All methods are safe for
@@ -67,7 +91,7 @@ func (s *Store) List(ctx context.Context, f Filter) ([]Note, error) {
 
 	query := fmt.Sprintf(`
 		SELECT
-		    n.id, n.title, n.content, n.is_private,
+		    n.id, n.title, n.content, n.is_private, n.accent_color,
 		    n.created_by, n.created_at, n.updated_by, n.updated_at,
 		    ISNULL(creator.username, ''), ISNULL(updater.username, '')
 		FROM notes n
@@ -87,12 +111,16 @@ func (s *Store) List(ctx context.Context, f Filter) ([]Note, error) {
 	var out []Note
 	for rows.Next() {
 		var n Note
+		var accent sql.NullString
 		if err := rows.Scan(
-			&n.ID, &n.Title, &n.Content, &n.IsPrivate,
+			&n.ID, &n.Title, &n.Content, &n.IsPrivate, &accent,
 			&n.CreatedBy, &n.CreatedAt, &n.UpdatedBy, &n.UpdatedAt,
 			&n.CreatedByName, &n.UpdatedByName,
 		); err != nil {
 			return nil, fmt.Errorf("scan note: %w", err)
+		}
+		if accent.Valid {
+			n.AccentColor = accent.String
 		}
 		out = append(out, n)
 	}
@@ -104,7 +132,7 @@ func (s *Store) List(ctx context.Context, f Filter) ([]Note, error) {
 func (s *Store) Get(ctx context.Context, id int) (*Note, error) {
 	const q = `
 		SELECT
-		    n.id, n.title, n.content, n.is_private,
+		    n.id, n.title, n.content, n.is_private, n.accent_color,
 		    n.created_by, n.created_at, n.updated_by, n.updated_at,
 		    ISNULL(creator.username, ''), ISNULL(updater.username, '')
 		FROM notes n
@@ -113,8 +141,9 @@ func (s *Store) Get(ctx context.Context, id int) (*Note, error) {
 		WHERE n.id = @p_id
 	`
 	var n Note
+	var accent sql.NullString
 	err := s.DB.QueryRowContext(ctx, q, sql.Named("p_id", id)).Scan(
-		&n.ID, &n.Title, &n.Content, &n.IsPrivate,
+		&n.ID, &n.Title, &n.Content, &n.IsPrivate, &accent,
 		&n.CreatedBy, &n.CreatedAt, &n.UpdatedBy, &n.UpdatedAt,
 		&n.CreatedByName, &n.UpdatedByName,
 	)
@@ -124,23 +153,32 @@ func (s *Store) Get(ctx context.Context, id int) (*Note, error) {
 	if err != nil {
 		return nil, fmt.Errorf("get note: %w", err)
 	}
+	if accent.Valid {
+		n.AccentColor = accent.String
+	}
 	return &n, nil
 }
 
 // Create inserts a new note and returns the assigned id. created_by and
 // updated_by are both set to userID; created_at and updated_at use the
-// DB default (SYSUTCDATETIME()).
-func (s *Store) Create(ctx context.Context, userID int, title, content string, isPrivate bool) (int, error) {
+// DB default (SYSUTCDATETIME()). accentColor is "" by default (which
+// means "use the type's default stripe color").
+func (s *Store) Create(ctx context.Context, userID int, title, content string, isPrivate bool, accentColor string) (int, error) {
 	const q = `
-		INSERT INTO notes (title, content, is_private, created_by, updated_by)
-		VALUES (@p_title, @p_content, @p_private, @p_user, @p_user);
+		INSERT INTO notes (title, content, is_private, accent_color, created_by, updated_by)
+		VALUES (@p_title, @p_content, @p_private, @p_accent, @p_user, @p_user);
 		SELECT CAST(SCOPE_IDENTITY() AS INT);
 	`
+	var accent sql.NullString
+	if accentColor != "" {
+		accent = sql.NullString{String: accentColor, Valid: true}
+	}
 	var id int
 	err := s.DB.QueryRowContext(ctx, q,
 		sql.Named("p_title", title),
 		sql.Named("p_content", content),
 		sql.Named("p_private", isPrivate),
+		sql.Named("p_accent", accent),
 		sql.Named("p_user", userID),
 	).Scan(&id)
 	if err != nil {
@@ -151,20 +189,26 @@ func (s *Store) Create(ctx context.Context, userID int, title, content string, i
 
 // Update mutates an existing note. updated_by is set to userID; updated_at
 // is set to DB now. created_by/created_at are NOT touched.
-func (s *Store) Update(ctx context.Context, id, userID int, title, content string, isPrivate bool) error {
+func (s *Store) Update(ctx context.Context, id, userID int, title, content string, isPrivate bool, accentColor string) error {
 	const q = `
 		UPDATE notes
 		SET title = @p_title,
 		    content = @p_content,
 		    is_private = @p_private,
+		    accent_color = @p_accent,
 		    updated_by = @p_user,
 		    updated_at = SYSUTCDATETIME()
 		WHERE id = @p_id
 	`
+	var accent sql.NullString
+	if accentColor != "" {
+		accent = sql.NullString{String: accentColor, Valid: true}
+	}
 	res, err := s.DB.ExecContext(ctx, q,
 		sql.Named("p_title", title),
 		sql.Named("p_content", content),
 		sql.Named("p_private", isPrivate),
+		sql.Named("p_accent", accent),
 		sql.Named("p_user", userID),
 		sql.Named("p_id", id),
 	)
