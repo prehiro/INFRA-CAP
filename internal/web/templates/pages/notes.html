@@ -140,6 +140,10 @@
        tab: 'write',                          // 'write' | 'preview'
        dirty: false,
        saving: false,
+       // Accent color hex (e.g. '#dc2626'); '' = use default stripe.
+       // Initialised from the loaded note, mutated by clicking a swatch
+       // in the footer. The hidden input below submits the value.
+       accent: '{{if $N.AccentColor}}{{$N.AccentColor}}{{end}}',
        init() {
          // Track unsaved changes so we can warn on close
          const ta = this.$refs.content;
@@ -428,33 +432,37 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-warning" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             <span class="text-xs">Private</span>
           </label>
-          <!-- Accent color picker (radio buttons styled as color swatches).
-               We store the user-friendly key (red/blue/...) as the form
-               value and the Go handler resolves it to the canonical hex. -->
-          {{ $accentKeys := list "" "red" "orange" "yellow" "green" "blue" "purple" }}
-          {{ $accentHex := dict "" "" "red" "#dc2626" "orange" "#ea580c" "yellow" "#ca8a04" "green" "#16a34a" "blue" "#2563eb" "purple" "#9333ea" }}
-          {{ $currentAccentKey := "" }}
-          {{ range $k, $hex := $accentHex }}{{ if and (ne $N.AccentColor "") (eq $hex $N.AccentColor) }}{{ $currentAccentKey = $k }}{{ end }}{{ end }}
-          <div class="flex items-center gap-1.5 ml-1" title="Accent color">
+          <!-- Accent color picker — user clicks a color circle to select.
+               Each swatch is a button (not a radio) that sets x-data.accent.
+               The hidden input below submits the value on save. -->
+          {{ $swatches := list
+              (dict "key" "" "hex" "" "title" "Default")
+              (dict "key" "red" "hex" "#dc2626" "title" "Red")
+              (dict "key" "orange" "hex" "#ea580c" "title" "Orange")
+              (dict "key" "yellow" "hex" "#ca8a04" "title" "Yellow")
+              (dict "key" "green" "hex" "#16a34a" "title" "Green")
+              (dict "key" "blue" "hex" "#2563eb" "title" "Blue")
+              (dict "key" "purple" "hex" "#9333ea" "title" "Purple")
+          }}
+          <input type="hidden" name="accent_color" :value="accent">
+          <div class="flex items-center gap-1.5 ml-1" title="Card accent color">
             <span class="text-xs text-base-content/50">Accent</span>
-            <div class="flex items-center gap-1">
-              {{ range $k := $accentKeys }}
-              <label class="cursor-pointer relative group/color">
-                <input type="radio" name="accent_color" value="{{$k}}"
-                       {{ if eq $k $currentAccentKey }}checked{{ end }}
-                       class="peer sr-only accent-color-radio">
-                {{ if eq $k "" }}
-                <span class="block w-4 h-4 rounded-sm border-2 border-dashed border-base-content/30 hover:border-base-content/60 transition-colors"></span>
-                <span class="absolute inset-0 flex items-center justify-center text-base-content/40 opacity-0 group-hover/color:opacity-100 transition-opacity pointer-events-none">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                </span>
-                {{ else }}
-                <span class="block w-4 h-4 rounded-full transition-all hover:scale-110"
-                      style="background-color: {{ index $accentHex $k }}"></span>
+            <div class="flex items-center gap-1.5">
+              {{ range $s := $swatches }}
+              {{ $isSelected := "" }}{{ if eq $s.hex $N.AccentColor }}{{ $isSelected = "1" }}{{ end }}
+              <button type="button"
+                      @click="accent = '{{$s.hex}}'; dirty = true"
+                      title="{{$s.title}}"
+                      data-key="{{$s.key}}"
+                      data-hex="{{$s.hex}}"
+                      {{ if $isSelected }}data-selected="true"{{ end }}
+                      class="w-4 h-4 rounded-full transition-all hover:scale-125 focus:outline-none focus:ring-2 focus:ring-primary/40 {{ if eq $s.hex "" }}border-2 border-dashed border-base-content/30 hover:border-base-content/60{{ end }}"
+                      {{ if ne $s.hex "" }}style="background-color: {{$s.hex}}"{{ end }}
+                      :class="accent === '{{$s.hex}}' ? 'ring-2 ring-primary ring-offset-2 ring-offset-base-200' : ''">
+                {{ if eq $s.key "" }}
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-2.5 h-2.5 mx-auto text-base-content/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                 {{ end }}
-                <!-- ring on checked -->
-                <span class="absolute inset-0 -m-0.5 rounded-full ring-2 ring-primary ring-offset-1 ring-offset-base-200 opacity-0 peer-checked:opacity-100 pointer-events-none"></span>
-              </label>
+              </button>
               {{ end }}
             </div>
           </div>

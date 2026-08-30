@@ -39,11 +39,25 @@ var AllowedAccentColors = map[string]string{
 	"purple": "#9333ea",
 }
 
-// ResolveAccentColor maps a user-friendly key (e.g. "red") to the
-// canonical hex (e.g. "#dc2626"). Unknown keys collapse to "".
-func ResolveAccentColor(key string) string {
-	if v, ok := AllowedAccentColors[strings.ToLower(strings.TrimSpace(key))]; ok {
-		return v
+// ResolveAccentColor accepts either a user-friendly key (e.g. "red")
+// or the canonical hex (e.g. "#dc2626") and returns the canonical hex.
+// Unknown values collapse to "". The hex form is what the client sends
+// directly from the swatch buttons; the key form is accepted for
+// backward compat with the original radio-based picker.
+func ResolveAccentColor(input string) string {
+	v := strings.ToLower(strings.TrimSpace(input))
+	if v == "" {
+		return ""
+	}
+	// exact key match
+	if hex, ok := AllowedAccentColors[v]; ok {
+		return hex
+	}
+	// hex match (case-insensitive)
+	for _, hex := range AllowedAccentColors {
+		if strings.EqualFold(hex, v) {
+			return hex
+		}
 	}
 	return ""
 }
