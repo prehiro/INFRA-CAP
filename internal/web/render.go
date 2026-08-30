@@ -60,6 +60,11 @@ var funcMap = template.FuncMap{
 	// Use ONLY for static markup authored by us (e.g. SVG icons, hx-get buttons
 	// in partials). Never pass user input here.
 	"safe": func(s string) template.HTML { return template.HTML(s) },
+	// preview returns a short plain-text excerpt from markdown content for the
+	// notes card grid. Strips heading markers, list bullets, blockquote chars,
+	// and inline code/backtick markers; collapses whitespace; truncates to ~max
+	// bytes at a word boundary. The Notes module is the only caller.
+	"preview": notesPreview,
 	// chipQuery builds a trusted filter query string for status chips (avoids
 	// html/template stripping dynamically-built URLs in attribute context).
 	"chipQuery": func(status, q, expFrom, expTo string) template.URL {
@@ -364,4 +369,42 @@ func UserFromContext(ctx context.Context) UserInfo {
 	}
 	u, _ := ctx.Value(userCtxKey).(UserInfo)
 	return u
+}
+
+// notesPreview returns a short plain-text excerpt from markdown source for
+// the notes card grid. Strips heading markers, list bullets, blockquote
+// chars, and inline code/backtick markers; collapses whitespace; truncates
+// to ~max bytes at a word boundary. Used as a template helper so the
+// web package does not need to import the notes module (which would
+// create an import cycle since notes imports web for RenderNamed).
+func notesPreview(content string, max int) string {
+	if max <= 0 {
+		max = 200
+	}
+	var out strings.Builder
+	for _, line := range strings.Split(content, "\n") {
+		t := strings.TrimSpace(line)
+		// strip leading markdown markers
+		for strings.HasPrefix(t, "#") || strings.HasPrefix(t, ">") || strings.HasPrefix(t, "-") ||
+			strings.HasPrefix(t, "*") || strings.HasPrefix(t, "_") || strings.HasPrefix(t, "`") {
+			t = t[1:]
+		}
+		t = strings.TrimSpace(t)
+		if t == "" {
+			continue
+		}
+		if out.Len() > 0 {
+			out.WriteByte(' ')
+		}
+		out.WriteString(t)
+	}
+	s := out.String()
+	if len(s) <= max {
+		return s
+	}
+	cut := s[:max]
+	if i := strings.LastIndex(cut, " "); i > max/2 {
+		cut = cut[:i]
+	}
+	return cut + "…"
 }

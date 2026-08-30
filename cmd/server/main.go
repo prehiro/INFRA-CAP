@@ -18,6 +18,7 @@ import (
 	"infracap/internal/modules/audit"
 	"infracap/internal/modules/dashboard"
 	"infracap/internal/modules/licenses"
+	"infracap/internal/modules/notes"
 	"infracap/internal/web"
 )
 
@@ -85,6 +86,8 @@ func run() error {
 	usersMod.RegisterRoutes(protected)
 	licMod := licenses.New(&licenses.Store{DB: database})
 	licMod.RegisterRoutes(protected)
+	notesMod := notes.New(&notes.Store{DB: database})
+	notesMod.RegisterRoutes(protected)
 
 	// Audit Trail (admin only) — Fase 2b
 	auditMux := http.NewServeMux()

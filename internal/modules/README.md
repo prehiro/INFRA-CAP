@@ -377,6 +377,7 @@ import (
     "infracap/internal/modules/audit"
     "infracap/internal/modules/dashboard"
     "infracap/internal/modules/licenses"
+    "infracap/internal/modules/notes"
     "infracap/internal/auth"
     // ...
 )
@@ -385,6 +386,7 @@ authMod      := auth.New(&auth.Store{DB: database})  // auth has its own pattern
 dash         := dashboard.New(dashboardStore)
 licMod       := licenses.New(&licenses.Store{DB: database})
 auditMod     := audit.New(&audit.Store{DB: database})
+notesMod     := notes.New(&notes.Store{DB: database})
 
 // auth routes go directly on mux (some are public, some need session, some need CSRF)
 authMod.RegisterRoutes(mux)
@@ -392,6 +394,7 @@ authMod.RegisterRoutes(mux)
 // all UI modules go on `protected` (auth + CSRF already wrapped)
 dash.RegisterRoutes(protected)
 licMod.RegisterRoutes(protected)
+notesMod.RegisterRoutes(protected)
 
 // audit gets its own mux so it can be mounted in BOTH the user UI path
 // and the internal audit log path. See audit module for the pattern.

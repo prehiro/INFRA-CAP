@@ -1,0 +1,274 @@
+{{define "notes_content"}}
+{{$Q := .Q}}
+{{$C := .CurrentUser}}
+<div class="flex flex-col h-[calc(100vh-7rem)] overflow-hidden">
+
+  <!-- header -->
+  <div class="shrink-0 flex flex-wrap items-center justify-between gap-3 mb-3">
+    <div>
+      <h1 class="text-xl font-bold">Notes</h1>
+      <p class="text-base-content/50 text-sm mt-0.5">
+        {{len .Notes}} note(s) · shared workspace, edit &amp; create by anyone
+      </p>
+    </div>
+    <div class="flex gap-2">
+      <button type="button" class="btn btn-primary btn-sm shiny-hover"
+              hx-get="/notes/new" hx-target="#modal-container" hx-swap="innerHTML">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+        New Note
+      </button>
+    </div>
+  </div>
+
+  <!-- search bar -->
+  <form hx-get="/notes" hx-target="#notes-results" hx-swap="outerHTML"
+        hx-trigger="input changed delay:300ms from:#note-search-input"
+        class="shrink-0 rounded-box bg-base-100 border border-base-300 shadow-sm p-4 flex items-center gap-3 mb-4">
+    <div class="w-96 shrink-0 flex items-center gap-2" x-data="{ hasQ: {{if $Q}}true{{else}}false{{end}} }">
+      <label class="label text-xs font-medium text-base-content/60 whitespace-nowrap">Search</label>
+      <div class="relative flex items-center flex-1">
+        <input id="note-search-input" name="q" value="{{$Q}}" placeholder="Search notes by title or content..."
+               @input="hasQ = $event.target.value.length > 0"
+               class="input input-sm input-bordered w-full bg-base-100 pr-8">
+        <button type="button" x-show="hasQ" x-cloak title="Clear search"
+                @click="$el.previousElementSibling.value=''; $el.previousElementSibling.dispatchEvent(new Event('input',{bubbles:true}))"
+                class="absolute right-2 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content/70">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <!-- results grid (HTMX swap target). The wrapper id lives inside the
+       notes_results_content template (not here) so the wrapper is preserved
+       across hx-swap outerHTML refreshes — the canonical dual-layer pattern
+       documented in the module contract README. -->
+  {{template "notes_results_content" .}}
+</div>
+{{end}}
+
+{{define "notes_results_content"}}
+{{$C := .CurrentUser}}
+<div id="notes-results" class="results-anim flex-1 min-h-0 flex flex-col">
+<div class="flex-1 min-h-0 overflow-y-auto">
+  {{if .Notes}}
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    {{range .Notes}}
+    {{$N := .}}
+    <div class="note-card group relative rounded-box bg-base-100 border border-base-300 shadow-sm hover:shadow-md hover:border-primary/40 transition-all duration-200 cursor-pointer overflow-hidden flex flex-col"
+         onclick="window.location='/notes/{{$N.ID}}'">
+      <!-- card header strip (color cue for private/public) -->
+      <div class="h-1 {{if $N.IsPrivate}}bg-warning{{else}}bg-primary/60{{end}}"></div>
+      <div class="p-4 flex-1 flex flex-col">
+        <!-- title + private badge -->
+        <div class="flex items-start justify-between gap-2 mb-2">
+          <h3 class="font-semibold text-sm leading-snug line-clamp-2 flex-1">{{$N.Title}}</h3>
+          {{if $N.IsPrivate}}
+          <span class="badge badge-soft badge-warning badge-sm shrink-0" title="Private — only you can see this">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </span>
+          {{end}}
+        </div>
+        <!-- preview -->
+        <p class="text-xs text-base-content/60 line-clamp-4 flex-1">{{preview $N.Content 200}}</p>
+        <!-- footer: author + updated + actions -->
+        <div class="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-base-300/60 text-xs text-base-content/50">
+          <div class="min-w-0 flex-1">
+            <div class="font-medium text-base-content/70 truncate">@{{$N.CreatedByName}}</div>
+            <div title="{{$N.UpdatedAt.Format "2006-01-02 15:04"}}">
+              Updated {{$N.UpdatedAt.Format "02-01-06 15:04"}}
+            </div>
+          </div>
+          <!-- action buttons (stop propagation so they don't trigger card click) -->
+          <div class="flex items-center gap-1 shrink-0" onclick="event.stopPropagation()">
+            <button type="button" class="row-action row-action-edit" title="Edit note"
+                    hx-get="/notes/{{$N.ID}}/edit" hx-target="#modal-container" hx-swap="innerHTML">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
+            </button>
+            {{if eq $N.CreatedBy $C.ID}}
+            <button type="button" class="row-action row-action-retire" title="Delete (owner only)"
+                    hx-post="/notes/{{$N.ID}}/delete"
+                    hx-target="#notes-results" hx-swap="outerHTML"
+                    hx-confirm="Delete this note? This cannot be undone.">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="17"/></svg>
+            </button>
+            {{end}}
+          </div>
+        </div>
+      </div>
+    </div>
+    {{end}}
+  </div>
+  {{else}}
+  <!-- empty state -->
+  <div class="rounded-box bg-base-100 border border-base-300 shadow-sm p-12 text-center">
+    {{if $.Q}}
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto text-base-content/30 mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <h3 class="text-base font-semibold text-base-content/80 mb-1">No notes match "{{$.Q}}"</h3>
+    <p class="text-sm text-base-content/50 mb-4">Try a different search term, or clear the search to see all notes.</p>
+    <a href="/notes" class="btn btn-soft btn-sm">Clear search</a>
+    {{else}}
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto text-base-content/30 mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h4"/></svg>
+    <h3 class="text-base font-semibold text-base-content/80 mb-1">No notes yet</h3>
+    <p class="text-sm text-base-content/50 mb-4">Start the shared workspace by creating the first note. Anyone can read and edit.</p>
+    <button type="button" class="btn btn-primary btn-sm"
+            hx-get="/notes/new" hx-target="#modal-container" hx-swap="innerHTML">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+      New Note
+    </button>
+    {{end}}
+  </div>
+  {{end}}
+</div>
+{{end}}
+
+{{define "note_modal_content"}}
+{{$N := .N}}
+{{$IsNew := .IsNew}}
+{{$Err := .Error}}
+<div x-data="{
+       open: true,
+       close() { this.open = false; setTimeout(() => this.$refs.root.remove(), 220) }
+     }"
+     x-init="$nextTick(() => open = true)"
+     x-show="open"
+     @keydown.escape.window="close()"
+     class="fixed inset-0 z-[90] flex items-center justify-center p-4">
+
+  <div x-show="open" @click="close()"
+       x-transition:enter="transition ease-out duration-200"
+       x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+       x-transition:leave="transition ease-in duration-150"
+       x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+       class="absolute inset-0 bg-black/50 backdrop-blur-sm">
+  </div>
+
+  <div x-ref="root" x-show="open"
+       x-transition:enter="transition ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-300"
+       x-transition:enter-start="opacity-0 scale-90 translate-y-6"
+       x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+       x-transition:leave="transition ease-in duration-200"
+       x-transition:leave-start="opacity-100 scale-100"
+       x-transition:leave-end="opacity-0 scale-95"
+       class="relative w-full max-w-2xl max-h-[92vh] flex flex-col rounded-2xl bg-base-100 border border-base-300 shadow-2xl overflow-hidden">
+    <!-- header -->
+    <div class="px-5 py-3 border-b border-base-300 flex items-center justify-between gap-3 shrink-0">
+      <h2 class="text-base font-semibold">{{if $IsNew}}New Note{{else}}Edit Note{{end}}</h2>
+      <button type="button" @click="close()" class="btn btn-ghost btn-xs btn-square" title="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+    <!-- body -->
+    <form {{if $IsNew}}hx-post="/notes"{{else}}hx-post="/notes/{{$N.ID}}"{{end}}
+          hx-target="#notes-results" hx-swap="outerHTML"
+          class="flex-1 overflow-y-auto p-5 space-y-4">
+      {{if $Err}}
+      <div class="alert alert-error text-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+        <div>
+          {{range $k, $v := $Err}}<div>{{$v}}</div>{{end}}
+        </div>
+      </div>
+      {{end}}
+      <div>
+        <label class="label">
+          <span class="label-text text-xs font-medium text-base-content/70">Title</span>
+        </label>
+        <input type="text" name="title" value="{{$N.Title}}" maxlength="{{.MaxTitle}}"
+               placeholder="e.g. Office Wi-Fi password reset steps"
+               class="input input-sm input-bordered w-full" required>
+      </div>
+      <div>
+        <label class="label">
+          <span class="label-text text-xs font-medium text-base-content/70 flex items-center justify-between">
+            <span>Content (Markdown supported: <code class="text-[10px] px-1 py-0.5 rounded bg-base-200">**bold**</code> <code class="text-[10px] px-1 py-0.5 rounded bg-base-200">*italic*</code> <code class="text-[10px] px-1 py-0.5 rounded bg-base-200"># heading</code> <code class="text-[10px] px-1 py-0.5 rounded bg-base-200">- list</code> <code class="text-[10px] px-1 py-0.5 rounded bg-base-200">[link](url)</code>)</span>
+          </span>
+        </label>
+        <textarea name="content" rows="14"
+                  placeholder="Write your note here...&#10;&#10;# Heading&#10;**bold** *italic*&#10;- bullet 1&#10;- bullet 2"
+                  class="textarea textarea-bordered w-full font-mono text-sm" required>{{$N.Content}}</textarea>
+      </div>
+      <div class="flex items-center gap-2">
+        <label class="cursor-pointer flex items-center gap-2">
+          <input type="checkbox" name="is_private" value="1" class="checkbox checkbox-sm checkbox-warning"
+                 {{if $N.IsPrivate}}checked{{end}}>
+          <span class="text-sm">Private (only you can see and edit this)</span>
+        </label>
+      </div>
+      <!-- footer -->
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-base-300">
+        <button type="button" @click="close()" class="btn btn-ghost btn-sm">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-sm shiny-hover">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          {{if $IsNew}}Create{{else}}Save{{end}}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{{end}}
+
+{{define "note_view_modal_content"}}
+{{$N := .N}}
+{{$Rendered := .Rendered}}
+<div x-data="{
+       open: true,
+       close() { this.open = false; setTimeout(() => this.$refs.root.remove(), 220) }
+     }"
+     x-init="$nextTick(() => open = true)"
+     x-show="open"
+     @keydown.escape.window="close()"
+     class="fixed inset-0 z-[90] flex items-center justify-center p-4">
+
+  <div x-show="open" @click="close()"
+       x-transition:enter="transition ease-out duration-200"
+       x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+       x-transition:leave="transition ease-in duration-150"
+       x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+       class="absolute inset-0 bg-black/50 backdrop-blur-sm">
+  </div>
+
+  <div x-ref="root" x-show="open"
+       x-transition:enter="transition ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-300"
+       x-transition:enter-start="opacity-0 scale-90 translate-y-6"
+       x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+       x-transition:leave="transition ease-in duration-200"
+       x-transition:leave-start="opacity-100 scale-100"
+       x-transition:leave-end="opacity-0 scale-95"
+       class="relative w-full max-w-3xl max-h-[92vh] flex flex-col rounded-2xl bg-base-100 border border-base-300 shadow-2xl overflow-hidden">
+    <!-- header -->
+    <div class="px-5 py-3 border-b border-base-300 flex items-center justify-between gap-3 shrink-0">
+      <div class="min-w-0 flex-1">
+        <h2 class="text-base font-semibold truncate">{{$N.Title}}</h2>
+        <p class="text-xs text-base-content/50 mt-0.5">
+          by @{{$N.CreatedByName}}
+          {{if $N.IsPrivate}}· <span class="badge badge-soft badge-warning badge-sm">Private</span>{{end}}
+          · updated {{$N.UpdatedAt.Format "02-01-06 15:04"}}
+        </p>
+      </div>
+      <div class="flex items-center gap-1 shrink-0">
+        <button type="button" @click="window.location='/notes/{{$N.ID}}/edit'"
+                hx-get="/notes/{{$N.ID}}/edit" hx-target="#modal-container" hx-swap="innerHTML"
+                class="btn btn-soft btn-primary btn-xs gap-1"
+                title="Edit note">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
+          Edit
+        </button>
+        <button type="button" @click="close()" class="btn btn-ghost btn-xs btn-square" title="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+    </div>
+    <!-- rendered markdown body -->
+    <div class="flex-1 overflow-y-auto p-6 prose prose-sm max-w-none
+                prose-headings:font-semibold prose-h1:text-xl prose-h2:text-lg prose-h3:text-base
+                prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5
+                prose-blockquote:border-l-4 prose-blockquote:border-base-300 prose-blockquote:pl-3 prose-blockquote:text-base-content/70
+                prose-code:bg-base-200 prose-code:px-1 prose-code:rounded prose-code:text-xs prose-code:font-mono
+                prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+                prose-hr:border-base-300">
+      {{safe $Rendered}}
+    </div>
+  </div>
+</div>
+{{end}}
