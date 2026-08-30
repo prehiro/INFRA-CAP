@@ -35,6 +35,7 @@
 
     Alpine.data('datePicker', (name, initial) => ({
       open: false,
+      placement: 'top',               // default = top per Hiro's preference
       name,
       selected: initial || '',
       display: initial || '',
@@ -45,7 +46,52 @@
         const names = ['January','February','March','April','May','June','July','August','September','October','November','December']
         return names[v.month] + ' ' + v.year
       },
-      init() { this.view = this.monthOf(this.iso ? new Date(this.iso) : new Date()) },
+      init() {
+        // Always seed view with current month (so cells/monthLabel return data
+        // even before the user interacts — e.g. when the filter bar re-renders
+        // via HTMX swap with a value).
+        if (!this.view) this.view = this.monthOf(new Date())
+        if (this.iso) this.view = this.monthOf(new Date(this.iso))
+      },
+      // smart position: default = 'top'. Only flip to 'bottom' if there's clearly
+      // not enough room above (field is jammed against the very top of the viewport).
+      computePlacement() {
+        const wrap = this.$el;
+        if (!wrap) { this.placement = 'top'; return; }
+        const rect = wrap.getBoundingClientRect();
+        const POPUP_H = 300;
+        const spaceAbove = rect.top;
+        const spaceBelow = window.innerHeight - rect.bottom;
+        if (spaceAbove < POPUP_H && spaceBelow > spaceAbove + 80) {
+          this.placement = 'bottom';
+        } else {
+          this.placement = 'top';
+        }
+      },
+      toggle() {
+        if (this.open) { this.open = false; return; }
+        this.computePlacement();
+        this.open = true;
+      },
+      onType(val) {
+        this.display = val;
+        const m = String(val).match(/^(\d{1,2})-(\d{1,2})-(\d{2,4})$/);
+        if (!m) return;
+        let d = +m[1], mo = +m[2] - 1, y = +m[3];
+        if (y < 100) y += 2000;
+        const date = new Date(y, mo, d);
+        if (date.getDate() !== d || date.getMonth() !== mo || date.getFullYear() !== y) return;
+        const p = n => String(n).padStart(2, '0');
+        const iso = y + '-' + p(mo + 1) + '-' + p(d);
+        this.selected = iso;
+        this.iso = iso;
+        this.view = this.monthOf(date);
+      },
+      toDisplay(iso) {
+        if (!iso) return '';
+        const [y, m, d] = iso.split('-');
+        return d + '-' + m + '-' + y.slice(2);
+      },
       monthOf(d) { return { year: d.getFullYear(), month: d.getMonth() } },
       toISO(d) {
         const p = n => String(n).padStart(2, '0')
@@ -85,18 +131,18 @@
         if (!cell.inMonth) return
         this.selected = cell.iso
         this.iso = cell.iso
-        // display as DD-MM-YY
-        const [y,m,d] = cell.iso.split('-')
-        this.display = d+'-'+m+'-'+y.slice(2)
+        this.display = this.toDisplay(cell.iso)
         this.open = false
         const f = this.$el.closest('form'); if (f) f.dispatchEvent(new CustomEvent('dp-changed', { bubbles: true }));
       },
-      clear() { this.selected=''; this.display=''; this.iso=''; this.open=false; const f = this.$el.closest('form'); if (f) f.dispatchEvent(new CustomEvent('dp-changed', { bubbles: true })); },
+      clear() {
+        this.selected=''; this.display=''; this.iso=''; this.open=false;
+        const f = this.$el.closest('form'); if (f) f.dispatchEvent(new CustomEvent('dp-changed', { bubbles: true }));
+      },
       today() {
         const t = this.toISO(new Date())
         this.selected = t; this.iso = t
-        const [y,m,d] = t.split('-')
-        this.display = d+'-'+m+'-'+y.slice(2)
+        this.display = this.toDisplay(t)
         this.view = this.monthOf(new Date())
         this.open = false
         const f = this.$el.closest('form'); if (f) f.dispatchEvent(new CustomEvent('dp-changed', { bubbles: true }));
@@ -104,14 +150,71 @@
     }))
 
       // dpField: datepicker for forms (modal + fallback page). Third arg = disabled guard.
+      // Hybrid input: user can either type DD-MM-YY manually or click the calendar icon
+      // to open the popover. Default placement is 'top' (popover above the field) — the
+      // license modal is already vertically centered, and 'top' is what Hiro wants.
+      // The computePlacement() check flips to 'bottom' only if the field is so close
+      // to the top of the viewport that there isn't room above.
       Alpine.data('dpField', (name, initial, disabled = false) => ({
         open: false,
+        placement: 'top',              // default = top (above field) per Hiro's preference
         name,
         selected: initial || '',
         display: initial || '',
         iso: initial ? (() => { const [d,m,y] = initial.split('-'); return '20'+y+'-'+m+'-'+d })() : '',
         view: null,
-        toggle() { if (!disabled) this.open = !this.open },
+        computePlacement() {
+          if (disabled) return;
+          const wrap = this.$el;
+          if (!wrap) { this.placement = 'top'; return; }
+          const rect = wrap.getBoundingClientRect();
+          const POPUP_H = 300;
+          const spaceAbove = rect.top;
+          const spaceBelow = window.innerHeight - rect.bottom;
+          if (spaceAbove < POPUP_H && spaceBelow > spaceAbove + 80) {
+            this.placement = 'bottom';
+          } else {
+            this.placement = 'top';
+          }
+          // Debug log so Hiro can verify in DevTools console which placement was chosen.
+          console.log('[dpField', name, '] placement=', this.placement,
+                      'rect.top=', rect.top, 'rect.bottom=', rect.bottom,
+                      'spaceAbove=', spaceAbove, 'spaceBelow=', spaceBelow);
+        },
+        toggle() {
+          if (disabled) return;
+          if (this.open) { this.open = false; return; }
+          this.computePlacement();
+          this.open = true;
+          this.$nextTick(() => {
+            const i = this.$el.querySelector('input.dp-input');
+            if (i) i.focus();
+          });
+        },
+        // parse user-typed text (DD-MM-YY or DD-MM-YYYY). Accepts partial input —
+        // returns without updating iso if the format is wrong, so the user can
+        // keep typing. Two-digit year is treated as 20YY.
+        onType(val) {
+          this.display = val;
+          const m = String(val).match(/^(\d{1,2})-(\d{1,2})-(\d{2,4})$/);
+          if (!m) return;
+          let d = +m[1], mo = +m[2] - 1, y = +m[3];
+          if (y < 100) y += 2000;
+          const date = new Date(y, mo, d);
+          // reject overflow dates (e.g. 31-02-26 → JS shifts to March)
+          if (date.getDate() !== d || date.getMonth() !== mo || date.getFullYear() !== y) return;
+          const p = n => String(n).padStart(2, '0');
+          const iso = y + '-' + p(mo + 1) + '-' + p(d);
+          this.selected = iso;
+          this.iso = iso;
+          this.view = { y, m: mo };
+        },
+        // format an iso string back to the visible DD-MM-YY form
+        toDisplay(iso) {
+          if (!iso) return '';
+          const [y, m, d] = iso.split('-');
+          return d + '-' + m + '-' + y.slice(2);
+        },
         get monthLabel() {
           const v = this.view
           const names = ['January','February','March','April','May','June','July','August','September','October','November','December']
@@ -133,6 +236,13 @@
           return out
         },
         init() {
+          // Always start with a valid view (current month) so the calendar
+          // renders even when no value is set yet. Without this, cells/monthLabel
+          // return empty for a brand-new field.
+          if (!this.view) {
+            const n = new Date()
+            this.view = { y: n.getFullYear(), m: n.getMonth() }
+          }
           if (this.iso) {
             const [y, m] = this.iso.split('-').map(Number)
             this.view = { y, m: m - 1 }
@@ -151,12 +261,16 @@
         pick(cell) {
           if (!cell.inMonth) return
           this.selected = cell.iso
-          const [y, m, d] = cell.iso.split('-')
-          this.display = d + '-' + m + '-' + y.slice(2)
           this.iso = cell.iso
+          this.display = this.toDisplay(cell.iso)
           this.open = false
         },
-        clear() { this.selected=''; this.display=''; this.iso=''; this.open=false; const f = this.$el.closest('form'); if (f) f.dispatchEvent(new CustomEvent('dp-changed', { bubbles: true })); },
+        clear() {
+          this.selected = ''
+          this.display = ''
+          this.iso = ''
+          this.open = false
+        },
         today() {
           const n = new Date()
           this.pick({ inMonth: true, iso: n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0') })
@@ -240,6 +354,7 @@
   </style>
 </head>
 <body class="bg-base-200 text-base-content" x-data="sidebar()" x-init="init()"
+      hx-indicator="#global-loader"
       x-bind:class="{ 'sidebar-collapsed': collapsed, 'mobile-open': mobileOpen }">
 
   <div class="flex w-full">
@@ -307,6 +422,14 @@
         </div>
 
         <div class="flex items-center gap-2">
+          <!-- global HTMX loader (Phase 3.A) — sits before the bell, no layout shift.
+               hx-indicator="#global-loader" on <body> makes HTMX add .htmx-request
+               to this element while any request is in flight. -->
+          <div id="global-loader" class="htmx-indicator shrink-0" aria-hidden="true" role="status" title="Loading...">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+            </svg>
+          </div>
           <button class="btn btn-square btn-ghost btn-sm relative" aria-label="Notifications">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M22 8c0-2.3-.8-4.3-2-6"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/><path d="M2 8c0-2.3.8-4.3 2-6"/></svg>
             <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-error"></span>
@@ -362,6 +485,28 @@
     const m = document.cookie.match(/(?:^|; )infracap_csrf=([^;]*)/);
     if (m) e.detail.headers['X-CSRF-Token'] = decodeURIComponent(m[1]);
   });
+  // close all open datepicker popovers when clicking outside any [x-data] wrapper.
+  // Backup for Alpine's @click.outside — we walk the event path manually so that
+  // elements added later (or wrappers without @click.outside for any reason) still
+  // behave correctly. Each wrapper's Alpine data has `.open` and `.close()` is the
+  // setter via setting `open = false` directly.
+  document.addEventListener('mousedown', (e) => {
+    if (!window.Alpine) return;
+    // gather all currently-open datepicker wrappers (dpField for modals,
+    // datePicker for the license filter bar)
+    const wrappers = document.querySelectorAll('[x-data^="dpField"], [x-data^="datePicker("]');
+    wrappers.forEach((el) => {
+      // skip the wrapper that contains the click target
+      if (el.contains(e.target)) return;
+      // try to read Alpine state and close
+      try {
+        const data = window.Alpine.$data(el);
+        if (data && data.open) {
+          data.open = false;
+        }
+      } catch (err) { /* Alpine not initialised yet on this element — ignore */ }
+    });
+  }, true);
   // close edit/new modal after a successful save + show success toast
   document.addEventListener('htmx:afterRequest', (e) => {
     if (!e.detail.successful) return;
@@ -383,6 +528,124 @@
     // toggle-active action also sets HX-Retarget=#user-results but no
     // modal is involved, so we don't want a celebratory toast for that.
     if (modal) window.__showSavedToast();
+  });
+
+  // ===== Phase 3.B: global error toast =====
+  // Track the most recent HTMX request so the toast's Retry button can replay
+  // it (path + verb + target + swap style). We skip the request that fetches
+  // the modal itself, because retrying that would just re-open the same modal.
+  document.addEventListener('htmx:beforeRequest', (e) => {
+    const d = e.detail;
+    // ignore if a retry is already in flight (so we don't clobber the new request)
+    if (d && d.elt && d.elt.getAttribute && d.elt.getAttribute('data-retrying') === '1') {
+      d.elt.removeAttribute('data-retrying');
+      return;
+    }
+    window.__lastHtmxRequest = {
+      path: d.path,
+      verb: d.verb,
+      target: d.target ? d.target.id || '' : '',
+      swap: d.swapInfo ? d.swapInfo.swapStyle : 'innerHTML',
+    };
+  });
+
+  // Listen for failure events. HTMX fires:
+  //   htmx:responseError — server returned 4xx/5xx (non-2xx, non-304)
+  //   htmx:sendError     — XHR send failed (network down, DNS, CORS)
+  //   htmx:timeout       — XHR hit the configured timeout
+  // The save-success listener above ALREADY closes modals on success; this is
+  // the inverse path for failures — show a red toast, no modal close.
+  function __showErrorToast(message, retryable) {
+    // remove any prior error toast (or success toast) so they don't stack
+    const prior = document.getElementById('error-toast');
+    if (prior) prior.remove();
+    const savePrior = document.getElementById('save-toast');
+    if (savePrior) savePrior.remove();
+
+    const t = document.createElement('div');
+    t.id = 'error-toast';
+    t.style.cssText = 'position:fixed;top:1.25rem;left:50%;transform:translateX(-50%) translateY(-150%);z-index:999;transition:transform .45s cubic-bezier(0.34,1.56,0.64,1),opacity .3s;opacity:0;';
+    const retryBtn = retryable
+      ? '<button id="error-toast-retry" type="button" style="display:inline-flex;align-items:center;gap:.3rem;margin-left:.25rem;padding:.25rem .55rem;border-radius:.5rem;background:rgba(255,255,255,.18);color:#fff;font-size:.75rem;font-weight:600;border:1px solid rgba(255,255,255,.25);cursor:pointer;transition:background .15s ease"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>Retry</button>'
+      : '';
+    t.innerHTML = '<div style="display:flex;align-items:center;gap:.6rem;padding:.65rem 1.1rem;border-radius:.75rem;background:#b91c1c;color:#fff;font-size:.8125rem;font-weight:600;box-shadow:0 8px 24px -6px rgba(185,28,28,.5)">'
+      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>'
+      + '<span style="flex:1">' + message + '</span>'
+      + retryBtn
+      + '<button type="button" id="error-toast-dismiss" aria-label="Dismiss" style="display:inline-flex;align-items:center;justify-content:center;width:1.25rem;height:1.25rem;margin-left:.25rem;border-radius:.375rem;background:transparent;color:rgba(255,255,255,.85);border:none;cursor:pointer"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>'
+      + '</div>';
+    document.body.appendChild(t);
+
+    // wire up retry & dismiss
+    const dismiss = () => {
+      t.style.transform = 'translateX(-50%) translateY(-150%)';
+      t.style.opacity = '0';
+      setTimeout(() => t.remove(), 500);
+    };
+    const dismissBtn = t.querySelector('#error-toast-dismiss');
+    if (dismissBtn) dismissBtn.addEventListener('click', dismiss);
+    const retryBtnEl = t.querySelector('#error-toast-retry');
+    if (retryBtnEl) {
+      retryBtnEl.addEventListener('click', () => {
+        const r = window.__lastHtmxRequest;
+        if (!r || !r.path) { dismiss(); return; }
+        // mark the source element so the beforeRequest listener knows this
+        // is a retry and doesn't overwrite __lastHtmxRequest mid-flight
+        const src = document.querySelector('[hx-target="#' + r.target + '"]')
+                 || document.querySelector('[hx-get="' + r.path + '"]')
+                 || document.querySelector('[hx-post="' + r.path + '"]');
+        if (src) src.setAttribute('data-retrying', '1');
+        dismiss();
+        // re-issue the same request. CSRF header is added automatically
+        // by the configRequest listener above.
+        try {
+          htmx.ajax(r.verb, r.path, {
+            target: r.target ? '#' + r.target : undefined,
+            swap: r.swap,
+          });
+        } catch (err) {
+          // fallback: full reload of the page
+          window.location.reload();
+        }
+      });
+      retryBtnEl.addEventListener('mouseenter', (ev) => { ev.currentTarget.style.background = 'rgba(255,255,255,.28)'; });
+      retryBtnEl.addEventListener('mouseleave', (ev) => { ev.currentTarget.style.background = 'rgba(255,255,255,.18)'; });
+    }
+
+    // slide in
+    requestAnimationFrame(() => {
+      t.style.transform = 'translateX(-50%) translateY(0)';
+      t.style.opacity = '1';
+    });
+    // auto-dismiss after 6s (longer than save toast — user may want to retry)
+    setTimeout(dismiss, 6000);
+  }
+
+  // 5xx / 4xx response — show toast with retry, BUT skip when the failure
+  // was already handled inside a modal (the modal re-renders with alert-error
+  // and the close-loop listener above keeps it open). Detection: if the
+  // request's target is the modal-container, the modal already shows the error.
+  document.addEventListener('htmx:responseError', (e) => {
+    const d = e.detail;
+    const tgt = d && d.target ? d.target.id : '';
+    if (tgt === 'modal-container') return;  // modal handled it
+    const status = d && d.xhr ? d.xhr.status : 0;
+    let msg = 'Request failed';
+    if (status === 0) msg = 'No response from server';
+    else if (status >= 500) msg = 'Server error (' + status + ')';
+    else if (status === 404) msg = 'Not found';
+    else if (status === 403) msg = 'Forbidden';
+    else if (status === 401) msg = 'Session expired';
+    else msg = 'Request failed (' + status + ')';
+    __showErrorToast(msg, true);
+  });
+  // network failure (XHR send error, e.g. server down / DNS)
+  document.addEventListener('htmx:sendError', () => {
+    __showErrorToast('Network error — could not reach server', true);
+  });
+  // XHR timeout
+  document.addEventListener('htmx:timeout', () => {
+    __showErrorToast('Request timed out', true);
   });
 
   window.__showSavedToast = function() {

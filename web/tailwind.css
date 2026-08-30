@@ -53,6 +53,61 @@
   --layout-topbar-background: #ffffff;
 }
 
+/* ===== empty state (Phase 3.C) =====
+   Used in licenses / users / audit when a list query returns zero rows.
+   Animation piggybacks on page-child-in (defined elsewhere) — no new keyframe. */
+@layer components {
+  .empty-state {
+    animation: page-child-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  .empty-state-icon svg {
+    width: 3.5rem;
+    height: 3.5rem;
+    display: block;
+    stroke-width: 1.5;
+  }
+}
+
+/* ===== htmx global loader (Phase 3.A) ===== */
+/* Override the default HTMX inline style for .htmx-indicator (which uses
+   opacity:0; visibility:hidden) with our own visible/hidden rules. Spinner
+   has its own rotate keyframe (linear timing — required for smooth
+   continuous rotation) plus a scale-spring on enter so the appearance
+   matches the rest of the app's cubic-bezier(0.34,1.56,0.64,1) feel. */
+.htmx-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;            /* h-6 */
+  height: 1.5rem;
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.7);
+  transition: opacity 180ms ease, transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1), visibility 0s linear 220ms;
+  pointer-events: none;
+}
+.htmx-request .htmx-indicator,
+.htmx-indicator.htmx-request {
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1);
+  transition: opacity 180ms ease, transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1), visibility 0s linear 0s;
+}
+.htmx-indicator svg {
+  width: 100%;
+  height: 100%;
+  color: var(--color-primary);
+  animation: loader-spin 0.85s linear infinite;
+}
+@keyframes loader-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .htmx-indicator svg { animation-duration: 1.6s; }
+  .htmx-indicator { transition: opacity 180ms ease; }
+}
+
 /* ===== status badges (License Manager) ===== */
 @layer components {
     @keyframes results-in {
