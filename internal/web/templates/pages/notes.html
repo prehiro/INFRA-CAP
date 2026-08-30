@@ -555,7 +555,7 @@
             (dict "key" "yellow" "hex" "#ca8a04" "title" "Yellow")
             (dict "key" "green" "hex" "#16a34a" "title" "Green")
             (dict "key" "blue" "hex" "#2563eb" "title" "Blue")
-            (dict "key" "purple" "hex" "#9333ea" "title" "Purple")
+            (dict "key" "black" "hex" "#000000" "title" "Black")
             }}
             <input type="hidden" name="accent_color" :value="accent">
             <div class="flex items-center gap-1.5 ml-1" title="Card accent color">
@@ -568,7 +568,7 @@
                   data-hex="{{$s.hex}}" {{ if $isSelected }}data-selected="true" {{ end }}
                   class="accent-swatch relative w-5 h-5 rounded-full transition-all duration-150 hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 {{ if eq $s.hex "" }}border-2 border-dashed border-base-content/30 hover:border-base-content/60{{ end }}"
                   :style="(accent === '{{$s.hex}}'
-                    ? 'transform: scale(1.25); box-shadow: 0 0 0 1.5px #2563eb, 0 0 0 3px #000000;'
+                    ? 'transform: scale(1.25); box-shadow: 0 0 0 1.5px #2563eb;'
                     : 'transform: scale(1); box-shadow: none;') + ('{{$s.hex}}' === '' ? '; background-color: transparent' : '; background-color: {{$s.hex}}')">
                   {{ if eq $s.key "" }}
                   <!-- Default = no color: dashed box with X icon when not selected -->
@@ -581,9 +581,8 @@
                   {{ else }}
                   <!-- Checkmark on selected (white over the color) -->
                   <svg x-show="accent === '{{$s.hex}}'" x-cloak xmlns="http://www.w3.org/2000/svg"
-                    class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 text-white"
-                    style="filter: drop-shadow(0 0 0.5px rgba(0,0,0,0.6));"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 text-white"
+                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
                     stroke-linejoin="round">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
