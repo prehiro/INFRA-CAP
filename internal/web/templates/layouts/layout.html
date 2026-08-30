@@ -9,6 +9,10 @@
   <script src="/static/js/htmx.min.js"></script>
   <script src="/static/js/notes-md.js"></script>
 
+  <script>
+    // Set sidebar-collapsed BEFORE Alpine initializes — prevents spring-bounce flicker on hard reload.
+    ;(() => { if (localStorage.getItem('sidebar-collapsed') === 'true') document.documentElement.classList.add('preload-collapsed'); })();
+  </script>
   <script defer src="/static/js/alpine.min.js"></script>
   <script>
     document.addEventListener('alpine:init', () => {
@@ -290,6 +294,12 @@
     /* Kill DaisyUI scroll-driven animation that toggles scrollbar-gutter */
     @keyframes set-page-has-scroll { from, to { --page-has-scroll: ; } }
 
+    /* Preload: apply collapsed sidebar BEFORE Alpine initializes.
+       Prevents spring-bounce animation on hard reload (sidebar 256→68px flicker). */
+    html.preload-collapsed .layout-sidebar { width: 68px !important; min-width: 68px !important; }
+    html.preload-collapsed .layout-sidebar .sidebar-label { opacity: 0; }
+    html.preload-collapsed .layout-sidebar { transition: none !important; }
+
     /* ===== Nexus-style layout ===== */
     .layout-sidebar {
       width: var(--layout-sidebar-width);
@@ -315,12 +325,13 @@
     .sidebar-label { transition: opacity .2s ease; }
     .layout-content-col {
       height: 100vh;
-      overflow: hidden;
       display: flex;
       flex-direction: column;
       flex-grow: 1;
       min-width: 0;
+      overflow: hidden;
     }
+
     .layout-topbar {
       background: var(--layout-topbar-background);
       min-height: calc(var(--spacing) * 16);
@@ -338,6 +349,8 @@
     .layout-content {
       padding: calc(var(--spacing) * 4);
       flex-grow: 1;
+      overflow-y: auto;
+      scrollbar-gutter: stable;
     }
     @media (min-width: 48rem) {
       .layout-content { padding: calc(var(--spacing) * 6); }
