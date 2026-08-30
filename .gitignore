@@ -6,3 +6,5 @@ infracap
 tools/go/
 tools/tailwindcss*
 tmp/
+# emergency rollback tool (created before fase-3 work, deleted after fase-3 is approved)
+rollback-fase-3.sh
