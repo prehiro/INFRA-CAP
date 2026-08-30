@@ -400,16 +400,15 @@ func UserFromContext(ctx context.Context) UserInfo {
 	return u
 }
 
-// notesPreview returns a short plain-text excerpt from markdown source for
-// the notes card grid. Strips ALL markdown formatting (headers, bold,
-// italic, code, links, highlights, lists, blockquotes, HTML tags) so
-// the card preview shows clean plain text. Collapses whitespace and
-// truncates to ~max bytes at a word boundary. Used as a template helper
-// so the web package does not need to import the notes module (which
-// would create an import cycle since notes imports web for RenderNamed).
-func notesPreview(content string, max int) string {
-	if max <= 0 {
-		max = 200
+// notesPreview returns a plain-text excerpt from markdown source for the
+// notes card grid. Strips ALL markdown formatting so the card preview
+// shows clean text. Preserves line breaks and limits to maxLines lines.
+// Used as a template helper so the web package does not need to import
+// the notes module (which would create an import cycle since notes
+// imports web for RenderNamed).
+func notesPreview(content string, maxLines int) string {
+	if maxLines <= 0 {
+		maxLines = 5
 	}
 	// Strip raw HTML tags (e.g. <span style="color:#xxx">text</span>).
 	var buf strings.Builder
@@ -427,6 +426,7 @@ func notesPreview(content string, max int) string {
 	content = buf.String()
 
 	// Strip ALL inline markdown markers in one pass per line.
+	var lines []string
 	buf.Reset()
 	for _, line := range strings.Split(content, "\n") {
 		t := strings.TrimSpace(line)
@@ -472,20 +472,13 @@ func notesPreview(content string, max int) string {
 		if t == "" {
 			continue
 		}
-		if buf.Len() > 0 {
-			buf.WriteByte(' ')
-		}
-		buf.WriteString(t)
+		lines = append(lines, t)
 	}
-	s := buf.String()
-	if len(s) <= max {
-		return s
+	// Limit to maxLines lines.
+	if len(lines) > maxLines {
+		lines = lines[:maxLines]
 	}
-	cut := s[:max]
-	if i := strings.LastIndex(cut, " "); i > max/2 {
-		cut = cut[:i]
-	}
-	return cut + "…"
+	return strings.Join(lines, "\n")
 }
 
 // Regexps for stripping markdown in notesPreview (card grid plain text).
