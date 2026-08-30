@@ -9,6 +9,7 @@ import (
 	"html/template"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -400,23 +401,18 @@ func UserFromContext(ctx context.Context) UserInfo {
 }
 
 // notesPreview returns a short plain-text excerpt from markdown source for
-// the notes card grid. Strips heading markers, list bullets, blockquote
-// chars, and inline code/backtick markers; ALSO strips any raw HTML
-// tags (e.g. <span style="color:#xxx"> from the color toolbar) so the
-// card preview never displays literal markup. Collapses whitespace
-// and truncates to ~max bytes at a word boundary. Used as a template
-// helper so the web package does not need to import the notes module
-// (which would create an import cycle since notes imports web for
-// RenderNamed).
+// the notes card grid. Strips ALL markdown formatting (headers, bold,
+// italic, code, links, highlights, lists, blockquotes, HTML tags) so
+// the card preview shows clean plain text. Collapses whitespace and
+// truncates to ~max bytes at a word boundary. Used as a template helper
+// so the web package does not need to import the notes module (which
+// would create an import cycle since notes imports web for RenderNamed).
 func notesPreview(content string, max int) string {
 	if max <= 0 {
 		max = 200
 	}
-	// First pass: strip raw HTML tags. The color toolbar in the edit modal
-	// can produce inline <span style="color:#xxx">text</span> in the
-	// markdown source. The card preview shows plain text only, so we
-	// extract the inner text and drop the tag itself.
-	var stripped strings.Builder
+	// Strip raw HTML tags (e.g. <span style="color:#xxx">text</span>).
+	var buf strings.Builder
 	inTag := false
 	for _, r := range content {
 		switch {
@@ -425,32 +421,63 @@ func notesPreview(content string, max int) string {
 		case r == '>':
 			inTag = false
 		case !inTag:
-			stripped.WriteRune(r)
+			buf.WriteRune(r)
 		}
 	}
-	content = stripped.String()
+	content = buf.String()
 
-	// Second pass: strip leading markdown markers per line.
-	var out strings.Builder
+	// Strip ALL inline markdown markers in one pass per line.
+	buf.Reset()
 	for _, line := range strings.Split(content, "\n") {
 		t := strings.TrimSpace(line)
-		for strings.HasPrefix(t, "#") || strings.HasPrefix(t, ">") || strings.HasPrefix(t, "-") ||
-			strings.HasPrefix(t, "*") || strings.HasPrefix(t, "_") || strings.HasPrefix(t, "`") {
-			t = t[1:]
+		// heading markers: # / ## / ###
+		for strings.HasPrefix(t, "# ") {
+			t = t[2:]
 		}
-		// strip trailing closing markers like '**' or '__' that the loop
-		// above would only have stripped from the leading side
-		t = strings.TrimRight(t, "*_`")
+		// blockquote prefix: >
+		for strings.HasPrefix(t, "> ") {
+			t = t[2:]
+		}
+		// bullet prefix: - or *
+		if strings.HasPrefix(t, "- ") || strings.HasPrefix(t, "* ") {
+			t = t[2:]
+		}
+		// ordered list prefix: 1. etc
+		if len(t) > 2 && t[0] >= '0' && t[0] <= '9' {
+			if idx := strings.Index(t, ". "); idx > 0 && idx < 4 {
+				t = t[idx+2:]
+			}
+		}
+		// horizontal rule: --- or *** or ___
+		if rePreviewHr.MatchString(t) {
+			continue
+		}
+		// Strip all inline formatting markers — order matters:
+		// highlight first (== has no overlap with others), then code,
+		// bold, italic, link.
+		t = rePreviewHighlight.ReplaceAllString(t, "$1")
+		t = rePreviewCode.ReplaceAllString(t, "$1")
+		t = rePreviewBold.ReplaceAllString(t, "$1$2")
+		t = rePreviewItalicStar.ReplaceAllString(t, "$1$2$3")
+		t = rePreviewItalicUnderscore.ReplaceAllString(t, "$1$2$3")
+		t = rePreviewLink.ReplaceAllString(t, "$1")
+		// Clean up any residual == or ** markers from edge cases.
+		t = strings.ReplaceAll(t, "==", "")
+		t = strings.ReplaceAll(t, "``", "")
+		// Strip standalone heading markers left over from == cleanup
+		// (e.g. "text# heading" where == was around "# heading")
+		t = rePreviewOrphanHeading.ReplaceAllString(t, " ")
+		t = rePreviewMultiSpace.ReplaceAllString(t, " ")
 		t = strings.TrimSpace(t)
 		if t == "" {
 			continue
 		}
-		if out.Len() > 0 {
-			out.WriteByte(' ')
+		if buf.Len() > 0 {
+			buf.WriteByte(' ')
 		}
-		out.WriteString(t)
+		buf.WriteString(t)
 	}
-	s := out.String()
+	s := buf.String()
 	if len(s) <= max {
 		return s
 	}
@@ -460,3 +487,17 @@ func notesPreview(content string, max int) string {
 	}
 	return cut + "…"
 }
+
+// Regexps for stripping markdown in notesPreview (card grid plain text).
+var (
+	rePreviewHr               = regexp.MustCompile(`^[-*_]{3,}\s*$`)
+	rePreviewHighlight        = regexp.MustCompile(`==([^=\n]+?)==`)
+	rePreviewCode             = regexp.MustCompile("`([^`\n]+?)`")
+	rePreviewBold             = regexp.MustCompile(`\*\*(.+?)\*\*|__(.+?)__`)
+	rePreviewItalicStar       = regexp.MustCompile(`(^|[^*])\*([^*\n]+?)\*([^*]|$)`)
+	rePreviewItalicUnderscore = regexp.MustCompile(`(^|[^_])_([^_\n]+?)_([^_]|$)`)
+	rePreviewLink             = regexp.MustCompile(`\[([^\]]+)\]\([^)]+\)`)
+	// Strip heading markers left over after == cleanup (e.g. "text# heading")
+	rePreviewOrphanHeading = regexp.MustCompile(`#+\s*`)
+	rePreviewMultiSpace    = regexp.MustCompile(`\s{2,}`)
+)

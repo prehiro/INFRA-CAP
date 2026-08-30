@@ -273,16 +273,14 @@ func formatInline(s string) string {
 		if len(sub) < 7 {
 			return m
 		}
-		// sub[2] = * group, sub[5] = _ group
-		var text string
+		// sub[1]=prefix*, sub[2]=*text*, sub[3]=suffix*
+		// sub[4]=prefix_, sub[5]=_text_, sub[6]=suffix_
 		if sub[2] != "" {
-			text = sub[1] + "*" + sub[2] + "*" + sub[3]
-			return "<em>" + sub[2] + "</em>"
+			return sub[1] + "<em>" + sub[2] + "</em>" + sub[3]
 		}
 		if sub[5] != "" {
-			return "<em>" + sub[5] + "</em>"
+			return sub[4] + "<em>" + sub[5] + "</em>" + sub[6]
 		}
-		_ = text
 		return m
 	})
 

@@ -62,7 +62,10 @@
       return '<strong>' + (b1 || b2) + '</strong>';
     });
     // italic (* or _) — careful, don't match bold markers
-    s = s.replace(/(^|[^*\w])\*([^*\n]+?)\*([^*\w]|$)/g, function (m, p, t, s2) {
+    s = s.replace(/(^|[^*])\*([^*\n]+?)\*([^*]|$)/g, function (m, p, t, s2) {
+      return p + '<em>' + t + '</em>' + s2;
+    });
+    s = s.replace(/(^|[^_])_([^_\n]+?)_([^_]|$)/g, function (m, p, t, s2) {
       return p + '<em>' + t + '</em>' + s2;
     });
     // restore whitelisted color spans
