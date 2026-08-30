@@ -157,10 +157,17 @@
        getWordCount() { const t = (this.getContent() || '').trim(); return t ? t.split(/\\s+/).length : 0; },
        getCharCount() { return (this.getContent() || '').length; },
        close() {
-         if (this.dirty && !confirm('You have unsaved changes. Discard them?')) return;
-         this.open = false;
-         setTimeout(() => this.$refs.root.remove(), 220);
-       },
+        // Skip the unsaved-changes prompt when the user explicitly hit
+        // Save (we already committed) or when there are no changes.
+        if (this.dirty && !this.saving && !confirm('You have unsaved changes. Discard them?')) return;
+        this.open = false;
+        setTimeout(() => this.$refs.root.remove(), 220);
+      },
+      closeQuiet() {
+        // For programmatic close after a successful save — no confirm.
+        this.open = false;
+        setTimeout(() => this.$refs.root.remove(), 220);
+      },
        // ----- markdown formatting helpers -----
        // All helpers operate on the textarea selection via $refs.content.
        // Each method wraps the current selection (or inserts placeholder)
@@ -452,15 +459,21 @@
               {{ $isSelected := "" }}{{ if eq $s.hex $N.AccentColor }}{{ $isSelected = "1" }}{{ end }}
               <button type="button"
                       @click="accent = '{{$s.hex}}'; dirty = true"
-                      title="{{$s.title}}"
+                      title="{{$s.title}}{{ if eq $s.hex $N.AccentColor }} (current){{ end }}"
                       data-key="{{$s.key}}"
                       data-hex="{{$s.hex}}"
                       {{ if $isSelected }}data-selected="true"{{ end }}
-                      class="w-4 h-4 rounded-full transition-all hover:scale-125 focus:outline-none focus:ring-2 focus:ring-primary/40 {{ if eq $s.hex "" }}border-2 border-dashed border-base-content/30 hover:border-base-content/60{{ end }}"
+                      class="accent-swatch relative w-5 h-5 rounded-full transition-all duration-150 hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 {{ if eq $s.hex "" }}border-2 border-dashed border-base-content/30 hover:border-base-content/60{{ end }}"
                       {{ if ne $s.hex "" }}style="background-color: {{$s.hex}}"{{ end }}
-                      :class="accent === '{{$s.hex}}' ? 'ring-2 ring-primary ring-offset-2 ring-offset-base-200' : ''">
+                      :style="accent === '{{$s.hex}}'
+                        ? 'transform: scale(1.3); box-shadow: 0 0 0 3px #2563eb, 0 0 0 5px #ffffff, 0 2px 6px rgba(0,0,0,0.15);'
+                        : 'transform: scale(1); box-shadow: none; z-index: 0;'">
                 {{ if eq $s.key "" }}
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-2.5 h-2.5 mx-auto text-base-content/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                <!-- Default = no color: dashed box with X icon when not selected -->
+                <svg x-show="accent !== ''" xmlns="http://www.w3.org/2000/svg" class="w-2.5 h-2.5 mx-auto text-base-content/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                {{ else }}
+                <!-- Checkmark on selected (white over the color) -->
+                <svg x-show="accent === '{{$s.hex}}'" x-cloak xmlns="http://www.w3.org/2000/svg" class="absolute inset-0 m-auto w-3 h-3 text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                 {{ end }}
               </button>
               {{ end }}
