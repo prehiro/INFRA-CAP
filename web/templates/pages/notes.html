@@ -1,7 +1,45 @@
 {{define "notes_content"}}
 {{$Q := .Q}}
 {{$C := .CurrentUser}}
-<div class="flex flex-col h-[calc(100vh-7rem)] overflow-hidden">
+<style>
+@keyframes notesPageIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.notes-page-enter {
+  animation: notesPageIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes noteCardIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.note-card-enter {
+  animation: noteCardIn 0.45s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+.note-card {
+  transition: transform 220ms cubic-bezier(0.34,1,0.64,1), box-shadow 220ms ease, border-color 220ms ease;
+}
+.note-card:hover {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 12px 28px rgba(37,99,235,0.10), 0 2px 8px rgba(0,0,0,0.06);
+}
+.note-card-enter:nth-child(1)  { animation-delay: 0.04s }
+.note-card-enter:nth-child(2)  { animation-delay: 0.09s }
+.note-card-enter:nth-child(3)  { animation-delay: 0.14s }
+.note-card-enter:nth-child(4)  { animation-delay: 0.19s }
+.note-card-enter:nth-child(5)  { animation-delay: 0.24s }
+.note-card-enter:nth-child(6)  { animation-delay: 0.29s }
+.note-card-enter:nth-child(7)  { animation-delay: 0.34s }
+.note-card-enter:nth-child(8)  { animation-delay: 0.39s }
+.note-card-enter:nth-child(9)  { animation-delay: 0.44s }
+.note-card-enter:nth-child(10) { animation-delay: 0.49s }
+.note-card-enter:nth-child(11) { animation-delay: 0.54s }
+.note-card-enter:nth-child(12) { animation-delay: 0.59s }
+@media (prefers-reduced-motion: reduce) {
+  .notes-page-enter, .note-card-enter, .note-card { animation: none !important; transition: none !important; }
+}
+</style>
+<div class="flex flex-col h-[calc(100vh-7rem)] overflow-hidden notes-page-enter">
 
   <!-- header -->
   <div class="shrink-0 flex flex-wrap items-center justify-between gap-3 mb-3">
@@ -63,7 +101,7 @@
       {{range .Notes}}
       {{$N := .}}
       <div
-        class="note-card group relative rounded-box bg-base-100 border border-base-300 shadow-sm hover:shadow-md hover:border-primary/40 transition-all duration-200 cursor-pointer overflow-hidden flex flex-col"
+        class="note-card note-card-enter group relative rounded-box bg-base-100 border border-base-300 shadow-sm hover:border-primary/40 cursor-pointer overflow-hidden flex flex-col"
         hx-get="/notes/{{$N.ID}}" hx-target="#modal-container" hx-swap="innerHTML">
         <!-- card header strip (color cue: private = warning, public = primary,
            custom accent = user-picked). When AccentColor is set we override
