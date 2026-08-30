@@ -283,8 +283,12 @@
   <style>
     [x-cloak] { display: none !important; }
 
-    html { overflow-x: hidden; scrollbar-gutter: stable; }
-    body { overflow-x: hidden; }
+    /* DaisyUI v5 sets overflow via CSS vars on :root which causes
+       scroll flicker — override with direct values + !important. */
+    html, :root { overflow-x: hidden !important; overflow-y: auto !important; scrollbar-gutter: stable !important; }
+    body { overflow-x: hidden !important; }
+    /* Kill DaisyUI scroll-driven animation that toggles scrollbar-gutter */
+    @keyframes set-page-has-scroll { from, to { --page-has-scroll: ; } }
 
     /* ===== Nexus-style layout ===== */
     .layout-sidebar {
