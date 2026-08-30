@@ -549,7 +549,7 @@
                Each swatch is a button (not a radio) that sets x-data.accent.
                The hidden input below submits the value on save. -->
             {{ $swatches := list
-            (dict "key" "" "hex" "" "title" "Default")
+            (dict "key" "purple" "hex" "#9333ea" "title" "Purple")
             (dict "key" "red" "hex" "#dc2626" "title" "Red")
             (dict "key" "orange" "hex" "#ea580c" "title" "Orange")
             (dict "key" "yellow" "hex" "#ca8a04" "title" "Yellow")
@@ -563,31 +563,26 @@
               <div class="flex items-center gap-1.5">
                 {{ range $s := $swatches }}
                 {{ $isSelected := "" }}{{ if eq $s.hex $N.AccentColor }}{{ $isSelected = "1" }}{{ end }}
+                <span class="relative inline-block w-5 h-5 rounded-full overflow-hidden" style="background-color: {{$s.hex}}">
                 <button type="button" @click="accent = '{{$s.hex}}'; dirty = true"
                   title="{{$s.title}}{{ if eq $s.hex $N.AccentColor }} (current){{ end }}" data-key="{{$s.key}}"
                   data-hex="{{$s.hex}}" {{ if $isSelected }}data-selected="true" {{ end }}
-                  class="accent-swatch relative w-5 h-5 rounded-full transition-all duration-150 hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 {{ if eq $s.hex "" }}border-2 border-dashed border-base-content/30 hover:border-base-content/60{{ end }}"
-                  :style="(accent === '{{$s.hex}}'
+                  class="accent-swatch relative w-5 h-5 rounded-full transition-all duration-150 hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 flex items-center justify-center"
+                  :style="accent === '{{$s.hex}}'
                     ? 'transform: scale(1.25); box-shadow: 0 0 0 1.5px #2563eb;'
-                    : 'transform: scale(1); box-shadow: none;') + ('{{$s.hex}}' === '' ? '; background-color: transparent' : '; background-color: {{$s.hex}}')">
-                  {{ if eq $s.key "" }}
-                  <!-- Default = no color: dashed box with X icon when not selected -->
-                  <svg x-show="accent !== ''" xmlns="http://www.w3.org/2000/svg"
-                    class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 text-base-content/60"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                    <path d="M18 6 6 18" />
-                    <path d="m6 6 12 12" />
+                    : 'transform: scale(1); box-shadow: none;'">
+                  <!-- Check icon (Heroicons 24x24 outline check). SVG is the only
+                       flex child so flex centering guarantees perfect alignment
+                       regardless of width/height math. -->
+                  <svg x-show="accent === '{{$s.hex}}'" x-cloak
+                    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="3.5"
+                    stroke-linecap="round" stroke-linejoin="round"
+                    class="w-3 h-3 text-white">
+                    <path d="M4.5 12.75l6 6 9-13.5" />
                   </svg>
-                  {{ else }}
-                  <!-- Checkmark on selected (white over the color) -->
-                  <svg x-show="accent === '{{$s.hex}}'" x-cloak xmlns="http://www.w3.org/2000/svg"
-                    class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 text-white"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  {{ end }}
                 </button>
+                </span>
                 {{ end }}
               </div>
             </div>
