@@ -401,22 +401,46 @@ func UserFromContext(ctx context.Context) UserInfo {
 
 // notesPreview returns a short plain-text excerpt from markdown source for
 // the notes card grid. Strips heading markers, list bullets, blockquote
-// chars, and inline code/backtick markers; collapses whitespace; truncates
-// to ~max bytes at a word boundary. Used as a template helper so the
-// web package does not need to import the notes module (which would
-// create an import cycle since notes imports web for RenderNamed).
+// chars, and inline code/backtick markers; ALSO strips any raw HTML
+// tags (e.g. <span style="color:#xxx"> from the color toolbar) so the
+// card preview never displays literal markup. Collapses whitespace
+// and truncates to ~max bytes at a word boundary. Used as a template
+// helper so the web package does not need to import the notes module
+// (which would create an import cycle since notes imports web for
+// RenderNamed).
 func notesPreview(content string, max int) string {
 	if max <= 0 {
 		max = 200
 	}
+	// First pass: strip raw HTML tags. The color toolbar in the edit modal
+	// can produce inline <span style="color:#xxx">text</span> in the
+	// markdown source. The card preview shows plain text only, so we
+	// extract the inner text and drop the tag itself.
+	var stripped strings.Builder
+	inTag := false
+	for _, r := range content {
+		switch {
+		case r == '<':
+			inTag = true
+		case r == '>':
+			inTag = false
+		case !inTag:
+			stripped.WriteRune(r)
+		}
+	}
+	content = stripped.String()
+
+	// Second pass: strip leading markdown markers per line.
 	var out strings.Builder
 	for _, line := range strings.Split(content, "\n") {
 		t := strings.TrimSpace(line)
-		// strip leading markdown markers
 		for strings.HasPrefix(t, "#") || strings.HasPrefix(t, ">") || strings.HasPrefix(t, "-") ||
 			strings.HasPrefix(t, "*") || strings.HasPrefix(t, "_") || strings.HasPrefix(t, "`") {
 			t = t[1:]
 		}
+		// strip trailing closing markers like '**' or '__' that the loop
+		// above would only have stripped from the leading side
+		t = strings.TrimRight(t, "*_`")
 		t = strings.TrimSpace(t)
 		if t == "" {
 			continue
