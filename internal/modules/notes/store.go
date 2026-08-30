@@ -37,6 +37,7 @@ var AllowedAccentColors = map[string]string{
 	"green":  "#16a34a",
 	"blue":   "#2563eb",
 	"purple": "#9333ea",
+	"black":  "#000000",
 }
 
 // ResolveAccentColor accepts either a user-friendly key (e.g. "red")
