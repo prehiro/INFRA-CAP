@@ -66,7 +66,7 @@ func normalizeGID(s string) string {
 // List returns all users (admin view).
 func (s *Service) List(ctx context.Context) ([]User, error) {
 	rows, err := s.DB.QueryContext(ctx,
-		`SELECT id, username, password_hash, full_name, role, is_active, gid FROM users ORDER BY id`)
+		`SELECT id, username, password_hash, full_name, role, is_active, gid, created_at FROM users ORDER BY id`)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func (s *Service) List(ctx context.Context) ([]User, error) {
 	var out []User
 	for rows.Next() {
 		var u User
-		if err := rows.Scan(&u.ID, &u.Username, &u.PasswordHash, &u.FullName, &u.Role, &u.IsActive, &u.GID); err != nil {
+		if err := rows.Scan(&u.ID, &u.Username, &u.PasswordHash, &u.FullName, &u.Role, &u.IsActive, &u.GID, &u.CreatedAt); err != nil {
 			return nil, err
 		}
 		out = append(out, u)

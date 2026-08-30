@@ -3,6 +3,7 @@ package auth
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"infracap/internal/audit"
 	"infracap/internal/web"
@@ -18,16 +19,17 @@ func NewAdminUsersModule(s *Service) *AdminUsersModule { return &AdminUsersModul
 func (m *AdminUsersModule) Name() string { return "users" }
 
 type userView struct {
-	ID       int
-	Username string
-	FullName string
-	Role     string
-	IsActive bool
-	GID      string
+	ID        int
+	Username  string
+	FullName  string
+	Role      string
+	IsActive  bool
+	GID       string
+	CreatedAt time.Time
 }
 
 func toView(u *User) userView {
-	return userView{u.ID, u.Username, u.FullName, u.Role, u.IsActive, u.GID}
+	return userView{u.ID, u.Username, u.FullName, u.Role, u.IsActive, u.GID, u.CreatedAt}
 }
 
 func (m *AdminUsersModule) RegisterRoutes(mux *http.ServeMux) {

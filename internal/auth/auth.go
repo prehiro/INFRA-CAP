@@ -25,6 +25,7 @@ type User struct {
 	Role         string
 	IsActive     bool
 	GID          string
+	CreatedAt    time.Time
 }
 
 type Service struct {

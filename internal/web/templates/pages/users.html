@@ -20,7 +20,7 @@
       <table class="table table-sm">
         <thead class="user-thead sticky top-0 z-10">
           <tr class="bg-base-200/95 backdrop-blur-sm text-xs uppercase tracking-wide text-base-content/50">
-            <th>Username</th><th>Full Name</th><th>GID</th><th>Role</th><th>Status</th><th class="text-right">Action</th>
+            <th>Username</th><th>Full Name</th><th>GID</th><th>Role</th><th>Status</th><th>Created</th><th class="text-right">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -47,6 +47,7 @@
                 <span class="status-badge status-retired">Inactive</span>
               {{end}}
             </td>
+            <td class="text-xs whitespace-nowrap text-base-content/70">{{.CreatedAt.Format "02-01-06"}}</td>
             <td class="text-right">
               <div class="inline-flex items-center gap-1.5">
                 {{if .IsActive}}
@@ -74,7 +75,7 @@
             </td>
           </tr>
           <tr class="user-row-mobile border-b border-base-300/50">
-            <td colspan="6" class="p-2">
+            <td colspan="7" class="p-2">
               <div class="rounded-box bg-base-100 border border-base-300 shadow-sm p-3 space-y-2">
                 <div class="flex items-start justify-between gap-2">
                   <div class="min-w-0 flex-1">
@@ -97,6 +98,7 @@
                 {{if .GID}}
                 <div class="text-xs"><span class="text-base-content/50">GID:</span> <span class="font-mono">{{.GID}}</span></div>
                 {{end}}
+                <div class="text-xs"><span class="text-base-content/50">Created:</span> {{.CreatedAt.Format "02-01-06"}}</div>
                 <div class="flex items-center justify-end gap-1 pt-1 border-t border-base-300/60">
                   {{if .IsActive}}
                   <button type="button" class="btn btn-soft btn-warning btn-xs gap-1"
@@ -124,7 +126,7 @@
             </td>
           </tr>
           {{else}}
-          <tr><td colspan="6" class="p-0 border-0">
+          <tr><td colspan="7" class="p-0 border-0">
             {{template "empty_state" (dict
               "Icon"     (safe `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`)
               "Title"    "No users yet"
@@ -146,7 +148,7 @@
 <table class="table table-sm">
   <thead class="user-thead sticky top-0 z-10">
     <tr class="bg-base-200/95 backdrop-blur-sm text-xs uppercase tracking-wide text-base-content/50">
-      <th>Username</th><th>Full Name</th><th>GID</th><th>Role</th><th>Status</th><th class="text-right">Action</th>
+      <th>Username</th><th>Full Name</th><th>GID</th><th>Role</th><th>Status</th><th>Created</th><th class="text-right">Action</th>
     </tr>
   </thead>
   <tbody>
@@ -173,6 +175,7 @@
           <span class="status-badge status-retired">Inactive</span>
         {{end}}
       </td>
+      <td class="text-xs whitespace-nowrap text-base-content/70">{{.CreatedAt.Format "02-01-06"}}</td>
       <td class="text-right">
         <div class="inline-flex items-center gap-1.5">
           {{if .IsActive}}
@@ -200,7 +203,7 @@
       </td>
     </tr>
     <tr class="user-row-mobile border-b border-base-300/50">
-      <td colspan="6" class="p-2">
+      <td colspan="7" class="p-2">
         <div class="rounded-box bg-base-100 border border-base-300 shadow-sm p-3 space-y-2">
           <div class="flex items-start justify-between gap-2">
             <div class="min-w-0 flex-1">
@@ -223,6 +226,7 @@
           {{if .GID}}
           <div class="text-xs"><span class="text-base-content/50">GID:</span> <span class="font-mono">{{.GID}}</span></div>
           {{end}}
+          <div class="text-xs"><span class="text-base-content/50">Created:</span> {{.CreatedAt.Format "02-01-06"}}</div>
           <div class="flex items-center justify-end gap-1 pt-1 border-t border-base-300/60">
             {{if .IsActive}}
             <button type="button" class="btn btn-soft btn-warning btn-xs gap-1"
@@ -250,7 +254,7 @@
       </td>
     </tr>
     {{else}}
-    <tr><td colspan="6" class="p-0 border-0">
+    <tr><td colspan="7" class="p-0 border-0">
       {{template "empty_state" (dict
         "Icon"     (safe `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`)
         "Title"    "No users yet"
