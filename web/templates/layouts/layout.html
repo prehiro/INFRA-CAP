@@ -288,10 +288,23 @@
     [x-cloak] { display: none !important; }
 
     /* DaisyUI v5 sets overflow via CSS vars on :root which causes
-       scroll flicker — override with direct values + !important. */
-    html, :root { overflow-x: hidden !important; overflow-y: auto !important; scrollbar-gutter: stable !important; }
-    body { overflow-x: hidden !important; }
-    /* Kill DaisyUI scroll-driven animation that toggles scrollbar-gutter */
+       scroll flicker — override with direct values + !important.
+       The root element never scrolls (scrolling lives in .layout-content),
+       so overflow-y: hidden kills DaisyUI's scroll-driven animation at
+       the source and scrollbar-gutter: auto avoids a grey gutter strip. */
+    html, :root {
+      overflow-x: hidden !important;
+      overflow-y: hidden !important;
+      scrollbar-gutter: auto !important;
+      /* Kill the scroll-driven animation that toggles scrollbar-gutter */
+      animation: none !important;
+      animation-timeline: none !important;
+      --page-has-scroll: !important;
+      --page-scroll-lock: !important;
+    }
+    body { overflow-x: hidden !important; overflow-y: hidden !important; }
+    /* Override the keyframes so even if something re-enables the animation,
+       it won't change the variable */
     @keyframes set-page-has-scroll { from, to { --page-has-scroll: ; } }
 
     /* Preload: apply collapsed sidebar BEFORE Alpine initializes.
@@ -350,6 +363,7 @@
       padding: calc(var(--spacing) * 4);
       flex-grow: 1;
       overflow-y: auto;
+      overflow-x: hidden;
       scrollbar-gutter: stable;
     }
     @media (min-width: 48rem) {
