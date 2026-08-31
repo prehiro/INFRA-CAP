@@ -74,28 +74,60 @@ func run() error {
 	}
 	authMod := auth.NewModule(authSvc)
 	usersMod := auth.NewAdminUsersModule(authSvc)
+	permStore := &auth.PermissionStore{DB: database}
 
 	// public routes
 	authMod.RegisterRoutes(mux)
 
-	// protected routes (auth required)
+	// protected routes (auth required). Each module mux is wrapped with
+	// a per-page permission check (and the users/audit modules keep
+	// their existing admin-only gate on top of that). The layout
+	// template also filters the sidebar nav using PageAccessForRole
+	// so non-admins never see menu items they can't open.
 	protected := http.NewServeMux()
 	licStore := &licenses.Store{DB: database}
 	dash := dashboard.NewWithStore(licStore)
-	dash.RegisterRoutes(protected)
-	usersMod.RegisterRoutes(protected)
-	licMod := licenses.New(&licenses.Store{DB: database})
-	licMod.RegisterRoutes(protected)
+	dashMux := http.NewServeMux()
+	dash.RegisterRoutes(dashMux)
+	protected.Handle("/",
+		web.CSRFValidate(authSvc.Middleware(true, permStore)(auth.RequirePageAccess(permStore, auth.PageDashboard)(dashMux))))
+
+	usersMux := http.NewServeMux()
+	usersMod.RegisterRoutes(usersMux)
+	protected.Handle("/users/",
+		web.CSRFValidate(authSvc.Middleware(true, permStore)(auth.RequireRole("admin")(auth.RequirePageAccess(permStore, auth.PageUsers)(usersMux)))))
+
+	licMux := http.NewServeMux()
+	licMod := licenses.New(licStore)
+	licMod.RegisterRoutes(licMux)
+	protected.Handle("/licenses",
+		web.CSRFValidate(authSvc.Middleware(true, permStore)(auth.RequirePageAccess(permStore, auth.PageLicenses)(licMux))))
+	protected.Handle("/licenses/",
+		web.CSRFValidate(authSvc.Middleware(true, permStore)(auth.RequirePageAccess(permStore, auth.PageLicenses)(licMux))))
+
+	notesMux := http.NewServeMux()
 	notesMod := notes.New(&notes.Store{DB: database})
-	notesMod.RegisterRoutes(protected)
+	notesMod.RegisterRoutes(notesMux)
+	protected.Handle("/notes", web.CSRFValidate(authSvc.Middleware(true, permStore)(auth.RequirePageAccess(permStore, auth.PageNotes)(notesMux))))
+	protected.Handle("/notes/", web.CSRFValidate(authSvc.Middleware(true, permStore)(auth.RequirePageAccess(permStore, auth.PageNotes)(notesMux))))
+
+	// Admin Permissions page (admin only) — manage role page access
+	permsMux := http.NewServeMux()
+	permsMod := auth.NewPermissionsModule(permStore)
+	permsMod.RegisterRoutes(permsMux)
+	protected.Handle("/admin/permissions",
+		web.CSRFValidate(authSvc.Middleware(true, permStore)(auth.RequireRole("admin")(permsMux))))
+	protected.Handle("/admin/permissions/",
+		web.CSRFValidate(authSvc.Middleware(true, permStore)(auth.RequireRole("admin")(permsMux))))
 
 	// Audit Trail (admin only) — Fase 2b
 	auditMux := http.NewServeMux()
 	auditMod := audit.New(&audit.Store{DB: database})
 	auditMod.RegisterRoutes(auditMux)
-	protected.Handle("/audit/", web.CSRFValidate(authSvc.Middleware(true)(auth.RequireRole("admin")(auditMux))))
+	protected.Handle("/audit/",
+		web.CSRFValidate(authSvc.Middleware(true, permStore)(auth.RequireRole("admin")(auth.RequirePageAccess(permStore, auth.PageAudit)(auditMux)))))
 
-	mux.Handle("/", web.CSRFValidate(authSvc.Middleware(true)(protected)))
+	mux.Handle("/", web.CSRFValidate(authSvc.Middleware(true, permStore)(protected)))
 
 	handler := web.RequestLogger(web.CSRFCookieMiddleware(web.SecurityHeaders(mux)))
 	srv := &http.Server{

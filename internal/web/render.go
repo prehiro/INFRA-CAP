@@ -309,6 +309,125 @@ func init() {
 	))
 }
 
+// SetNavStore attaches a PermissionStore-like value to the request
+// context so RenderNamed can use it when building the sidebar nav.
+// The web package takes an interface (not a concrete *auth.PermissionStore)
+// to avoid an import cycle — auth already imports web for SetNavStore
+// from the other side. Any value that implements PageAccessForRole works.
+type NavPermissionLister interface {
+	PageAccessForRole(ctx context.Context, role string) (map[string]bool, error)
+}
+
+func SetNavStore(r *http.Request, s any) *http.Request {
+	return r.WithContext(context.WithValue(r.Context(), navStoreKey{}, s))
+}
+
+// navPermissionStore returns the value previously attached by
+// SetNavStore. It is returned as the NavPermissionLister interface so
+// the web package doesn't have to import the auth package (which
+// itself imports web — would be a cycle). PermissionStore in the
+// auth package satisfies this interface structurally.
+func navPermissionStore(r *http.Request) NavPermissionLister {
+	v, _ := r.Context().Value(navStoreKey{}).(NavPermissionLister)
+	return v
+}
+
+// navItemsFor builds the sidebar menu list for the current user.
+// Pages the role can't access are filtered out. Admin gets an extra
+// "Permissions" entry pointing at the per-role management page. The
+// returned slice is JSON-friendly (icons are inlined as safe HTML so
+// the JS in the layout can render them with innerHTML).
+func navItemsFor(access map[string]bool, role string) []any {
+	// helper to make a nav entry
+	mk := func(href, label, key, icon string) map[string]any {
+		return map[string]any{
+			"href":  href,
+			"label": label,
+			"key":   key,
+			"icon":  template.HTML(icon),
+		}
+	}
+	items := []any{}
+	if access["dashboard"] {
+		items = append(items, mk("/", "Dashboard", "dashboard", navIconDashboard))
+	}
+	if access["licenses"] {
+		items = append(items, mk("/licenses", "License Manager", "licenses", navIconLicenses))
+	}
+	if access["notes"] {
+		items = append(items, mk("/notes", "Notes", "notes", navIconNotes))
+	}
+	if access["users"] {
+		items = append(items, mk("/users", "Users", "users", navIconUsers))
+	}
+	if access["audit"] {
+		items = append(items, mk("/audit", "Audit Trail", "audit", navIconAudit))
+	}
+	if role == "admin" {
+		items = append(items, mk("/admin/permissions", "Permissions", "permissions", navIconPermissions))
+	}
+	return items
+}
+
+// navItemsJSON marshals the nav items to a JSON string safe to
+// inject into a <script> tag. We use json.Marshal directly (not
+// template's JS context) so the icons — which contain real HTML
+// (angle brackets, slashes) — are safely escaped as JSON strings.
+func navItemsJSON(items []any) (template.JS, error) {
+	// Convert to a stable shape (string fields) before marshaling so
+	// the output is a predictable [{href,label,key,icon}, ...].
+	type navItem struct {
+		Href  string `json:"href"`
+		Label string `json:"label"`
+		Key   string `json:"key"`
+		Icon  string `json:"icon"`
+	}
+	out := make([]navItem, 0, len(items))
+	for _, raw := range items {
+		m, ok := raw.(map[string]any)
+		if !ok {
+			continue
+		}
+		out = append(out, navItem{
+			Href:  asString(m["href"]),
+			Label: asString(m["label"]),
+			Key:   asString(m["key"]),
+			Icon:  asString(m["icon"]),
+		})
+	}
+	b, err := json.Marshal(out)
+	if err != nil {
+		return "", err
+	}
+	return template.JS(b), nil
+}
+
+// asString coerces any value to a plain Go string. Used when
+// reading the nav items map before JSON marshaling.
+func asString(v any) string {
+	switch s := v.(type) {
+	case string:
+		return s
+	case template.HTML:
+		return string(s)
+	}
+	return fmt.Sprint(v)
+}
+
+// navStoreKey is a private context key for the nav PermissionStore.
+type navStoreKey struct{}
+
+// Inline SVG icons for the sidebar. Kept short so the nav config
+// stays a single Go file (the layout JS reads them as safe HTML).
+const (
+	navIconDashboard = `<svg xmlns="http://www.w3.org/2000/svg" class="w-full h-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>`
+	navIconLicenses  = `<svg xmlns="http://www.w3.org/2000/svg" class="w-full h-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>`
+	navIconAudit     = `<svg xmlns="http://www.w3.org/2000/svg" class="w-full h-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>`
+	navIconNotes     = `<svg xmlns="http://www.w3.org/2000/svg" class="w-full h-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h4"/></svg>`
+	navIconUsers     = `<svg xmlns="http://www.w3.org/2000/svg" class="w-full h-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`
+	navIconPermissions = `<svg xmlns="http://www.w3.org/2000/svg" class="w-full h-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`
+)
+
 // Render renders an app page inside the main (sidebar) layout.
 func Render(w http.ResponseWriter, r *http.Request, title string, data any) {
 	RenderNamed(w, r, "content", title, data)
@@ -347,6 +466,21 @@ func RenderNamed(w http.ResponseWriter, r *http.Request, contentName, title stri
 
 	if u := UserFromContext(r.Context()); u != nil {
 		tdata["AuthUser"] = u
+		// Sidebar nav config — filtered by the current user's role
+		// page access. Build the list server-side so we never expose
+		// links the user can't actually open.
+		store := navPermissionStore(r)
+		if store != nil {
+			if access, err := store.PageAccessForRole(r.Context(), u.GetRole()); err == nil {
+				items := navItemsFor(access, u.GetRole())
+				if js, jerr := navItemsJSON(items); jerr == nil {
+					tdata["NavItemsJS"] = js
+				}
+			}
+		}
+	}
+	if tdata["NavItemsJS"] == nil {
+		tdata["NavItemsJS"] = template.JS("[]")
 	}
 	tdata["csrfToken"] = CSRFFromRequest(r)
 	tdata["ContentHTML"] = template.HTML(contentBuf.String())

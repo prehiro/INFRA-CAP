@@ -17,7 +17,9 @@ const SessionCookie = "infracap_session"
 // Middleware returns an http.Handler wrapper that resolves the session cookie
 // and stores the *User in context. If require is true, unauthenticated
 // requests are redirected to /login (HTMX requests get 401 + HX-Redirect).
-func (s *Service) Middleware(require bool) func(http.Handler) http.Handler {
+// The provided permStore, if non-nil, is also attached to the context so
+// the layout template's sidebar can use it to filter the nav by role.
+func (s *Service) Middleware(require bool, permStore *PermissionStore) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var user *User
@@ -28,6 +30,12 @@ func (s *Service) Middleware(require bool) func(http.Handler) http.Handler {
 			}
 			if user != nil {
 				r = r.WithContext(context.WithValue(r.Context(), userKey, user))
+			}
+			// Attach the permission store so the layout can filter the
+			// sidebar nav by role. We use a private type from the web
+			// package to keep the context key namespaced.
+			if permStore != nil {
+				r = web.SetNavStore(r, permStore)
 			}
 			if require && user == nil {
 				if htmx := r.Header.Get("HX-Request"); strings.EqualFold(htmx, "true") {

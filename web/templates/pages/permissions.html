@@ -1,0 +1,75 @@
+{{define "permissions_content"}}
+{{$AllPages := .AllPages}}
+{{$Label := .PageLabel}}
+{{$Roles := .Roles}}
+{{$Access := .RoleAccess}}
+
+<div class="flex flex-col h-[calc(100vh-7rem)] overflow-hidden">
+  <div class="shrink-0 flex flex-wrap items-center justify-between gap-3 mb-3">
+    <div>
+      <h1 class="text-xl font-bold">Permissions</h1>
+      <p class="text-base-content/50 text-sm mt-0.5">
+        Choose which pages each role can access. The admin role always has full access.
+      </p>
+    </div>
+  </div>
+
+  {{/* One card per role (admin, user) with a checklist of pages */}}
+  <div class="flex-1 min-h-0 overflow-y-auto">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl">
+      {{range $Roles}}
+      {{$role := .}}
+      {{$pages := index $Access $role}}
+      <form method="POST" action="/admin/permissions"
+            class="bg-base-100 border border-base-300 rounded-box shadow-sm p-5 flex flex-col gap-4">
+        <input type="hidden" name="role" value="{{$role}}">
+        {{$.csrfField}}
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-semibold capitalize">{{$role}}</h2>
+          <span class="badge badge-ghost badge-sm">
+            {{if $role}}admin{{else}}user{{end}}-role
+          </span>
+        </div>
+
+        <ul class="flex flex-col gap-2">
+          {{range $AllPages}}
+          {{$p := .}}
+          {{$checked := false}}
+          {{if eq $role "admin"}}
+            {{$checked = true}}
+          {{else}}
+            {{if index $pages $p}}{{$checked = true}}{{end}}
+          {{end}}
+          <li>
+            <label class="flex items-center gap-3 cursor-pointer select-none p-2 rounded-md hover:bg-base-200/50 transition-colors">
+              <input type="checkbox" name="pages" value="{{$p}}"
+                     {{if $checked}}checked{{end}}
+                     {{if eq $role "admin"}}disabled{{end}}
+                     class="checkbox checkbox-sm checkbox-primary">
+              <span class="text-sm">{{index $Label $p}}</span>
+              {{if eq $role "admin"}}
+                <span class="ml-auto text-[10px] uppercase tracking-wide text-base-content/40 font-medium">always on</span>
+              {{end}}
+            </label>
+          </li>
+          {{end}}
+        </ul>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-base-200">
+          <button type="submit" class="btn btn-primary btn-sm"
+                  {{if eq $role "admin"}}disabled{{end}}>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Save
+          </button>
+        </div>
+      </form>
+      {{end}}
+    </div>
+  </div>
+</div>
+{{end}}
+
+{{/* When the page is requested via htmx, only render the content fragment */}}
+{{define "permissions_partial"}}
+{{template "permissions_content" .}}
+{{end}}
