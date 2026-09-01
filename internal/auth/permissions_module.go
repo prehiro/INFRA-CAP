@@ -3,6 +3,7 @@ package auth
 import (
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"infracap/internal/web"
 )
@@ -24,10 +25,13 @@ func NewPermissionsModule(store *PermissionStore, auth *Service) *permissionsMod
 }
 
 // RegisterRoutes wires GET (render) and POST (save) for
-// /admin/permissions.
+// /admin/permissions. Also wires per-user access editor endpoints
+// (drawer on the page).
 func (m *permissionsModule) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /admin/permissions", m.index)
 	mux.HandleFunc("POST /admin/permissions", m.save)
+	mux.HandleFunc("GET /admin/permissions/users/{id}", m.userAccess)
+	mux.HandleFunc("POST /admin/permissions/users/{id}", m.userAccessSave)
 }
 
 // index renders the checklist page.
@@ -61,6 +65,72 @@ func (m *permissionsModule) index(w http.ResponseWriter, r *http.Request) {
 	})
 	// (debug log removed for the redesign pass)
 	_ = activeUsers
+}
+
+// userAccess renders the per-user access editor fragment used by
+// the drawer. HTMX request → returns just the drawer body.
+func (m *permissionsModule) userAccess(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+	user, err := m.auth.GetByID(r.Context(), id)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	roleAccess, _ := m.store.PageAccessForRole(r.Context(), user.Role)
+	overrides, _ := m.store.UserAccess(r.Context(), id)
+	web.RenderNamed(w, r, "user_access_content", user.Username, map[string]any{
+		"User":         user,
+		"RoleAccess":   roleAccess,
+		"Overrides":    overrides,
+		"AllPages":     AllPages,
+		"PageLabel":    PageLabel,
+		"csrfField":    web.CSRFHiddenField(r),
+	})
+}
+
+// userAccessSave replaces the per-user override rows.
+func (m *permissionsModule) userAccessSave(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+	user, err := m.auth.GetByID(r.Context(), id)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	if user.Role == "admin" {
+		http.Error(w, "admin role has full access; per-user override not applicable", http.StatusBadRequest)
+		return
+	}
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	pages := r.PostForm["pages"]
+	grants := map[string]bool{}
+	for _, p := range pages {
+		grants[p] = true
+	}
+	if err := m.store.SetUserAccess(r.Context(), id, grants); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// Flash + redirect (PRG)
+	http.SetCookie(w, &http.Cookie{
+		Name:     "infracap_flash",
+		Value:    url.QueryEscape("kind=success&text=Access+updated+for+" + user.Username),
+		Path:     "/",
+		MaxAge:   30,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
+	http.Redirect(w, r, "/admin/permissions", http.StatusSeeOther)
 }
 
 // save replaces the access set for one role. The POST body uses
