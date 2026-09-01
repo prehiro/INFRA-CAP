@@ -130,6 +130,16 @@ func (m *permissionsModule) userAccessSave(w http.ResponseWriter, r *http.Reques
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	})
+	// HTMX: signal a full page reload so the drawer closes, the
+	// success toast renders, and the access matrix refreshes.
+	// A plain 303 redirect would have HTMX swap the response body
+	// (full /admin/permissions HTML) into the form element, which
+	// leaves the drawer open and breaks layout.
+	if r.Header.Get("HX-Request") == "true" {
+		w.Header().Set("HX-Refresh", "true")
+		w.WriteHeader(http.StatusOK)
+		return
+	}
 	http.Redirect(w, r, "/admin/permissions", http.StatusSeeOther)
 }
 
@@ -164,5 +174,12 @@ func (m *permissionsModule) save(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	})
+	// HTMX: signal a full reload so the role card's saved state
+	// (checkbox persistence, count badge, etc.) re-renders cleanly.
+	if r.Header.Get("HX-Request") == "true" {
+		w.Header().Set("HX-Refresh", "true")
+		w.WriteHeader(http.StatusOK)
+		return
+	}
 	http.Redirect(w, r, "/admin/permissions", http.StatusSeeOther)
 }
