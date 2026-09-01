@@ -13,7 +13,7 @@
 {{end}}
 {{$totalActive := len $ActiveUsers}}
 
-<div class="flex flex-col h-[calc(100vh-7rem)] overflow-hidden gap-4"
+<div class="flex flex-col h-[calc(100vh-7rem)] overflow-hidden gap-4 perm-page-root"
      x-data="{ open: false, content: '', loading: false }"
      @perm-close-drawer="open = false"
      @keydown.escape.window="open = false">
@@ -27,48 +27,41 @@
        x-transition:leave-start="opacity-100"
        x-transition:leave-end="opacity-0"
        @click="open = false"
-       class="fixed inset-0 z-40 bg-black/30 backdrop-blur-[1px]"
+       class="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
        x-cloak></div>
 
   <aside x-show="open"
          x-transition:enter="transition ease-out duration-300 transform"
-         x-transition:enter-start="translate-x-full"
-         x-transition:enter-end="translate-x-0"
+         x-transition:enter-start="translate-x-full opacity-0"
+         x-transition:enter-end="translate-x-0 opacity-100"
          x-transition:leave="transition ease-in duration-200 transform"
-         x-transition:leave-start="translate-x-0"
-         x-transition:leave-end="translate-x-full"
-         class="fixed top-0 right-0 z-50 h-full w-full sm:w-[28rem] bg-base-100 border-l border-base-300 shadow-2xl overflow-y-auto"
+         x-transition:leave-start="translate-x-0 opacity-100"
+         x-transition:leave-end="translate-x-full opacity-0"
+         class="fixed top-0 right-0 z-50 h-full w-full sm:w-[30rem] bg-base-100 border-l border-base-300 shadow-2xl overflow-y-auto"
          x-cloak>
-    <div id="perm-drawer-body" class="p-5" x-html="content"></div>
+    <div id="perm-drawer-body" class="p-6" x-html="content"></div>
   </aside>
 
   {{/* ============== PAGE HEADER ============== */}}
-  <div class="shrink-0 flex flex-wrap items-end justify-between gap-3"
-       x-data
-       x-init="$el.classList.add('perm-fade-in')">
-    <div>
-      <div class="flex items-center gap-2">
-        <span class="relative inline-flex items-center justify-center w-9 h-9 rounded-box bg-gradient-to-br from-primary/20 to-primary/5 ring-1 ring-primary/20">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-          </svg>
-          <span class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-success ring-2 ring-base-100"></span>
-        </span>
-        <div>
-          <h1 class="text-xl font-bold leading-tight">Permissions</h1>
-          <p class="text-base-content/50 text-xs mt-0.5">Page access control per role</p>
-        </div>
+  <div class="shrink-0 flex flex-wrap items-end justify-between gap-3 perm-fade-in">
+    <div class="flex items-center gap-3">
+      <div class="relative inline-flex items-center justify-center w-11 h-11 rounded-box bg-gradient-to-br from-primary/15 via-primary/8 to-primary/5 ring-1 ring-primary/20 shadow-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        <span class="perm-live-dot absolute -top-0.5 -right-0.5 ring-2 ring-base-100"></span>
+      </div>
+      <div>
+        <h1 class="text-xl font-bold leading-tight">Permissions</h1>
+        <p class="text-base-content/50 text-xs mt-0.5">Page access control per role</p>
       </div>
     </div>
 
     {{/* Live count badge */}}
     <div class="flex items-center gap-2">
       <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-base-200/60 ring-1 ring-base-300/60">
-        <span class="relative flex h-2 w-2">
-          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-60"></span>
-          <span class="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
-        </span>
+        <span class="perm-live-dot"></span>
         <span class="text-xs font-medium">{{$totalActive}} active user{{if ne $totalActive 1}}s{{end}}</span>
       </div>
     </div>
@@ -76,7 +69,7 @@
 
   {{/* ============== STATS ROW ============== */}}
   <div class="shrink-0 grid grid-cols-3 gap-3 perm-stagger">
-    <div class="perm-stat-card group">
+    <div class="perm-stat-card">
       <div class="flex items-start justify-between">
         <div>
           <div class="text-[10px] uppercase tracking-wider text-base-content/40 font-semibold">Total Active</div>
@@ -90,11 +83,11 @@
         </div>
       </div>
       <div class="mt-3 h-1 rounded-full bg-base-200/60 overflow-hidden">
-        <div class="h-full bg-primary rounded-full perm-bar-fill" style="--bar-pct: 100%"></div>
+        <div class="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full perm-bar-fill" style="--bar-pct: 100%"></div>
       </div>
     </div>
 
-    <div class="perm-stat-card group">
+    <div class="perm-stat-card">
       <div class="flex items-start justify-between">
         <div>
           <div class="text-[10px] uppercase tracking-wider text-base-content/40 font-semibold">Admins</div>
@@ -113,11 +106,11 @@
           {{$adminsCount := index $RoleCounts "admin"}}
           {{$pct = printf "%.0f%%" (mulf 100.0 (divf (float $adminsCount) (float $totalActive)))}}
         {{end}}
-        <div class="h-full bg-warning rounded-full perm-bar-fill" style="--bar-pct: {{$pct}}"></div>
+        <div class="h-full bg-gradient-to-r from-warning to-warning/70 rounded-full perm-bar-fill" style="--bar-pct: {{$pct}}"></div>
       </div>
     </div>
 
-    <div class="perm-stat-card group">
+    <div class="perm-stat-card">
       <div class="flex items-start justify-between">
         <div>
           <div class="text-[10px] uppercase tracking-wider text-base-content/40 font-semibold">Users</div>
@@ -135,7 +128,7 @@
           {{$usersCount := index $RoleCounts "user"}}
           {{$pct = printf "%.0f%%" (mulf 100.0 (divf (float $usersCount) (float $totalActive)))}}
         {{end}}
-        <div class="h-full bg-info rounded-full perm-bar-fill" style="--bar-pct: {{$pct}}"></div>
+        <div class="h-full bg-gradient-to-r from-info to-info/70 rounded-full perm-bar-fill" style="--bar-pct: {{$pct}}"></div>
       </div>
     </div>
   </div>
@@ -161,7 +154,7 @@
         {{$pages := index $Access $role}}
         {{$count := index $RoleCounts $role}}
         <form method="POST" action="/admin/permissions"
-              class="perm-role-card bg-base-100 border border-base-300/70 rounded-box p-5 flex flex-col gap-4 transition-all duration-200 hover:border-primary/40 hover:shadow-sm">
+              class="perm-role-card p-5 flex flex-col gap-4">
           <input type="hidden" name="role" value="{{$role}}">
           {{$.csrfField}}
 
@@ -197,19 +190,22 @@
             {{range $AllPages}}
             {{$p := .}}
             {{$checked := false}}
+            {{$locked := false}}
             {{if eq $role "admin"}}
               {{$checked = true}}
+              {{$locked = true}}
             {{else if index $pages $p}}
               {{$checked = true}}
             {{end}}
             <li>
-              <label class="perm-page-row group/row flex items-center gap-3 cursor-pointer select-none p-2.5 rounded-md border border-base-300/60 bg-base-100 transition-all duration-150 hover:border-primary/40 hover:bg-primary/5">
-                <span class="perm-page-check peer-checked:bg-primary peer-checked:border-primary peer-checked:shadow-sm">
-                  <input type="checkbox" name="pages" value="{{$p}}"
-                         {{if $checked}}checked{{end}}
-                         {{if eq $role "admin"}}disabled{{end}}
-                         class="sr-only peer">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-primary-content peer-checked:opacity-100 peer-checked:scale-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+              <label class="perm-page-row {{if $locked}}is-locked{{end}} flex items-center gap-3 cursor-pointer select-none p-2.5 rounded-md border border-base-300/60 bg-base-100">
+                {{/* peer checkbox sibling: input first, then visual chip */}}
+                <input type="checkbox" name="pages" value="{{$p}}"
+                       {{if $checked}}checked{{end}}
+                       {{if eq $role "admin"}}disabled{{end}}
+                       class="perm-page-peer sr-only peer">
+                <span class="perm-page-check">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-primary-content" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
                 </span>
                 <div class="flex-1 min-w-0">
                   <div class="text-sm font-medium truncate">{{index $Label $p}}</div>
@@ -223,17 +219,17 @@
             {{end}}
           </ul>
 
-          <div class="flex items-center justify-between gap-2 pt-1">
-            <span class="text-[10px] text-base-content/40">
+          <div class="flex items-center justify-between gap-2 pt-1 border-t border-base-200/60">
+            <span class="text-[10px] text-base-content/40 pt-2">
               {{$enabled := 0}}{{range $AllPages}}{{if index $pages .}}{{$enabled = add $enabled 1}}{{end}}{{end}}{{if eq $role "admin"}}
-                All 5 pages enabled (admin role)
+                All {{len $AllPages}} pages enabled (admin role)
               {{else}}
                 {{$enabled}} of {{len $AllPages}} pages enabled
               {{end}}
             </span>
             <button type="submit" class="btn btn-primary btn-sm gap-1.5 perm-save-btn"
                     {{if eq $role "admin"}}disabled{{end}}>
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 transition-transform duration-300 group-hover:scale-110" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
               </svg>
               Save
@@ -256,7 +252,7 @@
         <span class="text-[10px] uppercase tracking-wider text-base-content/40">hidden if deactivated</span>
       </div>
 
-      <div class="perm-users-card flex-1 min-h-0 bg-base-100 border border-base-300/70 rounded-box overflow-hidden flex flex-col">
+      <div class="perm-users-card flex-1 min-h-0 border border-base-300/70 overflow-hidden flex flex-col">
         {{if eq $totalActive 0}}
           <div class="flex-1 flex flex-col items-center justify-center text-center p-8 gap-3">
             <div class="w-12 h-12 rounded-full bg-base-200/60 flex items-center justify-center">
@@ -270,7 +266,7 @@
             </div>
           </div>
         {{else}}
-          <div class="flex-1 min-h-0 overflow-y-auto perm-users-list">
+          <div class="flex-1 min-h-0 overflow-y-auto perm-user-list">
             {{range $ActiveUsers}}
             <button type="button"
                     data-user-id="{{.ID}}"
@@ -279,7 +275,7 @@
                     hx-swap="innerHTML"
                     hx-trigger="click"
                     @click="open = true"
-                    class="perm-user-row group flex items-center gap-3 px-4 py-2.5 border-b border-base-200/60 last:border-0 transition-colors duration-150 hover:bg-base-200/30 w-full text-left cursor-pointer">
+                    class="perm-user-row flex items-center gap-3 px-4 py-2.5 border-b border-base-200/60 last:border-0 w-full text-left cursor-pointer">
               <div class="perm-avatar {{if eq .Role "admin"}}perm-avatar-admin{{else}}perm-avatar-user{{end}} shrink-0">
                 <span>{{slice .FullName 0 1}}</span>
                 <span class="perm-avatar-dot"></span>
@@ -298,7 +294,7 @@
           <div class="shrink-0 px-4 py-2.5 border-t border-base-200/60 bg-base-200/30 text-[10px] uppercase tracking-wider text-base-content/40 flex items-center justify-between">
             <span>{{$totalActive}} {{if eq $totalActive 1}}user{{else}}users{{end}}</span>
             <span class="flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-success"></span>
+              <span class="perm-live-dot"></span>
               All active
             </span>
           </div>
@@ -389,12 +385,12 @@
         {{$checked := false}}
         {{if $userHas}}{{$checked = true}}{{else if $roleHas}}{{$checked = true}}{{end}}
         <li>
-          <label class="perm-page-row group/row flex items-center gap-3 cursor-pointer select-none p-2.5 rounded-md border border-base-300/60 bg-base-100 transition-all duration-150 hover:border-primary/40 hover:bg-primary/5">
-            <span class="perm-page-check peer-checked:bg-primary peer-checked:border-primary peer-checked:shadow-sm">
-              <input type="checkbox" name="pages" value="{{$p}}"
-                     {{if $checked}}checked{{end}}
-                     class="sr-only peer">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-primary-content peer-checked:opacity-100 peer-checked:scale-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          <label class="perm-page-row flex items-center gap-3 cursor-pointer select-none p-2.5 rounded-md border border-base-300/60 bg-base-100">
+            <input type="checkbox" name="pages" value="{{$p}}"
+                   {{if $checked}}checked{{end}}
+                   class="perm-page-peer sr-only peer">
+            <span class="perm-page-check">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-primary-content" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
             </span>
             <div class="flex-1 min-w-0">
               <div class="text-sm font-medium truncate">{{index $Label $p}}</div>
