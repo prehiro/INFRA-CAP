@@ -94,6 +94,8 @@ func run() error {
 
 	usersMux := http.NewServeMux()
 	usersMod.RegisterRoutes(usersMux)
+	protected.Handle("/users",
+		web.CSRFValidate(authSvc.Middleware(true, permStore)(auth.RequireRole("admin")(auth.RequirePageAccess(permStore, auth.PageUsers)(usersMux)))))
 	protected.Handle("/users/",
 		web.CSRFValidate(authSvc.Middleware(true, permStore)(auth.RequireRole("admin")(auth.RequirePageAccess(permStore, auth.PageUsers)(usersMux)))))
 

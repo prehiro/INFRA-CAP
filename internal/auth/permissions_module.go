@@ -1,7 +1,10 @@
 package auth
 
 import (
+	"fmt"
 	"net/http"
+	"net/url"
+	"os"
 
 	"infracap/internal/web"
 )
@@ -41,6 +44,12 @@ func (m *permissionsModule) index(w http.ResponseWriter, r *http.Request) {
 		"RoleAccess": all,
 		"csrfField":  web.CSRFHiddenField(r),
 	})
+	fmt.Fprintf(os.Stderr, "DEBUG permissions RoleAccess: %+v\n", all)
+	for r, p := range all {
+		for k, v := range p {
+			fmt.Fprintf(os.Stderr, "  %s.%s = %v (%T)\n", r, k, v, v)
+		}
+	}
 }
 
 // save replaces the access set for one role. The POST body uses
@@ -62,6 +71,17 @@ func (m *permissionsModule) save(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	// Redirect back to the same page (PRG pattern)
+	// Redirect back to the same page (PRG pattern) with a success flash
+	// that the layout template will render as a toast. The cookie value
+	// is URL-encoded so we don't have to deal with the JSON quoting
+	// semantics of html/template.
+	http.SetCookie(w, &http.Cookie{
+		Name:     "infracap_flash",
+		Value:    url.QueryEscape("kind=success&text=Permissions+saved"),
+		Path:     "/",
+		MaxAge:   30,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
 	http.Redirect(w, r, "/admin/permissions", http.StatusSeeOther)
 }

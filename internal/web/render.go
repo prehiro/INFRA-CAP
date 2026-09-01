@@ -9,6 +9,7 @@ import (
 	"html/template"
 	"net/http"
 	"net/url"
+	"reflect"
 	"regexp"
 	"strings"
 	"time"
@@ -62,17 +63,32 @@ var funcMap = template.FuncMap{
 	"list": func(vs ...any) []any { return vs },
 	// index returns the value at key k from a map. Convenience wrapper
 	// around Go template's index function for typed map lookups.
+	// Supports the typed maps we actually pass in the project:
+	// map[string]any, map[string]string, map[string]bool, and the
+	// nested map[string]map[string]bool used by the permissions UI.
+	// For unrecognised map types it returns the zero value of the
+	// value type so the template doesn't fail — but the standard
+	// html/template `index` is also still available because the
+	// template engine checks user funcs first then builtins.
 	"index": func(m any, k any) any {
+		ks := fmt.Sprintf("%v", k)
 		switch mm := m.(type) {
 		case map[string]any:
-			return mm[fmt.Sprintf("%v", k)]
+			return mm[ks]
 		case map[string]string:
-			if s, ok := mm[fmt.Sprintf("%v", k)]; ok {
+			if s, ok := mm[ks]; ok {
 				return s
 			}
 			return ""
+		case map[string]bool:
+			return mm[ks]
+		case map[string]map[string]bool:
+			return mm[ks]
 		}
-		return ""
+		// Last resort: try reflection. Lets us support typed maps
+		// without having to list every combination above.
+		v, _ := reflectMapIndex(m, k)
+		return v
 	},
 	// safe marks a string as trusted HTML so html/template does not escape it.
 	// Use ONLY for static markup authored by us (e.g. SVG icons, hx-get buttons
@@ -301,6 +317,29 @@ var funcMap = template.FuncMap{
 	},
 }
 
+// reflectMapIndex looks up a key in a map of any concrete type using
+// reflection. Used as a fallback by the template `index` func for
+// typed maps that aren't explicitly listed. Returns the value and
+// true on hit, or nil and false on miss.
+func reflectMapIndex(m any, k any) (any, bool) {
+	if m == nil {
+		return nil, false
+	}
+	v := reflect.ValueOf(m)
+	if v.Kind() != reflect.Map {
+		return nil, false
+	}
+	if v.Type().Key().Kind() != reflect.String {
+		return nil, false
+	}
+	kv := reflect.ValueOf(fmt.Sprintf("%v", k))
+	r := v.MapIndex(kv)
+	if !r.IsValid() {
+		return nil, false
+	}
+	return r.Interface(), true
+}
+
 func init() {
 	tmpl = template.Must(template.New("").Funcs(funcMap).ParseFS(templateFS,
 		"templates/layouts/*.html",
@@ -481,6 +520,28 @@ func RenderNamed(w http.ResponseWriter, r *http.Request, contentName, title stri
 	}
 	if tdata["NavItemsJS"] == nil {
 		tdata["NavItemsJS"] = template.JS("[]")
+	}
+	// Flash message cookie — written by handlers after a successful
+	// action (e.g. permissions save). Read once and clear so it
+	// doesn't repeat on every page in the session. The cookie value
+	// is a URL-encoded JSON of {kind, text} so we don't have to
+	// trust the format of the JS context.
+	if c, err := r.Cookie("infracap_flash"); err == nil && c.Value != "" {
+		if v, perr := url.QueryUnescape(c.Value); perr == nil {
+			// Expect v = `kind=success&text=Permissions+saved`
+			q, _ := url.ParseQuery(v)
+			if k := q.Get("kind"); k != "" {
+				tdata["FlashKind"] = k
+				tdata["FlashText"] = q.Get("text")
+			}
+		}
+		http.SetCookie(w, &http.Cookie{
+			Name:     "infracap_flash",
+			Value:    "",
+			Path:     "/",
+			MaxAge:   -1,
+			HttpOnly: true,
+		})
 	}
 	tdata["csrfToken"] = CSRFFromRequest(r)
 	tdata["ContentHTML"] = template.HTML(contentBuf.String())

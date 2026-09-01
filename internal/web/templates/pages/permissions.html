@@ -26,9 +26,7 @@
         {{$.csrfField}}
         <div class="flex items-center justify-between">
           <h2 class="text-base font-semibold capitalize">{{$role}}</h2>
-          <span class="badge badge-ghost badge-sm">
-            {{if $role}}admin{{else}}user{{end}}-role
-          </span>
+          <span class="badge badge-ghost badge-sm">{{$role}}-role</span>
         </div>
 
         <ul class="flex flex-col gap-2">
@@ -37,8 +35,8 @@
           {{$checked := false}}
           {{if eq $role "admin"}}
             {{$checked = true}}
-          {{else}}
-            {{if index $pages $p}}{{$checked = true}}{{end}}
+          {{else if index $pages $p}}
+            {{$checked = true}}
           {{end}}
           <li>
             <label class="flex items-center gap-3 cursor-pointer select-none p-2 rounded-md hover:bg-base-200/50 transition-colors">
