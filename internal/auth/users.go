@@ -82,6 +82,62 @@ func (s *Service) List(ctx context.Context) ([]User, error) {
 	return out, rows.Err()
 }
 
+// UserView is the lightweight projection of a user we need for the
+// permissions overview — no password hash, no timestamps. Kept in
+// its own type so the template doesn't see a User with a hash field.
+type UserView struct {
+	ID       int
+	Username string
+	FullName string
+	Role     string
+	IsActive bool
+	GID      string
+}
+
+// ListActiveViews returns active users only (for the permissions
+// "users affected" section). Inactive users are hidden because
+// they can't log in anyway — showing them would mislead the
+// admin about who actually uses the configured access.
+func (s *Service) ListActiveViews(ctx context.Context) ([]UserView, error) {
+	rows, err := s.DB.QueryContext(ctx,
+		`SELECT id, username, full_name, role, is_active, gid FROM users WHERE is_active = 1 ORDER BY role, username`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []UserView
+	for rows.Next() {
+		var u UserView
+		if err := rows.Scan(&u.ID, &u.Username, &u.FullName, &u.Role, &u.IsActive, &u.GID); err != nil {
+			return nil, err
+		}
+		out = append(out, u)
+	}
+	return out, rows.Err()
+}
+
+// ActiveCountByRole returns the number of active users per role.
+// Used to render the small "X users affected" badge on each role
+// card in the permissions UI.
+func (s *Service) ActiveCountByRole(ctx context.Context) (map[string]int, error) {
+	rows, err := s.DB.QueryContext(ctx,
+		`SELECT role, COUNT(*) FROM users WHERE is_active = 1 GROUP BY role`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := map[string]int{"admin": 0, "user": 0}
+	for rows.Next() {
+		var r string
+		var n int
+		if err := rows.Scan(&r, &n); err != nil {
+			return nil, err
+		}
+		out[r] = n
+	}
+	return out, rows.Err()
+}
+
 // Create inserts a new user. The GID is whatever the admin typed in the
 // form; an empty input becomes 'n/a' (see normalizeGID). The full name
 // is uppercased on save so 'hiro' and 'Hiro' don't end up mixed in the

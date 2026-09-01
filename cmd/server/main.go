@@ -115,7 +115,7 @@ func run() error {
 
 	// Admin Permissions page (admin only) — manage role page access
 	permsMux := http.NewServeMux()
-	permsMod := auth.NewPermissionsModule(permStore)
+	permsMod := auth.NewPermissionsModule(permStore, authSvc)
 	permsMod.RegisterRoutes(permsMux)
 	protected.Handle("/admin/permissions",
 		web.CSRFValidate(authSvc.Middleware(true, permStore)(auth.RequireRole("admin")(permsMux))))

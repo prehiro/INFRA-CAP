@@ -22,6 +22,16 @@ var tmpl *template.Template
 
 var funcMap = template.FuncMap{
 	"add": func(a, b int) int { return a + b },
+	// Custom append: Go template's `append` is not registered as a
+	// global func by all engines; we ship our own so the template
+	// can build up slices (used by the permissions page to split
+	// active users by role).
+	"append": func(slice []any, vs ...any) []any {
+		out := make([]any, 0, len(slice)+len(vs))
+		out = append(out, slice...)
+		out = append(out, vs...)
+		return out
+	},
 	"trimSuffix": func(s, suf string) string { return strings.TrimSuffix(s, suf) },
 	"sub": func(a, b int) int { return a - b },
 	"div": func(a, b int64) int64 {
@@ -29,6 +39,26 @@ var funcMap = template.FuncMap{
 			return 0
 		}
 		return a / b
+	},
+	"mulf": func(a, b float64) float64 { return a * b },
+	"divf": func(a, b float64) float64 {
+		if b == 0 {
+			return 0
+		}
+		return a / b
+	},
+	"float": func(v any) float64 {
+		switch n := v.(type) {
+		case int:
+			return float64(n)
+		case int64:
+			return float64(n)
+		case float64:
+			return n
+		case float32:
+			return float64(n)
+		}
+		return 0
 	},
 	"seq": func(start, end int) []int {
 		if end < start || end-start > 200 {

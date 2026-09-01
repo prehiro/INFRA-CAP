@@ -1,10 +1,8 @@
 package auth
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
-	"os"
 
 	"infracap/internal/web"
 )
@@ -12,15 +10,17 @@ import (
 // permissionsModule is the /admin/permissions admin page. It lets
 // an admin choose which pages each role can access. The data is
 // stored in the role_permissions table; the PermissionStore is the
-// single source of truth.
+// single source of truth. The authService is used to look up
+// the list of active users so the page can show "users affected".
 type permissionsModule struct {
 	store *PermissionStore
+	auth  *Service
 }
 
 // NewPermissionsModule constructs the module. It is registered in
 // cmd/server/main.go behind an admin-only middleware.
-func NewPermissionsModule(store *PermissionStore) *permissionsModule {
-	return &permissionsModule{store: store}
+func NewPermissionsModule(store *PermissionStore, auth *Service) *permissionsModule {
+	return &permissionsModule{store: store, auth: auth}
 }
 
 // RegisterRoutes wires GET (render) and POST (save) for
@@ -37,19 +37,30 @@ func (m *permissionsModule) index(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	// Look up the active user list so the page can show "users
+	// affected" by these permission settings. We also pull a
+	// per-role count for the badge on each role card.
+	activeUsers, err := m.auth.ListActiveViews(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	roleCounts, err := m.auth.ActiveCountByRole(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	web.RenderNamed(w, r, "permissions_content", "Permissions", map[string]any{
 		"Roles":      []string{"admin", "user"},
 		"AllPages":   AllPages,
 		"PageLabel":  PageLabel,
 		"RoleAccess": all,
+		"ActiveUsers": activeUsers,
+		"RoleCounts": roleCounts,
 		"csrfField":  web.CSRFHiddenField(r),
 	})
-	fmt.Fprintf(os.Stderr, "DEBUG permissions RoleAccess: %+v\n", all)
-	for r, p := range all {
-		for k, v := range p {
-			fmt.Fprintf(os.Stderr, "  %s.%s = %v (%T)\n", r, k, v, v)
-		}
-	}
+	// (debug log removed for the redesign pass)
+	_ = activeUsers
 }
 
 // save replaces the access set for one role. The POST body uses
