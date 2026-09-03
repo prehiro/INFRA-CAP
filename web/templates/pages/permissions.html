@@ -13,7 +13,7 @@
 {{end}}
 {{$totalActive := len $ActiveUsers}}
 
-<div class="flex flex-col h-[calc(100vh-7rem)] overflow-hidden gap-4 perm-page-root"
+<div class="flex flex-col h-[calc(100vh-7rem)] min-h-0 overflow-y-auto gap-4 perm-page-root"
      x-data="{ open: false, content: '', loading: false }"
      @perm-close-drawer="open = false"
      @keydown.escape.window="open = false">
@@ -140,11 +140,15 @@
   </div>
 
   {{/* ============== MAIN SCROLLABLE AREA ============== */}}
+  {{/* The page-root itself owns the vertical scroll (overflow-y-auto
+       on .perm-page-root). Both columns are overflow-visible so they
+       never show their own scrollbar on a normal viewport; if content
+       exceeds viewport height, the WHOLE page scrolls instead. */}}
   <div class="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-5 gap-4 perm-fade-in-delay">
 
     {{/* ---- LEFT: Role permission cards ---- */}}
-    <div class="lg:col-span-3 min-h-0 overflow-y-auto pr-1">
-      <div class="flex items-center justify-between mb-3">
+    <div class="lg:col-span-3 min-w-0 flex flex-col gap-3">
+      <div class="flex items-center justify-between">
         <h2 class="text-sm font-semibold text-base-content/70 flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
@@ -247,8 +251,11 @@
     </div>
 
     {{/* ---- RIGHT: Active users panel ---- */}}
-    <div class="lg:col-span-2 min-h-0 flex flex-col">
-      <div class="flex items-center justify-between mb-3">
+    {{/* Owns its own internal scroll (overflow-y-auto on the user list)
+       because the user roster can be much longer than the viewport.
+       No scrollbar on the column header / section title. */}}
+    <div class="lg:col-span-2 min-w-0 flex flex-col gap-3 min-h-0">
+      <div class="flex items-center justify-between">
         <h2 class="text-sm font-semibold text-base-content/70 flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
@@ -258,7 +265,7 @@
         <span class="text-[10px] uppercase tracking-wider text-base-content/40">hidden if deactivated</span>
       </div>
 
-      <div class="perm-users-card flex-1 min-h-0 border border-base-300/70 overflow-hidden flex flex-col">
+      <div class="perm-users-card flex-1 min-h-0 border border-base-300/70 rounded-box overflow-hidden flex flex-col">
         {{if eq $totalActive 0}}
           <div class="flex-1 flex flex-col items-center justify-center text-center p-8 gap-3">
             <div class="w-12 h-12 rounded-full bg-base-200/60 flex items-center justify-center">

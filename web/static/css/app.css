@@ -50748,6 +50748,63 @@
   .perm-user-list > *:nth-child(n+9) {
     animation-delay: 0.42s;
   }
+  .perm-page-root {
+    scrollbar-gutter: stable;
+    padding-bottom: 0.5rem;
+  }
+  .perm-user-list {
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-base-content) transparent;
+    @supports (color: color-mix(in lab, red, red)) {
+      scrollbar-color: color-mix(in oklab, var(--color-base-content) 20%, transparent) transparent;
+    }
+  }
+  .perm-user-list::-webkit-scrollbar {
+    width: 6px;
+  }
+  .perm-user-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .perm-user-list::-webkit-scrollbar-thumb {
+    background: var(--color-base-content);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in oklab, var(--color-base-content) 18%, transparent);
+    }
+    border-radius: 9999px;
+  }
+  .perm-user-list::-webkit-scrollbar-thumb:hover {
+    background: var(--color-base-content);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in oklab, var(--color-base-content) 32%, transparent);
+    }
+  }
+  .perm-page-root {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-base-content) transparent;
+    @supports (color: color-mix(in lab, red, red)) {
+      scrollbar-color: color-mix(in oklab, var(--color-base-content) 20%, transparent) transparent;
+    }
+  }
+  .perm-page-root::-webkit-scrollbar {
+    width: 8px;
+  }
+  .perm-page-root::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .perm-page-root::-webkit-scrollbar-thumb {
+    background: var(--color-base-content);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in oklab, var(--color-base-content) 18%, transparent);
+    }
+    border-radius: 9999px;
+  }
+  .perm-page-root::-webkit-scrollbar-thumb:hover {
+    background: var(--color-base-content);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in oklab, var(--color-base-content) 32%, transparent);
+    }
+  }
   .perm-stat-card {
     position: relative;
     background: var(--color-base-100);

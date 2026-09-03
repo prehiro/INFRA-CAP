@@ -527,6 +527,48 @@
   .perm-user-list > *:nth-child(n+9){ animation-delay: 0.42s; }
 }
 
+/* ---------- scrollbar tuning ---------- */
+@layer components {
+  /* The page-root owns its own vertical scroll. scrollbar-gutter
+     reserves space for the scrollbar so content doesn't shift when
+     a scrollbar appears/disappears. */
+  .perm-page-root {
+    scrollbar-gutter: stable;
+    padding-bottom: 0.5rem; /* breathing room for the last card */
+  }
+  /* The user list inside Active users panel: own scroll only here.
+     Slim scrollbar styling so it doesn't look heavy next to the
+     Role access matrix column (which has no scrollbar). */
+  .perm-user-list {
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--color-base-content) 20%, transparent) transparent;
+  }
+  .perm-user-list::-webkit-scrollbar { width: 6px; }
+  .perm-user-list::-webkit-scrollbar-track { background: transparent; }
+  .perm-user-list::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--color-base-content) 18%, transparent);
+    border-radius: 9999px;
+  }
+  .perm-user-list::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklab, var(--color-base-content) 32%, transparent);
+  }
+  /* Page-root slim scrollbar too, so when it appears it matches. */
+  .perm-page-root {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--color-base-content) 20%, transparent) transparent;
+  }
+  .perm-page-root::-webkit-scrollbar { width: 8px; }
+  .perm-page-root::-webkit-scrollbar-track { background: transparent; }
+  .perm-page-root::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--color-base-content) 18%, transparent);
+    border-radius: 9999px;
+  }
+  .perm-page-root::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklab, var(--color-base-content) 32%, transparent);
+  }
+}
+
 /* ---------- stat cards ---------- */
 @layer components {
   .perm-stat-card {
