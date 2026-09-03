@@ -903,17 +903,25 @@
     100% { transform: scale(1.3); opacity: 0;    }
   }
 
-  /* the header itself: ensure the corner live-dot and its pulse
-     ring are never clipped by the .perm-page-root overflow-hidden
-     ancestor, and give the row a small top/bottom breathing room
-     so the 8px ring extension is fully visible. */
+  /* the header itself: overflow visible so any decorative effects
+     on the icon (live-dot pulse, etc.) aren't clipped by the
+     .perm-page-root overflow-hidden ancestor. */
   .perm-header {
     overflow: visible;
-    padding: 0.25rem 0;
-    margin: -0.25rem 0; /* compensate the padding so layout stays the same */
   }
+  /* the icon badge:
+     - explicit inset border (1px) so the badge's visual footprint
+       is exactly 44x44 — no outside ring/shadow extension that
+       would be clipped by page edges or .perm-page-root's
+       overflow-hidden ancestor.
+     - overflow visible so the pulse halo on the corner live-dot
+       never gets clipped. */
   .perm-icon-badge {
     overflow: visible;
+    box-shadow:
+      inset 0 0 0 1px color-mix(in oklab, var(--color-primary) 20%, transparent),
+      0 1px 2px 0 rgb(0 0 0 / 0.06),
+      0 1px 3px 0 rgb(0 0 0 / 0.08);
   }
   @media (prefers-reduced-motion: reduce) {
     .perm-live-dot::after,

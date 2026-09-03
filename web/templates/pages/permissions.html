@@ -45,11 +45,14 @@
   {{/* ============== PAGE HEADER ============== */}}
   {{/* perm-header: explicit overflow-visible so the absolute-positioned
        pulse-ring on .perm-live-dot (which extends ~8px past the icon)
-       does NOT get clipped by .perm-page-root's overflow-hidden. */}}
+       does NOT get clipped by .perm-page-root's overflow-hidden.
+       The icon badge uses ring-inset so the 1px ring sits INSIDE the
+       44x44 box instead of outside, keeping the visual footprint
+       exactly 44x44 and never clipping against page edges. */}}
   <div class="perm-header shrink-0 flex items-center justify-between gap-4 perm-fade-in">
     <div class="flex items-center gap-3 min-w-0 flex-1">
-      <div class="perm-icon-badge relative inline-flex items-center justify-center w-11 h-11 shrink-0 rounded-box bg-gradient-to-br from-primary/15 via-primary/8 to-primary/5 ring-1 ring-primary/20 shadow-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <div class="perm-icon-badge relative inline-flex items-center justify-center w-11 h-11 shrink-0 rounded-box bg-gradient-to-br from-primary/15 via-primary/8 to-primary/5 shadow-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="relative w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
           <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
         </svg>
