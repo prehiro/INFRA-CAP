@@ -863,7 +863,7 @@
 @layer components {
   @keyframes perm-pulse-ring {
     0%   { transform: scale(0.8); opacity: 0.6; }
-    100% { transform: scale(2);   opacity: 0;   }
+    100% { transform: scale(1.9); opacity: 0;   }
   }
   .perm-live-dot {
     position: relative;
@@ -872,6 +872,7 @@
     height: 0.5rem;
     border-radius: 9999px;
     background: var(--color-success);
+    flex-shrink: 0;
   }
   .perm-live-dot::after {
     content: "";
@@ -880,5 +881,42 @@
     border-radius: 9999px;
     background: var(--color-success);
     animation: perm-pulse-ring 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+  /* corner variant: live dot sitting on top-right of icon badge.
+     Kept INSIDE the icon's bounding box (no negative offsets) so the
+     ancestor's overflow-hidden doesn't clip the pulse ring. */
+  .perm-live-dot-corner {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 0.4rem;   /* ~6.4px */
+    height: 0.4rem;
+    box-shadow: 0 0 0 2px var(--color-base-100);
+  }
+  .perm-live-dot-corner::after {
+    /* corner variant keeps the pulse halo very tight (max scale 1.3)
+       so the 6.4px ring never exceeds the 44px icon box. */
+    animation: perm-pulse-ring-corner 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+  @keyframes perm-pulse-ring-corner {
+    0%   { transform: scale(0.8); opacity: 0.55; }
+    100% { transform: scale(1.3); opacity: 0;    }
+  }
+
+  /* the header itself: ensure the corner live-dot and its pulse
+     ring are never clipped by the .perm-page-root overflow-hidden
+     ancestor, and give the row a small top/bottom breathing room
+     so the 8px ring extension is fully visible. */
+  .perm-header {
+    overflow: visible;
+    padding: 0.25rem 0;
+    margin: -0.25rem 0; /* compensate the padding so layout stays the same */
+  }
+  .perm-icon-badge {
+    overflow: visible;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .perm-live-dot::after,
+    .perm-live-dot-corner::after { animation: none; opacity: 0; }
   }
 }
