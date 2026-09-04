@@ -288,10 +288,14 @@
                     hx-swap="innerHTML"
                     hx-trigger="click"
                     @click="open = true"
+                    title="{{if .IsOnline}}Online · has an active session{{else}}Offline · no active session{{end}}"
                     class="perm-user-row flex items-center gap-3 px-4 py-2.5 border-b border-base-200/60 last:border-0 w-full text-left cursor-pointer">
               <div class="perm-avatar {{if eq .Role "admin"}}perm-avatar-admin{{else}}perm-avatar-user{{end}} shrink-0">
                 <span>{{slice .FullName 0 1}}</span>
-                <span class="perm-avatar-dot"></span>
+                {{/* Status dot: green when the user has at least one
+                   non-expired session, grey otherwise. Tooltip via
+                   the parent button's title attribute. */}}
+                <span class="perm-avatar-dot {{if .IsOnline}}perm-avatar-dot-online{{else}}perm-avatar-dot-offline{{end}}"></span>
               </div>
               <div class="flex-1 min-w-0">
                 <div class="text-sm font-medium truncate">{{if .FullName}}{{.FullName}}{{else}}{{.Username}}{{end}}</div>
@@ -304,11 +308,19 @@
             </button>
             {{end}}
           </div>
+          {{/* Footer: shows online count of active users so the admin
+             can see at a glance how many are actually signed in. */}}
           <div class="shrink-0 px-4 py-2.5 border-t border-base-200/60 bg-base-200/30 text-[10px] uppercase tracking-wider text-base-content/40 flex items-center justify-between">
-            <span>{{$totalActive}} {{if eq $totalActive 1}}user{{else}}users{{end}}</span>
+            <span>
+              {{$online := 0}}
+              {{range $ActiveUsers}}{{if .IsOnline}}{{$online = add $online 1}}{{end}}{{end}}
+              {{$online}}/{{$totalActive}} online
+            </span>
             <span class="flex items-center gap-1">
-              <span class="perm-live-dot"></span>
-              All active
+              <span class="perm-avatar-dot perm-avatar-dot-online"></span>
+              <span class="mr-2">online</span>
+              <span class="perm-avatar-dot perm-avatar-dot-offline"></span>
+              <span>offline</span>
             </span>
           </div>
         {{end}}
@@ -338,10 +350,15 @@
     <div class="flex items-center gap-3 min-w-0">
       <div class="perm-avatar {{if eq $User.Role "admin"}}perm-avatar-admin{{else}}perm-avatar-user{{end}} shrink-0">
         <span>{{slice $User.FullName 0 1}}</span>
-        <span class="perm-avatar-dot"></span>
+        <span class="perm-avatar-dot {{if .IsOnline}}perm-avatar-dot-online{{else}}perm-avatar-dot-offline{{end}}"></span>
       </div>
       <div class="min-w-0">
-        <div class="text-sm font-semibold truncate">{{$User.FullName}}</div>
+        <div class="text-sm font-semibold truncate flex items-center gap-2">
+          {{$User.FullName}}
+          <span class="text-[10px] uppercase tracking-wider font-semibold {{if .IsOnline}}text-success{{else}}text-base-content/40{{end}}">
+            {{if .IsOnline}}online{{else}}offline{{end}}
+          </span>
+        </div>
         <div class="text-[11px] text-base-content/50 font-mono truncate">@{{$User.Username}}{{if $User.GID}} · {{$User.GID}}{{end}}</div>
       </div>
     </div>

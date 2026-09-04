@@ -859,7 +859,10 @@
   .perm-user-row:hover .perm-avatar {
     transform: scale(1.08) rotate(-4deg);
   }
-  /* status dot bottom-right */
+  /* status dot bottom-right.
+     - online (default + .perm-avatar-dot-online): green dot with
+       a subtle outer ring shadow.
+     - offline (.perm-avatar-dot-offline): grey dot, no ring shadow. */
   .perm-avatar-dot {
     position: absolute;
     bottom: 0;
@@ -870,6 +873,10 @@
     background: var(--color-success);
     border: 2px solid var(--color-base-100);
     box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-success) 25%, transparent);
+  }
+  .perm-avatar-dot-offline {
+    background: color-mix(in oklab, var(--color-base-content) 35%, transparent);
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-base-content) 10%, transparent);
   }
 }
 

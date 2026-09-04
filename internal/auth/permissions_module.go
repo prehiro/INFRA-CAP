@@ -82,12 +82,15 @@ func (m *permissionsModule) userAccess(w http.ResponseWriter, r *http.Request) {
 	}
 	roleAccess, _ := m.store.PageAccessForRole(r.Context(), user.Role)
 	overrides, _ := m.store.UserAccess(r.Context(), id)
+	// isOnline drives the avatar status dot in the drawer header.
+	isOnline, _ := m.auth.IsUserOnline(r.Context(), id)
 	web.RenderNamed(w, r, "user_access_content", user.Username, map[string]any{
 		"User":         user,
 		"RoleAccess":   roleAccess,
 		"Overrides":    overrides,
 		"AllPages":     AllPages,
 		"PageLabel":    PageLabel,
+		"IsOnline":     isOnline,
 		"csrfField":    web.CSRFHiddenField(r),
 	})
 }

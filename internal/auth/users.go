@@ -92,15 +92,31 @@ type UserView struct {
 	Role     string
 	IsActive bool
 	GID      string
+	// IsOnline = true when the user has at least one non-expired
+	// session row in the sessions table. Drives the green/grey
+	// status dot on the Active users list.
+	IsOnline bool
 }
 
 // ListActiveViews returns active users only (for the permissions
 // "users affected" section). Inactive users are hidden because
 // they can't log in anyway — showing them would mislead the
 // admin about who actually uses the configured access.
+//
+// IsOnline is computed by LEFT JOINing the sessions table and
+// checking for any non-expired row for the user. The MAX(s.expires_at)
+// > SYSUTCDATETIME() check is technically redundant with EXISTS but
+// is clearer to read in the query plan.
 func (s *Service) ListActiveViews(ctx context.Context) ([]UserView, error) {
 	rows, err := s.DB.QueryContext(ctx,
-		`SELECT id, username, full_name, role, is_active, gid FROM users WHERE is_active = 1 ORDER BY role, username`)
+		`SELECT u.id, u.username, u.full_name, u.role, u.is_active, u.gid,
+		        CASE WHEN EXISTS(
+		            SELECT 1 FROM sessions s
+		            WHERE s.user_id = u.id AND s.expires_at > SYSUTCDATETIME()
+		        ) THEN 1 ELSE 0 END
+		 FROM users u
+		 WHERE u.is_active = 1
+		 ORDER BY u.role, u.username`)
 	if err != nil {
 		return nil, err
 	}
@@ -108,9 +124,11 @@ func (s *Service) ListActiveViews(ctx context.Context) ([]UserView, error) {
 	var out []UserView
 	for rows.Next() {
 		var u UserView
-		if err := rows.Scan(&u.ID, &u.Username, &u.FullName, &u.Role, &u.IsActive, &u.GID); err != nil {
+		var onlineBit int
+		if err := rows.Scan(&u.ID, &u.Username, &u.FullName, &u.Role, &u.IsActive, &u.GID, &onlineBit); err != nil {
 			return nil, err
 		}
+		u.IsOnline = onlineBit == 1
 		out = append(out, u)
 	}
 	return out, rows.Err()
@@ -187,6 +205,21 @@ func (s *Service) SetActive(ctx context.Context, id int, isActive bool) error {
 		`UPDATE users SET is_active=@p1, updated_at=SYSUTCDATETIME() WHERE id=@p2`,
 		isActive, id)
 	return err
+}
+
+// IsUserOnline reports whether the given user has at least one
+// non-expired session in the database. Used by the permissions UI
+// to color the avatar status dot green vs grey.
+func (s *Service) IsUserOnline(ctx context.Context, userID int) (bool, error) {
+	var n int
+	err := s.DB.QueryRowContext(ctx,
+		`SELECT CASE WHEN EXISTS(
+		    SELECT 1 FROM sessions WHERE user_id = @p1 AND expires_at > SYSUTCDATETIME()
+		 ) THEN 1 ELSE 0 END`, userID).Scan(&n)
+	if err != nil {
+		return false, err
+	}
+	return n == 1, nil
 }
 
 // GetByID fetches a single user.
