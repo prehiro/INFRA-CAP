@@ -23,6 +23,7 @@
     --container-2xl: 42rem;
     --container-3xl: 48rem;
     --container-6xl: 72rem;
+    --container-7xl: 80rem;
     --text-xs: 0.75rem;
     --text-xs--line-height: calc(1 / 0.75);
     --text-sm: 0.875rem;
@@ -568,6 +569,9 @@
   .max-w-6xl {
     max-width: var(--container-6xl);
   }
+  .max-w-7xl {
+    max-width: var(--container-7xl);
+  }
   .max-w-\[220px\] {
     max-width: 220px;
   }
@@ -1020,9 +1024,6 @@
   .py-5 {
     padding-block: calc(var(--spacing) * 5);
   }
-  .py-10 {
-    padding-block: calc(var(--spacing) * 10);
-  }
   .py-16 {
     padding-block: calc(var(--spacing) * 16);
   }
@@ -1142,10 +1143,6 @@
   .font-bold {
     --tw-font-weight: var(--font-weight-bold);
     font-weight: var(--font-weight-bold);
-  }
-  .font-extrabold {
-    --tw-font-weight: var(--font-weight-extrabold);
-    font-weight: var(--font-weight-extrabold);
   }
   .font-medium {
     --tw-font-weight: var(--font-weight-medium);
@@ -1372,10 +1369,6 @@
     .hover\:opacity-100:hover {
       opacity: 100%;
     }
-    .hover\:shadow-md:hover {
-      --tw-shadow: 0 4px 6px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 2px 4px -2px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
-      box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
-    }
     .hover\:ring-2:hover {
       --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
       box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
@@ -1478,8 +1471,20 @@
     }
   }
   @media (width >= 80rem) {
+    .xl\:col-span-5 {
+      grid-column: span 5 / span 5;
+    }
+    .xl\:col-span-7 {
+      grid-column: span 7 / span 7;
+    }
     .xl\:grid-cols-4 {
       grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .xl\:grid-cols-6 {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+    .xl\:grid-cols-12 {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
     }
   }
 }
@@ -51331,16 +51336,20 @@
   }
   .dash-stat-card {
     position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
     background: var(--color-base-100);
     border: 1px solid var(--color-base-300);
     @supports (color: color-mix(in lab, red, red)) {
       border: 1px solid color-mix(in oklab, var(--color-base-300) 70%, transparent);
     }
     border-radius: var(--radius-box, 0.75rem);
-    padding: 0.875rem 1rem;
+    padding: 1rem 1.125rem;
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.5);
     transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, border-color 0.25s ease;
     overflow: hidden;
+    min-height: 7.5rem;
   }
   .dash-stat-card::before {
     content: "";
@@ -51368,15 +51377,41 @@
   .dash-stat-card:hover::before {
     opacity: 1;
   }
+  .dash-stat-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .dash-stat-label {
+    font-size: 0.6875rem;
+    line-height: 1.1;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-base-content);
+    @supports (color: color-mix(in lab, red, red)) {
+      color: color-mix(in oklab, var(--color-base-content) 45%, transparent);
+    }
+    font-weight: 600;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
   .dash-stat-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 1.625rem;
+    height: 1.625rem;
     border-radius: 0.5rem;
     flex-shrink: 0;
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .dash-stat-icon svg {
+    width: 0.875rem;
+    height: 0.875rem;
   }
   .dash-stat-card:hover .dash-stat-icon {
     transform: rotate(-6deg) scale(1.1);
@@ -51426,6 +51461,32 @@
       color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
     }
   }
+  .dash-stat-value {
+    font-size: 1.875rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .dash-stat-hint {
+    font-size: 0.6875rem;
+    color: var(--color-base-content);
+    @supports (color: color-mix(in lab, red, red)) {
+      color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
+    }
+    line-height: 1.2;
+    margin-top: -0.125rem;
+  }
+  .dash-stat-bar {
+    height: 0.25rem;
+    border-radius: 9999px;
+    background: var(--color-base-300);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in oklab, var(--color-base-300) 60%, transparent);
+    }
+    overflow: hidden;
+    margin-top: auto;
+  }
   @keyframes dash-bar-grow {
     from {
       transform: scaleX(0);
@@ -51438,6 +51499,8 @@
     transform-origin: left center;
     animation: dash-bar-grow 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 0.20s both;
     width: var(--bar-pct, 0%);
+    height: 100%;
+    border-radius: 9999px;
   }
   .dash-bar-primary {
     background: linear-gradient(90deg, var(--color-primary), var(--color-primary));
@@ -51482,8 +51545,79 @@
       border: 1px solid color-mix(in oklab, var(--color-base-300) 70%, transparent);
     }
     border-radius: var(--radius-box, 0.75rem);
-    padding: 1.25rem 1.25rem;
+    padding: 1.25rem 1.5rem;
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    display: flex;
+    flex-direction: column;
+  }
+  .dash-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .dash-panel-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-base-content);
+    @supports (color: color-mix(in lab, red, red)) {
+      color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
+    }
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .dash-panel-title svg {
+    width: 1rem;
+    height: 1rem;
+  }
+  .dash-panel-badge {
+    margin-left: 0.25rem;
+    font-size: 0.6875rem;
+    color: var(--color-base-content);
+    @supports (color: color-mix(in lab, red, red)) {
+      color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
+    }
+    font-weight: 400;
+  }
+  .dash-panel-meta {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-base-content);
+    @supports (color: color-mix(in lab, red, red)) {
+      color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
+    }
+  }
+  .dash-panel-link {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-primary);
+    text-decoration: none;
+  }
+  .dash-panel-link:hover {
+    text-decoration: underline;
+  }
+  .dash-stack {
+    display: flex;
+    height: 0.625rem;
+    width: 100%;
+    border-radius: 9999px;
+    overflow: hidden;
+    background: var(--color-base-300);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in oklab, var(--color-base-300) 60%, transparent);
+    }
+    margin-bottom: 1.25rem;
+  }
+  .dash-stack-seg {
+    height: 100%;
+    transition: filter 0.2s ease;
+  }
+  .dash-stack-seg:hover {
+    filter: brightness(1.1);
   }
   .dash-stack-success {
     background: var(--color-success);
@@ -51498,6 +51632,31 @@
     background: var(--color-base-content);
     @supports (color: color-mix(in lab, red, red)) {
       background: color-mix(in oklab, var(--color-base-content) 30%, transparent);
+    }
+  }
+  .dash-stack-empty {
+    background: var(--color-base-300);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in oklab, var(--color-base-300) 80%, transparent);
+    }
+  }
+  .dash-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .dash-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.375rem 0.5rem;
+    border-radius: 0.375rem;
+    transition: background-color 0.15s ease;
+  }
+  .dash-legend-item:hover {
+    background: var(--color-primary);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in oklab, var(--color-primary) 4%, transparent);
     }
   }
   .dash-legend-dot {
@@ -51522,9 +51681,37 @@
       background: color-mix(in oklab, var(--color-base-content) 35%, transparent);
     }
   }
+  .dash-legend-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    flex: 1;
+    min-width: 0;
+  }
+  .dash-legend-count {
+    font-size: 0.875rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .dash-legend-pct {
+    font-size: 0.6875rem;
+    color: var(--color-base-content);
+    @supports (color: color-mix(in lab, red, red)) {
+      color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
+    }
+    font-variant-numeric: tabular-nums;
+    width: 2.5rem;
+    text-align: right;
+  }
+  .dash-expiring {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
   .dash-expiring-row {
-    display: block;
-    padding: 0.625rem 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 0.625rem 0.875rem;
     border-radius: 0.5rem;
     border: 1px solid var(--color-base-300);
     @supports (color: color-mix(in lab, red, red)) {
@@ -51532,7 +51719,7 @@
     }
     background: var(--color-base-100);
     transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
-    cursor: default;
+    min-height: 3.25rem;
   }
   .dash-expiring-row:hover {
     background: var(--color-primary);
@@ -51550,11 +51737,23 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-width: 3.25rem;
-    padding: 0.25rem 0.5rem;
+    width: 3.5rem;
+    padding: 0.375rem 0.25rem;
     border-radius: 0.5rem;
     flex-shrink: 0;
-    line-height: 1.1;
+    line-height: 1.05;
+  }
+  .dash-urgency-num {
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+  .dash-urgency-unit {
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.75;
   }
   .dash-urgency-ok .dash-urgency-pill {
     background: var(--color-success);
@@ -51594,6 +51793,63 @@
       color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
     }
   }
+  .dash-expiring-body {
+    flex: 1;
+    min-width: 0;
+  }
+  .dash-expiring-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .dash-expiring-software {
+    color: var(--color-base-content);
+  }
+  .dash-expiring-maker {
+    color: var(--color-base-content);
+    @supports (color: color-mix(in lab, red, red)) {
+      color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
+    }
+    font-weight: 400;
+  }
+  .dash-expiring-meta {
+    font-size: 0.6875rem;
+    color: var(--color-base-content);
+    @supports (color: color-mix(in lab, red, red)) {
+      color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
+    }
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-top: 0.125rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .dash-expiring-sep {
+    color: var(--color-base-content);
+    @supports (color: color-mix(in lab, red, red)) {
+      color: color-mix(in oklab, var(--color-base-content) 25%, transparent);
+    }
+  }
+  .dash-expiring-date {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .dash-expiring-status {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-base-content);
+    @supports (color: color-mix(in lab, red, red)) {
+      color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
+    }
+    font-weight: 500;
+    flex-shrink: 0;
+  }
   .dash-empty {
     display: flex;
     flex-direction: column;
@@ -51601,13 +51857,45 @@
     justify-content: center;
     text-align: center;
     padding: 2.5rem 1rem;
-    gap: 0.75rem;
+    gap: 0.625rem;
+    min-height: 8rem;
+  }
+  .dash-empty-icon {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 9999px;
+    background: var(--color-base-300);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in oklab, var(--color-base-300) 60%, transparent);
+    }
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .dash-empty-icon svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--color-base-content);
+    @supports (color: color-mix(in lab, red, red)) {
+      color: color-mix(in oklab, var(--color-base-content) 30%, transparent);
+    }
+  }
+  .dash-empty-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  .dash-empty-sub {
+    font-size: 0.75rem;
+    color: var(--color-base-content);
+    @supports (color: color-mix(in lab, red, red)) {
+      color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
+    }
   }
   .dash-quick-card {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.875rem 1rem;
+    gap: 0.875rem;
+    padding: 1rem 1.25rem;
     background: var(--color-base-100);
     border: 1px solid var(--color-base-300);
     @supports (color: color-mix(in lab, red, red)) {
@@ -51618,6 +51906,7 @@
     transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.25s ease, box-shadow 0.25s ease;
     text-decoration: none;
     color: inherit;
+    min-height: 4.5rem;
   }
   .dash-quick-card:hover {
     transform: translateY(-2px);
@@ -51634,11 +51923,15 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: 0.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.625rem;
     flex-shrink: 0;
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .dash-quick-icon svg {
+    width: 1.125rem;
+    height: 1.125rem;
   }
   .dash-quick-card:hover .dash-quick-icon {
     transform: rotate(-6deg) scale(1.1);
@@ -51670,6 +51963,40 @@
       background: color-mix(in oklab, var(--color-warning) 14%, transparent);
     }
     color: var(--color-warning);
+  }
+  .dash-quick-body {
+    flex: 1;
+    min-width: 0;
+  }
+  .dash-quick-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .dash-quick-sub {
+    font-size: 0.75rem;
+    color: var(--color-base-content);
+    @supports (color: color-mix(in lab, red, red)) {
+      color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
+    }
+    margin-top: 0.125rem;
+  }
+  .dash-quick-chevron {
+    width: 1rem;
+    height: 1rem;
+    color: var(--color-base-content);
+    @supports (color: color-mix(in lab, red, red)) {
+      color: color-mix(in oklab, var(--color-base-content) 30%, transparent);
+    }
+    flex-shrink: 0;
+    transition: color 0.2s ease, transform 0.2s ease;
+  }
+  .dash-quick-card:hover .dash-quick-chevron {
+    color: var(--color-primary);
+    transform: translateX(2px);
   }
 }
 @property --tw-translate-x {

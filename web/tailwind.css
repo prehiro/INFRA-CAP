@@ -1004,7 +1004,9 @@
 
 /* ============================================================
    DASHBOARD — professional overview layout
-   Stat tiles, status distribution, expiring list, quick actions
+   Stat tiles, status distribution, expiring list, quick actions.
+   Layout uses an explicit 12-col grid at xl breakpoint so the
+   left/right edges of every section line up.
    ============================================================ */
 
 @layer components {
@@ -1013,7 +1015,7 @@
     from { opacity: 0; transform: translateY(14px); filter: blur(4px); }
     to   { opacity: 1; transform: translateY(0);    filter: blur(0); }
   }
-  .dashboard-fade-in { animation: dash-fade-up 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+  .dashboard-fade-in      { animation: dash-fade-up 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
   .dashboard-fade-in-delay-1 { animation: dash-fade-up 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both; animation-delay: 0.10s; }
   .dashboard-fade-in-delay-2 { animation: dash-fade-up 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both; animation-delay: 0.20s; }
 
@@ -1027,19 +1029,30 @@
   .dashboard-stagger > *:nth-child(5) { animation-delay: 0.20s; }
   .dashboard-stagger > *:nth-child(6) { animation-delay: 0.24s; }
 
-  /* ---------- stat tile ---------- */
+  /* ---------- root container ---------- */
+  .dashboard-root {
+    /* the root uses max-w-7xl from the template; the inner panels
+       share the same horizontal padding (1.25rem) so all left/right
+       edges align visually. */
+  }
+
+  /* ============== STAT TILES ============== */
   .dash-stat-card {
     position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
     background: var(--color-base-100);
     border: 1px solid color-mix(in oklab, var(--color-base-300) 70%, transparent);
     border-radius: var(--radius-box, 0.75rem);
-    padding: 0.875rem 1rem;
+    padding: 1rem 1.125rem;
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04),
                 inset 0 1px 0 rgba(255, 255, 255, 0.5);
     transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
                 box-shadow 0.25s ease,
                 border-color 0.25s ease;
     overflow: hidden;
+    min-height: 7.5rem; /* keep all 6 tiles the same height */
   }
   .dash-stat-card::before {
     content: "";
@@ -1060,16 +1073,38 @@
   }
   .dash-stat-card:hover::before { opacity: 1; }
 
+  /* the top row: label on the left, icon chip on the right */
+  .dash-stat-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .dash-stat-label {
+    font-size: 0.6875rem;        /* 11px */
+    line-height: 1.1;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: color-mix(in oklab, var(--color-base-content) 45%, transparent);
+    font-weight: 600;
+    /* two-line clamp for long labels like "Expiring ≤ 30d" */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
   .dash-stat-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 1.625rem;            /* 26px */
+    height: 1.625rem;
     border-radius: 0.5rem;
     flex-shrink: 0;
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
+  .dash-stat-icon svg { width: 0.875rem; height: 0.875rem; }   /* 14px */
   .dash-stat-card:hover .dash-stat-icon { transform: rotate(-6deg) scale(1.1); }
 
   .dash-stat-icon-primary  { background: color-mix(in oklab, var(--color-primary) 12%, transparent);  color: var(--color-primary); }
@@ -1079,7 +1114,26 @@
   .dash-stat-icon-error    { background: color-mix(in oklab, var(--color-error) 14%, transparent);    color: var(--color-error); }
   .dash-stat-icon-neutral  { background: color-mix(in oklab, var(--color-base-content) 10%, transparent); color: color-mix(in oklab, var(--color-base-content) 60%, transparent); }
 
-  /* progress bar fill animation per tone */
+  .dash-stat-value {
+    font-size: 1.875rem;        /* 30px */
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .dash-stat-hint {
+    font-size: 0.6875rem;
+    color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
+    line-height: 1.2;
+    margin-top: -0.125rem;
+  }
+  .dash-stat-bar {
+    height: 0.25rem;             /* 4px */
+    border-radius: 9999px;
+    background: color-mix(in oklab, var(--color-base-300) 60%, transparent);
+    overflow: hidden;
+    margin-top: auto;            /* push to bottom so the bar aligns across tiles */
+  }
   @keyframes dash-bar-grow {
     from { transform: scaleX(0); }
     to   { transform: scaleX(1); }
@@ -1088,6 +1142,8 @@
     transform-origin: left center;
     animation: dash-bar-grow 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 0.20s both;
     width: var(--bar-pct, 0%);
+    height: 100%;
+    border-radius: 9999px;
   }
   .dash-bar-primary { background: linear-gradient(90deg, var(--color-primary), color-mix(in oklab, var(--color-primary) 70%, transparent)); }
   .dash-bar-success { background: linear-gradient(90deg, var(--color-success), color-mix(in oklab, var(--color-success) 70%, transparent)); }
@@ -1096,23 +1152,92 @@
   .dash-bar-error   { background: linear-gradient(90deg, var(--color-error),   color-mix(in oklab, var(--color-error)   70%, transparent)); }
   .dash-bar-neutral { background: linear-gradient(90deg, color-mix(in oklab, var(--color-base-content) 35%, transparent), color-mix(in oklab, var(--color-base-content) 20%, transparent)); }
 
-  /* ---------- panels (status distribution, expiring) ---------- */
+  /* ============== PANELS (shared container) ============== */
   .dash-panel {
     background: var(--color-base-100);
     border: 1px solid color-mix(in oklab, var(--color-base-300) 70%, transparent);
     border-radius: var(--radius-box, 0.75rem);
-    padding: 1.25rem 1.25rem;
+    padding: 1.25rem 1.5rem;
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04),
                 inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    display: flex;
+    flex-direction: column;
   }
+  .dash-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .dash-panel-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .dash-panel-title svg { width: 1rem; height: 1rem; }
+  .dash-panel-badge {
+    margin-left: 0.25rem;
+    font-size: 0.6875rem;
+    color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
+    font-weight: 400;
+  }
+  .dash-panel-meta {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
+  }
+  .dash-panel-link {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-primary);
+    text-decoration: none;
+  }
+  .dash-panel-link:hover { text-decoration: underline; }
 
-  /* status stacked bar slices */
+  /* ============== STATUS STACKED BAR ============== */
+  .dash-stack {
+    display: flex;
+    height: 0.625rem;           /* 10px */
+    width: 100%;
+    border-radius: 9999px;
+    overflow: hidden;
+    background: color-mix(in oklab, var(--color-base-300) 60%, transparent);
+    margin-bottom: 1.25rem;
+  }
+  .dash-stack-seg {
+    height: 100%;
+    transition: filter 0.2s ease;
+  }
+  .dash-stack-seg:hover { filter: brightness(1.1); }
   .dash-stack-success { background: var(--color-success); }
   .dash-stack-info    { background: var(--color-info); }
   .dash-stack-error   { background: var(--color-error); }
   .dash-stack-neutral { background: color-mix(in oklab, var(--color-base-content) 30%, transparent); }
+  .dash-stack-empty   { background: color-mix(in oklab, var(--color-base-300) 80%, transparent); }
 
-  /* legend dots */
+  /* ============== LEGEND LIST ============== */
+  .dash-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .dash-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.375rem 0.5rem;
+    border-radius: 0.375rem;
+    transition: background-color 0.15s ease;
+  }
+  .dash-legend-item:hover {
+    background: color-mix(in oklab, var(--color-primary) 4%, transparent);
+  }
   .dash-legend-dot {
     display: inline-block;
     width: 0.625rem;
@@ -1124,18 +1249,43 @@
   .dash-legend-info    { background: var(--color-info); }
   .dash-legend-error   { background: var(--color-error); }
   .dash-legend-neutral { background: color-mix(in oklab, var(--color-base-content) 35%, transparent); }
+  .dash-legend-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    flex: 1;
+    min-width: 0;
+  }
+  .dash-legend-count {
+    font-size: 0.875rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .dash-legend-pct {
+    font-size: 0.6875rem;
+    color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
+    font-variant-numeric: tabular-nums;
+    width: 2.5rem;
+    text-align: right;
+  }
 
-  /* ---------- expiring soon rows ---------- */
+  /* ============== EXPIRING SOON LIST ============== */
+  .dash-expiring {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
   .dash-expiring-row {
-    display: block;
-    padding: 0.625rem 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 0.625rem 0.875rem;
     border-radius: 0.5rem;
     border: 1px solid color-mix(in oklab, var(--color-base-300) 60%, transparent);
     background: var(--color-base-100);
     transition: background-color 0.18s ease,
                 border-color 0.18s ease,
                 transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
-    cursor: default;
+    min-height: 3.25rem;        /* keep all rows the same height */
   }
   .dash-expiring-row:hover {
     background: color-mix(in oklab, var(--color-primary) 4%, var(--color-base-100));
@@ -1143,17 +1293,29 @@
     transform: translateX(2px);
   }
 
-  /* urgency pill on the left of each row */
+  /* urgency pill: fixed width 3.5rem so all rows align */
   .dash-urgency-pill {
     display: inline-flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-width: 3.25rem;
-    padding: 0.25rem 0.5rem;
+    width: 3.5rem;
+    padding: 0.375rem 0.25rem;
     border-radius: 0.5rem;
     flex-shrink: 0;
-    line-height: 1.1;
+    line-height: 1.05;
+  }
+  .dash-urgency-num {
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+  .dash-urgency-unit {
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.75;
   }
   .dash-urgency-ok .dash-urgency-pill {
     background: color-mix(in oklab, var(--color-success) 14%, transparent);
@@ -1173,7 +1335,47 @@
     color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
   }
 
-  /* empty state for expiring list */
+  .dash-expiring-body {
+    flex: 1;
+    min-width: 0;
+  }
+  .dash-expiring-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .dash-expiring-software { color: var(--color-base-content); }
+  .dash-expiring-maker {
+    color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
+    font-weight: 400;
+  }
+  .dash-expiring-meta {
+    font-size: 0.6875rem;
+    color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-top: 0.125rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .dash-expiring-sep { color: color-mix(in oklab, var(--color-base-content) 25%, transparent); }
+  .dash-expiring-date { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .dash-expiring-status {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+
+  /* empty state */
   .dash-empty {
     display: flex;
     flex-direction: column;
@@ -1181,15 +1383,28 @@
     justify-content: center;
     text-align: center;
     padding: 2.5rem 1rem;
-    gap: 0.75rem;
+    gap: 0.625rem;
+    min-height: 8rem;
   }
+  .dash-empty-icon {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 9999px;
+    background: color-mix(in oklab, var(--color-base-300) 60%, transparent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .dash-empty-icon svg { width: 1.25rem; height: 1.25rem; color: color-mix(in oklab, var(--color-base-content) 30%, transparent); }
+  .dash-empty-title { font-size: 0.875rem; font-weight: 500; }
+  .dash-empty-sub { font-size: 0.75rem; color: color-mix(in oklab, var(--color-base-content) 50%, transparent); }
 
-  /* ---------- quick action cards ---------- */
+  /* ============== QUICK ACTION CARDS ============== */
   .dash-quick-card {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.875rem 1rem;
+    gap: 0.875rem;
+    padding: 1rem 1.25rem;
     background: var(--color-base-100);
     border: 1px solid color-mix(in oklab, var(--color-base-300) 70%, transparent);
     border-radius: var(--radius-box, 0.75rem);
@@ -1200,6 +1415,7 @@
                 box-shadow 0.25s ease;
     text-decoration: none;
     color: inherit;
+    min-height: 4.5rem;          /* keep all 4 cards the same height */
   }
   .dash-quick-card:hover {
     transform: translateY(-2px);
@@ -1211,15 +1427,41 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: 0.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.625rem;
     flex-shrink: 0;
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
+  .dash-quick-icon svg { width: 1.125rem; height: 1.125rem; }
   .dash-quick-card:hover .dash-quick-icon { transform: rotate(-6deg) scale(1.1); }
   .dash-quick-icon-primary { background: color-mix(in oklab, var(--color-primary) 12%, transparent);  color: var(--color-primary); }
   .dash-quick-icon-success { background: color-mix(in oklab, var(--color-success) 14%, transparent);  color: var(--color-success); }
   .dash-quick-icon-info    { background: color-mix(in oklab, var(--color-info) 12%, transparent);     color: var(--color-info); }
   .dash-quick-icon-warning { background: color-mix(in oklab, var(--color-warning) 14%, transparent);  color: var(--color-warning); }
+  .dash-quick-body { flex: 1; min-width: 0; }
+  .dash-quick-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .dash-quick-sub {
+    font-size: 0.75rem;
+    color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
+    margin-top: 0.125rem;
+  }
+  .dash-quick-chevron {
+    width: 1rem;
+    height: 1rem;
+    color: color-mix(in oklab, var(--color-base-content) 30%, transparent);
+    flex-shrink: 0;
+    transition: color 0.2s ease, transform 0.2s ease;
+  }
+  .dash-quick-card:hover .dash-quick-chevron {
+    color: var(--color-primary);
+    transform: translateX(2px);
+  }
 }

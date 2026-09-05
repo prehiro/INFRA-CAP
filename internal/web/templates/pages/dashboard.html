@@ -1,108 +1,108 @@
 {{define "dashboard_content"}}
 {{/* INFRA-CAP Dashboard — professional overview of the license inventory.
-   Layout:
+   Layout (desktop >= xl, i.e. 1280px+ viewport):
    1. Page header (icon badge + live dot + greeting)
-   2. 6-tile stat grid (Total / In Use / Available / Expiring / Expired / Retired)
-   3. Status distribution stacked bar (horizontal)
-   4. Expiring soon list (top 5) with days-left countdown
-   5. Quick links row at the bottom
-*/}}
+   2. Stat row: 6 tiles in a single row at xl, 3 at lg, 2 at sm
+   3. Two-column area: status distribution (2/5) + expiring soon (3/5)
+   4. Quick actions: 4 cards in a single row at xl, 2 at sm
+   All panels share the same vertical padding and border-radius so the
+   left/right edges line up perfectly. */}}
 
-<div class="max-w-6xl mx-auto space-y-6 dashboard-root"
-     x-data="{ now: new Date() }"
-     x-init="setInterval(() => now = new Date(), 60000)">
+<div class="dashboard-root max-w-7xl mx-auto space-y-5">
 
   {{/* ============== PAGE HEADER ============== */}}
-  <div class="page-header shrink-0 flex items-center justify-between gap-4 dashboard-fade-in">
-    <div class="flex items-center gap-3 min-w-0 flex-1">
-      <div class="page-icon-badge relative inline-flex items-center justify-center w-11 h-11 shrink-0 rounded-box bg-gradient-to-br from-primary/15 via-primary/8 to-primary/5 shadow-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" class="relative w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect width="7" height="9" x="3" y="3" rx="1"/>
-          <rect width="7" height="5" x="14" y="3" rx="1"/>
-          <rect width="7" height="9" x="14" y="12" rx="1"/>
-          <rect width="7" height="5" x="3" y="16" rx="1"/>
-        </svg>
-        <span class="perm-live-dot perm-live-dot-corner"></span>
-      </div>
-      <div class="min-w-0">
-        <h1 class="text-xl font-bold leading-tight truncate">
-          {{.Greeting}}, <span class="text-primary">{{.Username}}</span>
-        </h1>
-        <p class="text-base-content/50 text-xs mt-0.5 truncate">
-          {{.Weekday}}, {{.DateLong}} · {{if gt .TotalLicenses 0}}{{.TotalLicenses}} license(s) tracked{{else}}No licenses yet — start by creating your first record{{end}}
-        </p>
-      </div>
+  <div class="page-header shrink-0 flex items-center gap-4 dashboard-fade-in">
+    <div class="page-icon-badge relative inline-flex items-center justify-center w-12 h-12 shrink-0 rounded-box bg-gradient-to-br from-primary/15 via-primary/8 to-primary/5 shadow-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" class="relative w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect width="7" height="9" x="3" y="3" rx="1"/>
+        <rect width="7" height="5" x="14" y="3" rx="1"/>
+        <rect width="7" height="9" x="14" y="12" rx="1"/>
+        <rect width="7" height="5" x="3" y="16" rx="1"/>
+      </svg>
+      <span class="perm-live-dot perm-live-dot-corner"></span>
+    </div>
+    <div class="min-w-0 flex-1">
+      <h1 class="text-2xl font-bold leading-tight truncate">
+        {{.Greeting}}, <span class="text-primary">{{.Username}}</span>
+      </h1>
+      <p class="text-base-content/50 text-sm mt-1 truncate">
+        {{.Weekday}}, {{.DateLong}}
+        {{if gt .TotalLicenses 0}}· {{.TotalLicenses}} license(s) tracked{{else}}· No licenses yet — create your first record below{{end}}
+      </p>
     </div>
   </div>
 
-  {{/* ============== 6-TILE STAT GRID ============== */}}
-  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 dashboard-stagger">
+  {{/* ============== STAT TILES (6 cards) ============== */}}
+  {{/* 2 cols on mobile, 3 on md, 6 on xl. 6 on one row only at >=1280px
+     so each card has enough room to show "Expiring ≤ 30d" label. */}}
+  <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 dashboard-stagger">
     {{range .Cards}}
-    <div class="dash-stat-card dash-stat-card-{{.Tone}} group">
-      <div class="flex items-start justify-between gap-2">
-        <div class="text-[10px] uppercase tracking-wider text-base-content/40 font-semibold leading-tight">{{.Label}}</div>
+    <div class="dash-stat-card group">
+      <div class="dash-stat-head">
+        <div class="dash-stat-label">{{.Label}}</div>
         <div class="dash-stat-icon dash-stat-icon-{{.Tone}}">
           {{if eq .Icon "layers"}}
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 12.18-9.17 4.16a2 2 0 0 1-1.66 0L2 12.18"/><path d="m22 17.18-9.17 4.16a2 2 0 0 1-1.66 0L2 17.18"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 12.18-9.17 4.16a2 2 0 0 1-1.66 0L2 12.18"/><path d="m22 17.18-9.17 4.16a2 2 0 0 1-1.66 0L2 17.18"/></svg>
           {{else if eq .Icon "check-circle"}}
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
           {{else if eq .Icon "package"}}
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 9.4 7.55 4.24"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 9.4 7.55 4.24"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/></svg>
           {{else if eq .Icon "clock"}}
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           {{else if eq .Icon "alert-triangle"}}
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           {{else}}
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>
           {{end}}
         </div>
       </div>
-      <div class="mt-2 text-3xl font-bold tabular-nums leading-none tracking-tight">{{.Value}}</div>
-      {{if .Hint}}<div class="mt-1 text-[10px] text-base-content/40">{{.Hint}}</div>{{end}}
-      <div class="mt-3 h-1 rounded-full bg-base-200/60 overflow-hidden">
-        <div class="h-full dash-bar-fill dash-bar-{{.Tone}} rounded-full" style="--bar-pct: {{.Pct}}%"></div>
+      <div class="dash-stat-value">{{.Value}}</div>
+      {{if .Hint}}<div class="dash-stat-hint">{{.Hint}}</div>{{end}}
+      <div class="dash-stat-bar">
+        <div class="dash-bar-fill dash-bar-{{.Tone}}" style="--bar-pct: {{.Pct}}%"></div>
       </div>
     </div>
     {{end}}
   </div>
 
   {{/* ============== STATUS DISTRIBUTION + EXPIRING SOON ============== */}}
-  <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 dashboard-fade-in-delay-1">
+  {{/* Two equal-height panels side by side at xl, stacked on smaller screens.
+     The 5/12 + 7/12 split gives the expiring list (more content) a bit
+     more horizontal room than the distribution chart. */}}
+  <div class="grid grid-cols-1 xl:grid-cols-12 gap-3 dashboard-fade-in-delay-1">
 
-    {{/* ---- LEFT: Status distribution stacked bar + breakdown ---- */}}
-    <div class="lg:col-span-2 dash-panel">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-sm font-semibold text-base-content/70 flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 21H4.6c-.56 0-.84 0-1.05-.11a1 1 0 0 1-.44-.44C3 20.24 3 19.96 3 19.4V3"/></svg>
+    {{/* ---- Status distribution ---- */}}
+    <div class="xl:col-span-5 dash-panel">
+      <div class="dash-panel-head">
+        <h2 class="dash-panel-title">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 21H4.6c-.56 0-.84 0-1.05-.11a1 1 0 0 1-.44-.44C3 20.24 3 19.96 3 19.4V3"/></svg>
           Status distribution
         </h2>
-        <span class="text-[10px] uppercase tracking-wider text-base-content/40">all records</span>
+        <span class="dash-panel-meta">all records</span>
       </div>
 
-      {{/* horizontal stacked bar */}}
+      {{/* stacked bar */}}
       {{$total := .TotalLicenses}}
-      {{if gt $total 0}}
-      <div class="flex h-2.5 w-full rounded-full overflow-hidden bg-base-200/60 mb-5">
-        {{range .StatusBreakdown}}
-        {{if gt .Count 0}}
-        <div class="dash-stack-{{.Tone}} transition-all" style="width: {{mulf 100.0 (divf (float .Count) (float $total))}}%" title="{{.Label}}: {{.Count}}"></div>
-        {{end}}
+      <div class="dash-stack">
+        {{if gt $total 0}}
+          {{range .StatusBreakdown}}
+          {{if gt .Count 0}}
+          <div class="dash-stack-seg dash-stack-{{.Tone}}" style="width: {{mulf 100.0 (divf (float .Count) (float $total))}}%" title="{{.Label}}: {{.Count}}"></div>
+          {{end}}
+          {{end}}
+        {{else}}
+          <div class="dash-stack-seg dash-stack-empty" style="width: 100%"></div>
         {{end}}
       </div>
-      {{else}}
-      <div class="flex h-2.5 w-full rounded-full overflow-hidden bg-base-200/60 mb-5">
-        <div class="bg-base-300 w-full"></div>
-      </div>
-      {{end}}
 
       {{/* legend list */}}
-      <ul class="space-y-2.5">
+      <ul class="dash-legend">
         {{range .StatusBreakdown}}
-        <li class="flex items-center gap-3 group/legend">
+        <li class="dash-legend-item">
           <span class="dash-legend-dot dash-legend-{{.Tone}}"></span>
-          <span class="text-sm font-medium flex-1">{{.Label}}</span>
-          <span class="text-sm tabular-nums font-semibold">{{.Count}}</span>
-          <span class="text-[10px] text-base-content/40 tabular-nums w-10 text-right">
+          <span class="dash-legend-label">{{.Label}}</span>
+          <span class="dash-legend-count">{{.Count}}</span>
+          <span class="dash-legend-pct">
             {{if gt $total 0}}{{printf "%.0f%%" (mulf 100.0 (divf (float .Count) (float $total)))}}{{else}}0%{{end}}
           </span>
         </li>
@@ -110,55 +110,53 @@
       </ul>
     </div>
 
-    {{/* ---- RIGHT: Expiring soon (top 5) ---- */}}
-    <div class="lg:col-span-3 dash-panel">
-      <div class="flex items-center justify-between mb-3">
-        <h2 class="text-sm font-semibold text-base-content/70 flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    {{/* ---- Expiring soon ---- */}}
+    <div class="xl:col-span-7 dash-panel">
+      <div class="dash-panel-head">
+        <h2 class="dash-panel-title">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           Expiring soon
-          {{if .ExpiringSoon}}<span class="ml-1 text-[10px] text-base-content/40 font-normal">next {{len .ExpiringSoon}}</span>{{end}}
+          {{if .ExpiringSoon}}<span class="dash-panel-badge">next {{len .ExpiringSoon}}</span>{{end}}
         </h2>
-        <a href="/licenses" class="text-[10px] uppercase tracking-wider text-primary hover:underline shrink-0">View all →</a>
+        <a href="/licenses" class="dash-panel-link">View all →</a>
       </div>
 
       {{if .ExpiringSoon}}
-      <ul class="space-y-1.5">
+      <ul class="dash-expiring">
         {{range .ExpiringSoon}}
         <li class="dash-expiring-row dash-urgency-{{.Urgency}}">
-          <div class="flex items-center gap-3 min-w-0">
-            <div class="dash-urgency-pill">
-              {{if eq .Urgency "expired"}}
-                <span class="text-[10px] font-bold tabular-nums">EXPIRED</span>
-              {{else}}
-                <span class="text-[10px] font-bold tabular-nums">{{if lt .DaysLeft 0}}{{.DaysLeft}}d{{else}}{{.DaysLeft}}d{{end}}</span>
-                <span class="text-[8px] uppercase tracking-wider opacity-80 leading-none">{{if lt .DaysLeft 0}}ago{{else}}left{{end}}</span>
-              {{end}}
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="text-sm font-semibold truncate">
-                {{.SoftwareName}}
-                <span class="text-base-content/40 font-normal">· {{.Maker}}</span>
-              </div>
-              <div class="text-[11px] text-base-content/50 truncate flex items-center gap-1.5">
-                {{if .AssignedTo}}<span>{{.AssignedTo}}</span>{{end}}
-                {{if .Section}}<span class="text-base-content/30">·</span><span>{{.Section}}</span>{{end}}
-                <span class="text-base-content/30">·</span>
-                <span class="font-mono">expires {{.ExpiryDate.Format "02-01-2006"}}</span>
-              </div>
-            </div>
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-base-content/20 group-hover/row:text-primary transition-colors shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          <div class="dash-urgency-pill">
+            {{if eq .Urgency "expired"}}
+              <span class="dash-urgency-num">EXP</span>
+            {{else}}
+              <span class="dash-urgency-num">{{if lt .DaysLeft 0}}{{.DaysLeft}}{{else}}{{.DaysLeft}}{{end}}d</span>
+              <span class="dash-urgency-unit">{{if lt .DaysLeft 0}}ago{{else}}left{{end}}</span>
+            {{end}}
           </div>
+          <div class="dash-expiring-body">
+            <div class="dash-expiring-name">
+              <span class="dash-expiring-software">{{.SoftwareName}}</span>
+              <span class="dash-expiring-maker">· {{.Maker}}</span>
+            </div>
+            <div class="dash-expiring-meta">
+              {{if .AssignedTo}}<span>{{.AssignedTo}}</span>{{end}}
+              {{if .Section}}<span class="dash-expiring-sep">·</span><span>{{.Section}}</span>{{end}}
+              <span class="dash-expiring-sep">·</span>
+              <span class="dash-expiring-date">expires {{.ExpiryDate.Format "02-01-2006"}}</span>
+            </div>
+          </div>
+          <span class="dash-expiring-status">{{.Status}}</span>
         </li>
         {{end}}
       </ul>
       {{else}}
       <div class="dash-empty">
-        <div class="w-12 h-12 rounded-full bg-base-200/60 flex items-center justify-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-base-content/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <div class="dash-empty-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         </div>
-        <div>
-          <div class="text-sm font-medium">No upcoming expiries</div>
-          <div class="text-xs text-base-content/50 mt-0.5">All licenses are healthy for the next 60 days</div>
+        <div class="dash-empty-text">
+          <div class="dash-empty-title">No upcoming expiries</div>
+          <div class="dash-empty-sub">All licenses are healthy for the next 60 days</div>
         </div>
       </div>
       {{end}}
@@ -167,54 +165,56 @@
 
   {{/* ============== QUICK ACTIONS ============== */}}
   <div class="dashboard-fade-in-delay-2">
-    <h2 class="text-sm font-semibold text-base-content/70 flex items-center gap-2 mb-3">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-      Quick actions
-    </h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+    <div class="dash-panel-head">
+      <h2 class="dash-panel-title">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Quick actions
+      </h2>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
       <a href="/licenses" class="dash-quick-card group">
         <div class="dash-quick-icon dash-quick-icon-primary">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
         </div>
-        <div class="flex-1 min-w-0">
-          <div class="text-sm font-semibold">License Manager</div>
-          <div class="text-[11px] text-base-content/50 mt-0.5">View &amp; edit inventory</div>
+        <div class="dash-quick-body">
+          <div class="dash-quick-title">License Manager</div>
+          <div class="dash-quick-sub">View &amp; edit inventory</div>
         </div>
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-base-content/30 group-hover:text-primary transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" class="dash-quick-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
       </a>
 
       <a href="/licenses/new" class="dash-quick-card group"
          onclick="event.preventDefault(); htmx.ajax('GET', '/licenses/new', {target:'#modal-container', swap:'innerHTML'});">
         <div class="dash-quick-icon dash-quick-icon-success">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
         </div>
-        <div class="flex-1 min-w-0">
-          <div class="text-sm font-semibold">New license</div>
-          <div class="text-[11px] text-base-content/50 mt-0.5">Add a record</div>
+        <div class="dash-quick-body">
+          <div class="dash-quick-title">New license</div>
+          <div class="dash-quick-sub">Add a record</div>
         </div>
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-base-content/30 group-hover:text-primary transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" class="dash-quick-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
       </a>
 
       <a href="/notes" class="dash-quick-card group">
         <div class="dash-quick-icon dash-quick-icon-info">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h4"/></svg>
         </div>
-        <div class="flex-1 min-w-0">
-          <div class="text-sm font-semibold">Notes</div>
-          <div class="text-[11px] text-base-content/50 mt-0.5">Shared workspace</div>
+        <div class="dash-quick-body">
+          <div class="dash-quick-title">Notes</div>
+          <div class="dash-quick-sub">Shared workspace</div>
         </div>
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-base-content/30 group-hover:text-primary transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" class="dash-quick-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
       </a>
 
       <a href="/audit" class="dash-quick-card group">
         <div class="dash-quick-icon dash-quick-icon-warning">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
         </div>
-        <div class="flex-1 min-w-0">
-          <div class="text-sm font-semibold">Audit trail</div>
-          <div class="text-[11px] text-base-content/50 mt-0.5">Recent activity</div>
+        <div class="dash-quick-body">
+          <div class="dash-quick-title">Audit trail</div>
+          <div class="dash-quick-sub">Recent activity</div>
         </div>
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-base-content/30 group-hover:text-primary transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" class="dash-quick-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
       </a>
     </div>
   </div>
