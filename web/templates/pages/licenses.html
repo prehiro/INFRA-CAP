@@ -83,10 +83,10 @@
       </div>
       <input type="hidden" name="exp_from" x-bind:value="iso">
       <div x-show="open" x-cloak
-           x-transition:enter="transition ease-out duration-150"
+           x-transition:enter="transition ease-out duration-300"
            x-transition:enter-start="opacity-0 scale-95"
            x-transition:enter-end="opacity-100 scale-100"
-           x-transition:leave="transition ease-in duration-100"
+           x-transition:leave="transition ease-in duration-200"
            x-transition:leave-start="opacity-100 scale-100"
            x-transition:leave-end="opacity-0 scale-95"
            :class="placement === 'top' ? 'bottom-full mb-2 origin-bottom-right' : 'top-full mt-2 origin-top-right'"
@@ -134,10 +134,10 @@
       </div>
       <input type="hidden" name="exp_to" x-bind:value="iso">
       <div x-show="open" x-cloak
-           x-transition:enter="transition ease-out duration-150"
+           x-transition:enter="transition ease-out duration-300"
            x-transition:enter-start="opacity-0 scale-95"
            x-transition:enter-end="opacity-100 scale-100"
-           x-transition:leave="transition ease-in duration-100"
+           x-transition:leave="transition ease-in duration-200"
            x-transition:leave-start="opacity-100 scale-100"
            x-transition:leave-end="opacity-0 scale-95"
            :class="placement === 'top' ? 'bottom-full mb-2 origin-bottom-right' : 'top-full mt-2 origin-top-right'"
@@ -361,10 +361,10 @@
   </div>
   <input type="hidden" name="{{$name}}" x-bind:value="iso">
   <div x-show="open" x-cloak
-       x-transition:enter="transition ease-out duration-150"
+       x-transition:enter="transition ease-out duration-300"
        x-transition:enter-start="opacity-0 scale-95"
        x-transition:enter-end="opacity-100 scale-100"
-       x-transition:leave="transition ease-in duration-100"
+       x-transition:leave="transition ease-in duration-200"
        x-transition:leave-start="opacity-100 scale-100"
        x-transition:leave-end="opacity-0 scale-95"
        :class="placement === 'top' ? 'bottom-full mb-1 origin-bottom-left' : 'top-full mt-1 origin-top-left'"
