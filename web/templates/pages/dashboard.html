@@ -1,14 +1,17 @@
 {{define "dashboard_content"}}
 {{/* INFRA-CAP Dashboard — professional overview of the license inventory.
-   Layout (desktop >= xl, i.e. 1280px+ viewport):
-   1. Page header (icon badge + live dot + greeting)
-   2. Stat row: 6 tiles in a single row at xl, 3 at lg, 2 at sm
-   3. Two-column area: status distribution (2/5) + expiring soon (3/5)
-   4. Quick actions: 4 cards in a single row at xl, 2 at sm
-   All panels share the same vertical padding and border-radius so the
-   left/right edges line up perfectly. */}}
+   Full-bleed layout: the dashboard spans the full width of the
+   layout-content column (which already has 24px padding from the
+   layout). No max-width wrapper, so on wide screens the stat row,
+   the two-panel area, and the quick actions row all stretch
+   edge-to-edge.
+   Grid:
+   - Stat row: 2 cols (mobile) → 3 (md) → 6 (xl)
+   - Status distribution + expiring soon: stacked on small screens,
+     12-col split on xl (5/12 status, 7/12 expiring)
+   - Quick actions: 1 col (mobile) → 2 (sm) → 4 (xl) */}}
 
-<div class="dashboard-root max-w-7xl mx-auto space-y-5">
+<div class="dashboard-root space-y-5">
 
   {{/* ============== PAGE HEADER ============== */}}
   <div class="page-header shrink-0 flex items-center gap-4 dashboard-fade-in">
