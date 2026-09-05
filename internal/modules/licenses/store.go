@@ -224,24 +224,26 @@ func (s *Store) Save(ctx context.Context, l *License) error {
 	return s.update(ctx, l)
 }
 
-// Stats for dashboard cards.
-func (s *Store) Stats(ctx context.Context) (total, inUse, available, expiringSoon int, err error) {
+// FullStats returns the full status breakdown for the dashboard.
+// Order: total, inUse, available, expiringSoon (<=30d), expired, retired.
+func (s *Store) FullStats(ctx context.Context) (total, inUse, available, expiringSoon, expired, retired int, err error) {
 	err = s.DB.QueryRowContext(ctx, `SELECT
 		COUNT(*),
 		SUM(CASE WHEN status='In use' THEN 1 ELSE 0 END),
 		SUM(CASE WHEN status='Available' THEN 1 ELSE 0 END),
 		SUM(CASE WHEN status NOT IN ('Expired','Retired') AND expiry_date IS NOT NULL
-		         AND expiry_date <= DATEADD(day, 30, CAST(GETDATE() AS date)) THEN 1 ELSE 0 END)
-	 FROM licenses`).Scan(&total, &inUse, &available, &expiringSoon)
-	// SUM returns NULL on empty table — coerce
-	nulls := []any{&inUse, &available, &expiringSoon}
-	for _, n := range nulls {
-		switch v := n.(type) {
-		case *int:
-			_ = v
-		}
-	}
+		         AND expiry_date <= DATEADD(day, 30, CAST(GETDATE() AS date)) THEN 1 ELSE 0 END),
+		SUM(CASE WHEN status='Expired' THEN 1 ELSE 0 END),
+		SUM(CASE WHEN status='Retired' THEN 1 ELSE 0 END)
+	 FROM licenses`).Scan(&total, &inUse, &available, &expiringSoon, &expired, &retired)
 	return
+}
+
+// Stats for dashboard cards. Kept for compatibility with the original
+// 4-tile layout; FullStats covers the 6-tile redesign.
+func (s *Store) Stats(ctx context.Context) (total, inUse, available, expiringSoon int, err error) {
+	t, iu, av, ex, _, _, err := s.FullStats(ctx)
+	return t, iu, av, ex, err
 }
 
 // StatusCounts returns row counts per status for the filter-bar chips.

@@ -86,7 +86,7 @@ func run() error {
 	// so non-admins never see menu items they can't open.
 	protected := http.NewServeMux()
 	licStore := &licenses.Store{DB: database}
-	dash := dashboard.NewWithStore(licStore)
+	dash := dashboard.New(licStore, authSvc)
 	dashMux := http.NewServeMux()
 	dash.RegisterRoutes(dashMux)
 	protected.Handle("/",
