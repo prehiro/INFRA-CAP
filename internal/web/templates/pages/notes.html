@@ -55,14 +55,25 @@
 <div class="flex flex-col h-[calc(100vh-7rem)] overflow-hidden notes-page-enter">
 
   <!-- header -->
-  <div class="shrink-0 flex flex-wrap items-center justify-between gap-3 mb-3">
-    <div>
-      <h1 class="text-xl font-bold">Notes</h1>
-      <p class="text-base-content/50 text-sm mt-0.5">
-        {{len .Notes}} note(s) · shared workspace, edit &amp; create by anyone
-      </p>
+  <div class="page-header shrink-0 flex items-center justify-between gap-4 mb-3">
+    <div class="flex items-center gap-3 min-w-0 flex-1">
+      <div class="page-icon-badge relative inline-flex items-center justify-center w-11 h-11 shrink-0 rounded-box bg-gradient-to-br from-primary/15 via-primary/8 to-primary/5 shadow-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="relative w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <path d="M14 2v6h6"/>
+          <path d="M9 13h6"/>
+          <path d="M9 17h4"/>
+        </svg>
+        <span class="perm-live-dot perm-live-dot-corner"></span>
+      </div>
+      <div class="min-w-0">
+        <h1 class="text-xl font-bold leading-tight truncate">Notes</h1>
+        <p class="text-base-content/50 text-xs mt-0.5 truncate">
+          {{len .Notes}} note(s) · shared workspace, edit &amp; create by anyone
+        </p>
+      </div>
     </div>
-    <div class="flex gap-2">
+    <div class="flex gap-2 shrink-0">
       <button type="button" class="btn btn-primary btn-sm shiny-hover" hx-get="/notes/new" hx-target="#modal-container"
         hx-swap="innerHTML">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"

@@ -51247,6 +51247,16 @@
       opacity: 0;
     }
   }
+  .page-icon-badge {
+    overflow: visible;
+    box-shadow: inset 0 0 0 1px var(--color-primary), 0 1px 2px 0 rgb(0 0 0 / 0.06), 0 1px 3px 0 rgb(0 0 0 / 0.08);
+    @supports (color: color-mix(in lab, red, red)) {
+      box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-primary) 20%, transparent), 0 1px 2px 0 rgb(0 0 0 / 0.06), 0 1px 3px 0 rgb(0 0 0 / 0.08);
+    }
+  }
+  .page-header {
+    overflow: visible;
+  }
 }
 @property --tw-translate-x {
   syntax: "*";

@@ -2,12 +2,23 @@
 <div class="flex flex-col h-[calc(100vh-7rem)] overflow-hidden">
 
   <!-- header -->
-  <div class="shrink-0 flex flex-wrap items-center justify-between gap-3 mb-3">
-    <div>
-      <h1 class="text-xl font-bold">Users</h1>
-      <p class="text-base-content/50 text-sm mt-0.5">Manage INFRA-CAP user accounts</p>
+  <div class="page-header shrink-0 flex items-center justify-between gap-4 mb-3">
+    <div class="flex items-center gap-3 min-w-0 flex-1">
+      <div class="page-icon-badge relative inline-flex items-center justify-center w-11 h-11 shrink-0 rounded-box bg-gradient-to-br from-primary/15 via-primary/8 to-primary/5 shadow-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="relative w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <span class="perm-live-dot perm-live-dot-corner"></span>
+      </div>
+      <div class="min-w-0">
+        <h1 class="text-xl font-bold leading-tight truncate">Users</h1>
+        <p class="text-base-content/50 text-xs mt-0.5 truncate">Manage INFRA-CAP user accounts</p>
+      </div>
     </div>
-    <button type="button" class="btn btn-primary btn-sm shiny-hover"
+    <button type="button" class="btn btn-primary btn-sm shiny-hover shrink-0"
             hx-get="/users/new" hx-target="#modal-container" hx-swap="innerHTML">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
       New User

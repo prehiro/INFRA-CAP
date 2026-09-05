@@ -977,3 +977,27 @@
     .perm-live-dot-corner::after { animation: none; opacity: 0; }
   }
 }
+
+/* ============================================================
+   GENERIC PAGE HEADER — applied to every page (Dashboard,
+   Licenses, Notes, Users, Audit Trail, Permissions). Each page
+   renders a 44x44 icon badge with a live corner dot on top-right
+   of the badge, matching the Permissions page visual language.
+   ============================================================ */
+
+@layer components {
+  /* alias of .perm-icon-badge so other pages can use a more
+     neutral class name. Same exact styles. */
+  .page-icon-badge {
+    overflow: visible;
+    box-shadow:
+      inset 0 0 0 1px color-mix(in oklab, var(--color-primary) 20%, transparent),
+      0 1px 2px 0 rgb(0 0 0 / 0.06),
+      0 1px 3px 0 rgb(0 0 0 / 0.08);
+  }
+  /* page-header wrapper: same as .perm-header — overflow visible
+     so the corner live-dot's pulse halo isn't clipped. */
+  .page-header {
+    overflow: visible;
+  }
+}
