@@ -335,8 +335,8 @@
        so overflow-y: hidden kills DaisyUI's scroll-driven animation at
        the source and scrollbar-gutter: auto avoids a grey gutter strip. */
     html, :root {
-      overflow-x: hidden !important;
-      overflow-y: hidden !important;
+      overflow-x: clip !important;
+      overflow-y: clip !important;
       scrollbar-gutter: auto !important;
       /* Kill the scroll-driven animation that toggles scrollbar-gutter */
       animation: none !important;
@@ -344,7 +344,7 @@
       --page-has-scroll: !important;
       --page-scroll-lock: !important;
     }
-    body { overflow-x: hidden !important; overflow-y: hidden !important; }
+    body { overflow-x: clip !important; overflow-y: clip !important; }
     /* Override the keyframes so even if something re-enables the animation,
        it won't change the variable */
     @keyframes set-page-has-scroll { from, to { --page-has-scroll: ; } }
