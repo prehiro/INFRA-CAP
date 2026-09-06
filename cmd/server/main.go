@@ -66,7 +66,7 @@ func run() error {
 	})
 
 	mux.Handle("GET /static/", http.StripPrefix("/static/",
-		http.FileServer(http.Dir("web/static"))))
+		staticCache(http.Dir("web/static"))))
 
 	authSvc := &auth.Service{DB: database}
 	if cfg.AutoMigrate {
@@ -159,4 +159,16 @@ func run() error {
 		return srv.Shutdown(ctx)
 	}
 	return nil
+
+}
+
+// staticCache wraps http.FileServer with long-lived Cache-Control headers
+// for CSS/JS/fonts (fingerprint-safe via hard refresh). Eliminates 1.7MB CSS
+// re-download on every page load that causes FOUC on status chips / navbar.
+func staticCache(root http.FileSystem) http.Handler {
+	fs := http.FileServer(root)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "public, max-age=86400")
+		fs.ServeHTTP(w, r)
+	})
 }
