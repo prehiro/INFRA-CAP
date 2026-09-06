@@ -10,8 +10,35 @@
   <script src="/static/js/notes-md.js"></script>
 
   <script>
-    // Set sidebar-collapsed BEFORE Alpine initializes — prevents spring-bounce flicker on hard reload.
-    ;(() => { if (localStorage.getItem('sidebar-collapsed') === 'true') document.documentElement.classList.add('preload-collapsed'); })();
+    // Set sidebar-collapsed BEFORE Alpine initializes AND before the
+    // body is parsed — prevents spring-bounce flicker on hard reload.
+    // The class is set on <html> AND we'll also set it on <body> as
+    // soon as the body is parsed so the :class binding from Alpine
+    // doesn't fight the preload class.
+    (function () {
+      try {
+        if (localStorage.getItem('sidebar-collapsed') === 'true') {
+          document.documentElement.classList.add('preload-collapsed');
+          // also push the class to <body> the instant it exists so
+          // the existing body.sidebar-collapsed CSS rule kicks in
+          // (and matches Alpine's eventual :class state), removing
+          // the flash from 256→68px on hard reload.
+          var apply = function () {
+            if (document.body) {
+              document.body.classList.add('preload-collapsed');
+            } else {
+              // body not yet parsed — wait one tick
+              requestAnimationFrame(apply);
+            }
+          };
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', apply, { once: true });
+          } else {
+            apply();
+          }
+        }
+      } catch (e) { /* localStorage may be unavailable — ignore */ }
+    })();
   </script>
   <script defer src="/static/js/alpine.min.js"></script>
   <script>
@@ -30,6 +57,16 @@
           this.active = this.menu.map(m => m.href)
             .filter(h => this.active === h || (h !== '/' && this.active.startsWith(h)))
             .sort((a, b) => b.length - a.length)[0] || '/'
+          // Alpine's :class binding is now in sync with localStorage.
+          // Remove the preload class so subsequent toggles can use the
+          // smooth transition we defined on .layout-sidebar. Using
+          // rAF avoids a flash of the un-preloaded transition rule.
+          requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+              document.documentElement.classList.remove('preload-collapsed')
+              if (document.body) document.body.classList.remove('preload-collapsed')
+            })
+          })
         },
         toggle() {
           this.collapsed = !this.collapsed
@@ -306,10 +343,21 @@
     @keyframes set-page-has-scroll { from, to { --page-has-scroll: ; } }
 
     /* Preload: apply collapsed sidebar BEFORE Alpine initializes.
-       Prevents spring-bounce animation on hard reload (sidebar 256→68px flicker). */
-    html.preload-collapsed .layout-sidebar { width: 68px !important; min-width: 68px !important; }
-    html.preload-collapsed .layout-sidebar .sidebar-label { opacity: 0; }
-    html.preload-collapsed .layout-sidebar { transition: none !important; }
+       Prevents spring-bounce animation on hard reload (sidebar 256→68px flicker).
+       The class is set on both <html> and <body> by the preload script
+       in the document <head>, so the rule below needs to match both. */
+    html.preload-collapsed .layout-sidebar,
+    body.preload-collapsed .layout-sidebar { width: 68px !important; min-width: 68px !important; }
+    html.preload-collapsed .layout-sidebar .sidebar-label,
+    body.preload-collapsed .layout-sidebar .sidebar-label { opacity: 0; }
+    /* during preload, kill every transition so the initial render
+       lands on the correct state without animating from the
+       default 256px down to 68px. Re-enabled by the next selector
+       once Alpine has finished its init pass. */
+    html.preload-collapsed .layout-sidebar,
+    body.preload-collapsed .layout-sidebar,
+    html.preload-collapsed .layout-sidebar *,
+    body.preload-collapsed .layout-sidebar * { transition: none !important; }
 
     /* ===== Nexus-style layout ===== */
     .layout-sidebar {
@@ -324,7 +372,7 @@
       border-inline-end: 1px solid var(--color-base-200);
       transition-property: margin, width, min-width;
       transition-duration: .3s;
-      transition-timing-function: cubic-bezier(0.34,1.56,0.64,1); /* spring bounce */
+      transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1); /* smooth ease-out-quart */
     }
     /* collapsed (desktop): sidebar narrows to icon rail.
        body.sidebar-collapsed is set by Alpine (:class binding). */
@@ -333,7 +381,7 @@
       body.sidebar-collapsed .layout-sidebar .sidebar-label { opacity: 0; }
     }
     /* label/icon micro-transitions */
-    .sidebar-label { transition: opacity .2s ease; }
+    .sidebar-label { transition: opacity .25s cubic-bezier(0.16, 1, 0.3, 1); }
     .layout-content-col {
       height: 100vh;
       display: flex;
