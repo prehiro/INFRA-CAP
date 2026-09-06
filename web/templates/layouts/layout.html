@@ -58,13 +58,20 @@
             .filter(h => this.active === h || (h !== '/' && this.active.startsWith(h)))
             .sort((a, b) => b.length - a.length)[0] || '/'
           // Alpine's :class binding is now in sync with localStorage.
-          // Remove the preload class so subsequent toggles can use the
-          // smooth transition we defined on .layout-sidebar. Using
-          // rAF avoids a flash of the un-preloaded transition rule.
+          // Wait one paint so the browser commits the correct
+          // collapsed/expanded state, then drop the preload classes
+          // AND opt the body into "sidebar-ready" mode — that opt-in
+          // class re-enables the sidebar's transitions so subsequent
+          // toggle clicks animate smoothly, while the initial render
+          // stays transition-free (no flicker). */
           requestAnimationFrame(function () {
             requestAnimationFrame(function () {
               document.documentElement.classList.remove('preload-collapsed')
-              if (document.body) document.body.classList.remove('preload-collapsed')
+              if (document.body) {
+                document.body.classList.remove('preload-collapsed')
+                // opt-in to transitions only after the first commit
+                document.body.classList.add('sidebar-ready')
+              }
             })
           })
         },
@@ -345,15 +352,24 @@
     /* Preload: apply collapsed sidebar BEFORE Alpine initializes.
        Prevents spring-bounce animation on hard reload (sidebar 256→68px flicker).
        The class is set on both <html> and <body> by the preload script
-       in the document <head>, so the rule below needs to match both. */
+       in the document <head>, so the rule below needs to match both.
+
+       We also force every .sidebar-label to its FINAL state (full
+       opacity or 0) during preload, with no transition. This prevents
+       a visible fade-in flash of the brand text and nav labels right
+       after Alpine removes the x-cloak attribute on initial mount. */
     html.preload-collapsed .layout-sidebar,
     body.preload-collapsed .layout-sidebar { width: 68px !important; min-width: 68px !important; }
     html.preload-collapsed .layout-sidebar .sidebar-label,
-    body.preload-collapsed .layout-sidebar .sidebar-label { opacity: 0; }
+    body.preload-collapsed .layout-sidebar .sidebar-label,
+    html.preload-collapsed .layout-sidebar[x-cloak] *,
+    body.preload-collapsed .layout-sidebar[x-cloak] * { opacity: 0; }
     /* during preload, kill every transition so the initial render
        lands on the correct state without animating from the
-       default 256px down to 68px. Re-enabled by the next selector
-       once Alpine has finished its init pass. */
+       default 256px down to 68px. After Alpine's first init, the
+       preload class is removed AND body.sidebar-ready is added —
+       at that point the .layout-sidebar transition is re-enabled
+       (see rules below) for subsequent toggle clicks. */
     html.preload-collapsed .layout-sidebar,
     body.preload-collapsed .layout-sidebar,
     html.preload-collapsed .layout-sidebar *,
@@ -370,6 +386,14 @@
       flex-direction: column;
       position: relative;
       border-inline-end: 1px solid var(--color-base-200);
+      /* no transition by default — the width is set authoritatively
+         by the CSS rules below (preload-collapsed + sidebar-collapsed
+         + mobile). We re-enable transition only after Alpine has
+         finished its first init pass, so subsequent toggle clicks
+         animate smoothly but the page never animates from its
+         initial state. */
+    }
+    body.sidebar-ready .layout-sidebar {
       transition-property: margin, width, min-width;
       transition-duration: .3s;
       transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1); /* smooth ease-out-quart */
@@ -380,8 +404,12 @@
       body.sidebar-collapsed .layout-sidebar { width: 68px; min-width: 68px; }
       body.sidebar-collapsed .layout-sidebar .sidebar-label { opacity: 0; }
     }
-    /* label/icon micro-transitions */
-    .sidebar-label { transition: opacity .25s cubic-bezier(0.16, 1, 0.3, 1); }
+    /* label/icon micro-transitions — only animate after sidebar is
+       ready so the first paint doesn't fade labels in/out */
+    .sidebar-label { transition: none; }
+    body.sidebar-ready .sidebar-label {
+      transition: opacity .25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
     .layout-content-col {
       height: 100vh;
       display: flex;
