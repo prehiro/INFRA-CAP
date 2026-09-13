@@ -10,35 +10,22 @@
   <script src="/static/js/notes-md.js"></script>
 
   <script>
-    // Set sidebar-collapsed BEFORE Alpine initializes AND before the
-    // body is parsed — prevents spring-bounce flicker on hard reload.
-    // The class is set on <html> AND we'll also set it on <body> as
-    // soon as the body is parsed so the :class binding from Alpine
-    // doesn't fight the preload class.
-    (function () {
-      try {
-        if (localStorage.getItem('sidebar-collapsed') === 'true') {
-          document.documentElement.classList.add('preload-collapsed');
-          // also push the class to <body> the instant it exists so
-          // the existing body.sidebar-collapsed CSS rule kicks in
-          // (and matches Alpine's eventual :class state), removing
-          // the flash from 256→68px on hard reload.
-          var apply = function () {
-            if (document.body) {
-              document.body.classList.add('preload-collapsed');
-            } else {
-              // body not yet parsed — wait one tick
-              requestAnimationFrame(apply);
-            }
-          };
-          if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', apply, { once: true });
-          } else {
-            apply();
-          }
-        }
-      } catch (e) { /* localStorage may be unavailable — ignore */ }
-    })();
+    // Read sidebar state synchronously BEFORE Alpine or the body
+    // is parsed. This value is used by Alpine's initial collapsed
+    // state and by the body tag's default class attribute,
+    // so the first paint is already correct — no spring-bounce
+    // flicker on hard reload.
+    window.__sidebarCollapsed = false;
+    try {
+      if (localStorage.getItem('sidebar-collapsed') === 'true') {
+        window.__sidebarCollapsed = true;
+      }
+    } catch (e) { /* localStorage may be unavailable */ }
+    // The body tag already has sidebar-collapsed as a static class
+    // in the HTML source, which Alpine never removes.
+    // Alpine's x-bind:class only adds sidebar-expanded when
+    // the sidebar should be WIDE (256px). Without it,
+    // body:not(.sidebar-expanded) matches → narrow rail (68px).
   </script>
   <script defer src="/static/js/alpine.min.js"></script>
   <script>
@@ -48,35 +35,29 @@
       // escaped so it's safe to embed in the <script> tag.
       window.__NAV_ITEMS__ = {{.NavItemsJS}};
       Alpine.data('sidebar', () => ({
-        collapsed: false,
+        collapsed: window.__sidebarCollapsed,
         mobileOpen: false,
         active: window.location.pathname,
         menu: window.__NAV_ITEMS__ || [],
         init() {
-          this.collapsed = localStorage.getItem('sidebar-collapsed') === 'true'
+          this.collapsed = window.__sidebarCollapsed
           this.active = this.menu.map(m => m.href)
             .filter(h => this.active === h || (h !== '/' && this.active.startsWith(h)))
             .sort((a, b) => b.length - a.length)[0] || '/'
-          // Alpine's :class binding is now in sync with localStorage.
-          // Wait one paint so the browser commits the correct
-          // collapsed/expanded state, then drop the preload classes
-          // AND opt the body into "sidebar-ready" mode — that opt-in
-          // class re-enables the sidebar's transitions so subsequent
-          // toggle clicks animate smoothly, while the initial render
-          // stays transition-free (no flicker). */
-          requestAnimationFrame(function () {
-            requestAnimationFrame(function () {
-              document.documentElement.classList.remove('preload-collapsed')
-              if (document.body) {
-                document.body.classList.remove('preload-collapsed')
-                // opt-in to transitions only after the first commit
-                document.body.classList.add('sidebar-ready')
-              }
-            })
+          // Opt the body into transitions immediately so future toggle
+          // clicks animate smoothly, while the initial render stays
+          // transition-free (no flicker). The sidebar-collapsed class
+          // on <body> is a static HTML class attribute — Alpine's
+          // x-bind:class only adds/removes sidebar-expanded. */
+          requestAnimationFrame(() => {
+            if (document.body) {
+              document.body.classList.add('sidebar-ready')
+            }
           })
         },
         toggle() {
           this.collapsed = !this.collapsed
+          this.mobileOpen = false
           localStorage.setItem('sidebar-collapsed', this.collapsed)
         },
       }))
@@ -349,31 +330,30 @@
        it won't change the variable */
     @keyframes set-page-has-scroll { from, to { --page-has-scroll: ; } }
 
-    /* Preload: apply collapsed sidebar BEFORE Alpine initializes.
-       Prevents spring-bounce animation on hard reload (sidebar 256→68px flicker).
-       The class is set on both <html> and <body> by the preload script
-       in the document <head>, so the rule below needs to match both.
+    /* Collapsed sidebar: set before Alpine initializes.
+       The .sidebar-collapsed class is applied to <html> by the
+       inline script in <head> (runs before any parsing), so
+       the correct width is in effect from the very first paint.
+       Alpine's x-bind:class later overrides the body class,
+       but by then the first paint is already correct.
 
-       We also force every .sidebar-label to its FINAL state (full
-       opacity or 0) during preload, with no transition. This prevents
-       a visible fade-in flash of the brand text and nav labels right
-       after Alpine removes the x-cloak attribute on initial mount. */
-    html.preload-collapsed .layout-sidebar,
-    body.preload-collapsed .layout-sidebar { width: 68px !important; min-width: 68px !important; }
-    html.preload-collapsed .layout-sidebar .sidebar-label,
-    body.preload-collapsed .layout-sidebar .sidebar-label,
-    html.preload-collapsed .layout-sidebar[x-cloak] *,
-    body.preload-collapsed .layout-sidebar[x-cloak] * { opacity: 0; }
-    /* during preload, kill every transition so the initial render
-       lands on the correct state without animating from the
-       default 256px down to 68px. After Alpine's first init, the
-       preload class is removed AND body.sidebar-ready is added —
-       at that point the .layout-sidebar transition is re-enabled
-       (see rules below) for subsequent toggle clicks. */
-    html.preload-collapsed .layout-sidebar,
-    body.preload-collapsed .layout-sidebar,
-    html.preload-collapsed .layout-sidebar *,
-    body.preload-collapsed .layout-sidebar * { transition: none !important; }
+       We also force every .sidebar-label to its FINAL state
+       (full opacity or 0) during this pre-merge phase, with
+       no transition. This prevents a visible fade-in flash of
+       the brand text and nav labels right after Alpine removes
+       the x-cloak attribute on initial mount. */
+    body:not(.sidebar-expanded) .layout-sidebar { width: 68px !important; min-width: 68px !important; }
+    body:not(.sidebar-expanded) .layout-sidebar .sidebar-label,
+    body:not(.sidebar-expanded) .layout-sidebar[x-cloak] * { opacity: 0; }
+    /* Kill every transition so the initial render lands on the
+       correct collapsed state without animating from the
+       default 256px down to 68px. After Alpine's first init(),
+       body.sidebar-ready is added — at that point the
+       .layout-sidebar transition is re-enabled (see rules
+       below) for subsequent toggle clicks, but the initial
+       render stays transition-free (no flicker). */
+    body:not(.sidebar-ready) .layout-sidebar,
+    body:not(.sidebar-ready) .layout-sidebar * { transition: none !important; }
 
     /* ===== Nexus-style layout ===== */
     .layout-sidebar {
@@ -387,11 +367,13 @@
       position: relative;
       border-inline-end: 1px solid var(--color-base-200);
       /* INTENTIONALLY no transition on the base rule. The width is
-         set authoritatively by the rules below (preload-collapsed
-         + sidebar-collapsed + mobile-open). body.sidebar-ready is
-         added by the Alpine sidebar init AFTER the first commit —
-         from that point on, toggle clicks animate smoothly via the
-         rule below, but the initial render never animates. */
+         set authoritatively by the rules above:
+         body:not(.sidebar-expanded) → 68px narrow rail (default),
+         body.sidebar-expanded → 256px wide (Alpine x-bind:class).
+         body.sidebar-ready is added by Alpine's sidebar init()
+         AFTER the first commit — from that point on, toggle
+         clicks animate smoothly via the rule below, but the
+         initial render never animates. */
     }
     body.sidebar-ready .layout-sidebar {
       transition-property: margin, width, min-width;
@@ -399,10 +381,11 @@
       transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1); /* smooth ease-out-quart */
     }
     /* collapsed (desktop): sidebar narrows to icon rail.
-       body.sidebar-collapsed is set by Alpine (:class binding). */
+       body:not(.sidebar-expanded) matches when Alpine's
+       x-bind:class does not add sidebar-expanded. */
     @media (min-width: 64rem) {
-      body.sidebar-collapsed .layout-sidebar { width: 68px; min-width: 68px; }
-      body.sidebar-collapsed .layout-sidebar .sidebar-label { opacity: 0; }
+      body:not(.sidebar-expanded) .layout-sidebar { width: 68px; min-width: 68px; }
+      body:not(.sidebar-expanded) .layout-sidebar .sidebar-label { opacity: 0; }
     }
     /* label/icon micro-transitions — only after sidebar is ready
        so the first paint doesn't fade labels in/out */
@@ -463,9 +446,10 @@
     }
   </style>
 </head>
-<body class="bg-base-200 text-base-content" x-data="sidebar()" x-init="init()"
+<body class="bg-base-200 text-base-content sidebar-collapsed"
+      x-data="sidebar()" x-init="init()"
       hx-indicator="#global-loader"
-      x-bind:class="{ 'sidebar-collapsed': collapsed, 'mobile-open': mobileOpen }">
+      x-bind:class="{ 'sidebar-expanded': !collapsed }">
 
   <div class="flex w-full overflow-hidden">
 
@@ -484,24 +468,13 @@
       <!-- nav -->
       <nav class="flex-1 py-3 px-3 space-y-1 overflow-y-auto overflow-x-hidden">
         <template x-for="item in menu" :key="item.href">
-          <!-- hx-boost makes the navigation an HTMX request that swaps
-               just <main> in place, eliminating the full-page-reload
-               "white flash" that made the sidebar (and the rest of the
-               layout) appear to flicker on slower pages like the
-               License Manager which streams 250KB+ of HTML. The CSS
-               class swap, the global htmx-loader spinner, and the
-               sidebar-ready transition opt-in all work transparently
-               with this approach. -->
           <a :href="item.href" :title="collapsed ? item.label : undefined"
-             hx-boost="true"
-             hx-target="#layout-content"
-             hx-swap="innerHTML"
-             hx-select="#layout-content > *"
+             hx-boost="false" hx-target="#layout-content" hx-swap="innerHTML"
              class="flex items-center rounded-box px-3 py-2.5 text-sm font-medium cursor-pointer transition-colors"
              :class="active === item.href
                 ? 'bg-primary text-primary-content'
                 : 'text-base-content/70 hover:bg-base-200 hover:text-base-content'"
-             @click="mobileOpen = false">
+             @click="mobileOpen = false; active = item.href">
             <span class="shrink-0 w-5 h-5" x-html="item.icon"></span>
             <span class="ml-3 whitespace-nowrap sidebar-label" x-show="!collapsed" x-cloak x-text="item.label"></span>
           </a>
@@ -552,10 +525,25 @@
               <path d="M21 12a9 9 0 1 1-6.219-8.56" />
             </svg>
           </div>
-          <button class="btn btn-square btn-ghost btn-sm relative" aria-label="Notifications">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M22 8c0-2.3-.8-4.3-2-6"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/><path d="M2 8c0-2.3.8-4.3 2-6"/></svg>
-            <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-error"></span>
-          </button>
+          <div class="relative" x-data="{ open: false }" @click.outside="open = false" @keydown.escape="open = false">
+            <button class="btn btn-square btn-ghost btn-sm relative" aria-label="Notifications" @click="open = !open">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M22 8c0-2.3-.8-4.3-2-6"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/><path d="M2 8c0-2.3.8-4.3 2-6"/></svg>
+              <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-error"></span>
+            </button>
+            <div class="dropdown-content mt-2 w-72 rounded-box bg-base-100 border border-base-300 shadow-lg py-2 z-50"
+                 x-show="open" x-cloak
+                 x-transition:enter="transition ease-out duration-150"
+                 x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-100"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0 scale-95">
+              <div class="px-4 py-2 border-b border-base-300/60">
+                <div class="font-semibold text-sm">Notifications</div>
+                <div class="text-xs text-base-content/50 mt-0.5">You have no new notifications</div>
+              </div>
+            </div>
+          </div>
           {{if .AuthUser}}
           <!-- user dropdown -->
           <div class="dropdown dropdown-end" x-data="{ open: false }" @click.outside="open = false" @keydown.escape="open = false">
