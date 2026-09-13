@@ -352,14 +352,14 @@
       color: var(--color-primary-content);
     }
 
-    /* Sidebar transitions — only active when user toggles the sidebar.
-       Before toggle click, .layout-sidebar has no transition,
-       so the first paint lands instantly at the correct width. */
+    /* Sidebar toggle: spring bounce — visible elastic overshoot
+       when opening/closing. Only active after first click (has-sidebar-transition)
+       so initial paint stays instant. */
     html.has-sidebar-transition .layout-sidebar,
     body.has-sidebar-transition .layout-sidebar {
       transition-property: width, min-width;
-      transition-duration: .3s;
-      transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1); /* smooth ease-out-quart */
+      transition-duration: 0.42s;
+      transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1); /* spring bounce */
     }
     /* collapsed (desktop): sidebar narrows to icon rail.
        html.sidebar-collapsed is set synchronously in <head> before
