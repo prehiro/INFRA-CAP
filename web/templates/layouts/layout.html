@@ -44,11 +44,11 @@
           this.active = this.menu.map(m => m.href)
             .filter(h => this.active === h || (h !== '/' && this.active.startsWith(h)))
             .sort((a, b) => b.length - a.length)[0] || '/'
-          // Opt the body into transitions immediately so future toggle
-          // clicks animate smoothly, while the initial render stays
-          // transition-free (no flicker). The sidebar-collapsed class
-          // on <body> is a static HTML class attribute — Alpine's
-          // x-bind:class only adds/removes sidebar-expanded. */
+          // Add sidebar-ready to opt body into transitions for
+          // future toggle clicks. The initial render stays
+          // transition-free because .layout-sidebar has no
+          // base transition, and Alpine's x-cloak handles
+          // the first paint. */
           requestAnimationFrame(() => {
             if (document.body) {
               document.body.classList.add('sidebar-ready')
@@ -330,31 +330,11 @@
        it won't change the variable */
     @keyframes set-page-has-scroll { from, to { --page-has-scroll: ; } }
 
-    /* Collapsed sidebar: set before Alpine initializes.
-       The .sidebar-collapsed class is applied to <html> by the
-       inline script in <head> (runs before any parsing), so
-       the correct width is in effect from the very first paint.
-       Alpine's x-bind:class later overrides the body class,
-       but by then the first paint is already correct.
-
-       We also force every .sidebar-label to its FINAL state
-       (full opacity or 0) during this pre-merge phase, with
-       no transition. This prevents a visible fade-in flash of
-       the brand text and nav labels right after Alpine removes
-       the x-cloak attribute on initial mount. */
-    body:not(.sidebar-expanded) .layout-sidebar { width: 68px !important; min-width: 68px !important; }
-    body:not(.sidebar-expanded) .layout-sidebar .sidebar-label,
-    body:not(.sidebar-expanded) .layout-sidebar[x-cloak] * { opacity: 0; }
-    /* Kill every transition so the initial render lands on the
-       correct collapsed state without animating from the
-       default 256px down to 68px. After Alpine's first init(),
-       body.sidebar-ready is added — at that point the
-       .layout-sidebar transition is re-enabled (see rules
-       below) for subsequent toggle clicks, but the initial
-       render stays transition-free (no flicker). */
-    body:not(.sidebar-ready) .layout-sidebar,
-    body:not(.sidebar-ready) .layout-sidebar * { transition: none !important; }
-
+    /* Collapsed sidebar: body.sidebar-collapsed is a static HTML
+       class attribute. Alpine's x-bind:class only adds
+       sidebar-expanded — it never removes sidebar-collapsed.
+       CSS media query sets sidebar-label to display:none
+       when collapsed. No x-cloak — no hidden period. */
     /* ===== Nexus-style layout ===== */
     .layout-sidebar {
       width: var(--layout-sidebar-width);
@@ -366,33 +346,31 @@
       flex-direction: column;
       position: relative;
       border-inline-end: 1px solid var(--color-base-200);
-      /* INTENTIONALLY no transition on the base rule. The width is
-         set authoritatively by the rules above:
-         body:not(.sidebar-expanded) → 68px narrow rail (default),
-         body.sidebar-expanded → 256px wide (Alpine x-bind:class).
-         body.sidebar-ready is added by Alpine's sidebar init()
-         AFTER the first commit — from that point on, toggle
-         clicks animate smoothly via the rule below, but the
-         initial render never animates. */
+      /* No transition on base. Width is 256px by default
+         (--layout-sidebar-width). When body.sidebar-collapsed,
+         media query overrides to 68px and hides labels via
+         display:none. body.sidebar-ready enables transitions
+         for toggle clicks. */
     }
+    /* Sidebar transitions — only active when sidebar is ready.
+       Before Alpine init, .layout-sidebar has no transition,
+       so the first paint lands instantly at the correct width. */
     body.sidebar-ready .layout-sidebar {
-      transition-property: margin, width, min-width;
+      transition-property: width, min-width;
       transition-duration: .3s;
       transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1); /* smooth ease-out-quart */
     }
     /* collapsed (desktop): sidebar narrows to icon rail.
-       body:not(.sidebar-expanded) matches when Alpine's
-       x-bind:class does not add sidebar-expanded. */
+       body.sidebar-collapsed is the static HTML class attribute
+       — Alpine NEVER removes it. x-bind:class only adds
+       sidebar-expanded when the sidebar should be WIDE. */
     @media (min-width: 64rem) {
-      body:not(.sidebar-expanded) .layout-sidebar { width: 68px; min-width: 68px; }
-      body:not(.sidebar-expanded) .layout-sidebar .sidebar-label { opacity: 0; }
+      body.sidebar-collapsed .layout-sidebar { width: 68px; min-width: 68px; }
+      body.sidebar-collapsed .layout-sidebar .sidebar-label { display: none; }
     }
-    /* label/icon micro-transitions — only after sidebar is ready
-       so the first paint doesn't fade labels in/out */
-    .sidebar-label { transition: none; }
-    body.sidebar-ready .sidebar-label {
-      transition: opacity .25s cubic-bezier(0.16, 1, 0.3, 1);
-    }
+    /* Sidebar label — hidden via display:none when collapsed
+       (body.sidebar-collapsed). No transition needed. */
+    .sidebar-label { /* no transition — display:none handles visibility */ }
     .layout-content-col {
       height: 100vh;
       display: flex;
@@ -462,7 +440,7 @@
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-primary-content" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
         </div>
         <span class="ml-3 font-bold tracking-wide whitespace-nowrap text-lg sidebar-label"
-              x-show="!collapsed" x-cloak>INFRA-CAP</span>
+              x-show="!collapsed">INFRA-CAP</span>
       </div>
 
       <!-- nav -->
@@ -476,14 +454,14 @@
                 : 'text-base-content/70 hover:bg-base-200 hover:text-base-content'"
              @click="mobileOpen = false; active = item.href">
             <span class="shrink-0 w-5 h-5" x-html="item.icon"></span>
-            <span class="ml-3 whitespace-nowrap sidebar-label" x-show="!collapsed" x-cloak x-text="item.label"></span>
+            <span class="ml-3 whitespace-nowrap sidebar-label" x-show="!collapsed" x-text="item.label"></span>
           </a>
         </template>
       </nav>
 
       <!-- footer -->
       <div class="p-4 border-t border-base-200 text-xs text-base-content/40 whitespace-nowrap overflow-hidden"
-           x-show="!collapsed" x-cloak>INFRA-CAP v0.1</div>
+           x-show="!collapsed">INFRA-CAP v0.1</div>
     </aside>
 
     <!-- mobile backdrop -->
