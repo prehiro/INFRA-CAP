@@ -21,11 +21,11 @@
         window.__sidebarCollapsed = true;
       }
     } catch (e) { /* localStorage may be unavailable */ }
-    // The body tag already has sidebar-collapsed as a static class
-    // in the HTML source, which Alpine never removes.
-    // Alpine's x-bind:class only adds sidebar-expanded when
-    // the sidebar should be WIDE (256px). Without it,
-    // body:not(.sidebar-expanded) matches → narrow rail (68px).
+    // Apply collapsed class to <html> immediately — this is available
+    // before <body> is parsed, so the first paint is already correct.
+    if (window.__sidebarCollapsed) {
+      document.documentElement.classList.add('sidebar-collapsed');
+    }
   </script>
   <script defer src="/static/js/alpine.min.js"></script>
   <script>
@@ -44,11 +44,9 @@
           this.active = this.menu.map(m => m.href)
             .filter(h => this.active === h || (h !== '/' && this.active.startsWith(h)))
             .sort((a, b) => b.length - a.length)[0] || '/'
-          // Add sidebar-ready to opt body into transitions for
-          // future toggle clicks. The initial render stays
-          // transition-free because .layout-sidebar has no
-          // base transition, and Alpine's x-cloak handles
-          // the first paint. */
+          // Sync <html> class (set in <head> for first paint) with Alpine state,
+          // then enable transitions.
+          document.documentElement.classList.toggle('sidebar-collapsed', this.collapsed)
           requestAnimationFrame(() => {
             if (document.body) {
               document.body.classList.add('sidebar-ready')
@@ -58,6 +56,7 @@
         toggle() {
           this.collapsed = !this.collapsed
           this.mobileOpen = false
+          document.documentElement.classList.toggle('sidebar-collapsed', this.collapsed)
           localStorage.setItem('sidebar-collapsed', this.collapsed)
         },
       }))
@@ -361,11 +360,13 @@
       transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1); /* smooth ease-out-quart */
     }
     /* collapsed (desktop): sidebar narrows to icon rail.
-       body.sidebar-collapsed is the static HTML class attribute
-       — Alpine NEVER removes it. x-bind:class only adds
-       sidebar-expanded when the sidebar should be WIDE. */
+       html.sidebar-collapsed is set synchronously in <head> before
+       first paint; body classes are managed by Alpine x-bind.
+       Both are kept in sync via init()/toggle(). */
     @media (min-width: 64rem) {
+      html.sidebar-collapsed .layout-sidebar,
       body.sidebar-collapsed .layout-sidebar { width: 68px; min-width: 68px; }
+      html.sidebar-collapsed .layout-sidebar .sidebar-label,
       body.sidebar-collapsed .layout-sidebar .sidebar-label { display: none; }
     }
     /* Sidebar label — hidden via display:none when collapsed
@@ -424,10 +425,10 @@
     }
   </style>
 </head>
-<body class="bg-base-200 text-base-content sidebar-collapsed"
+<body class="bg-base-200 text-base-content"
       x-data="sidebar()" x-init="init()"
       hx-indicator="#global-loader"
-      x-bind:class="{ 'sidebar-expanded': !collapsed }">
+      x-bind:class="{ 'sidebar-collapsed': collapsed, 'sidebar-expanded': !collapsed }">
 
   <div class="flex w-full overflow-hidden">
 
@@ -440,7 +441,7 @@
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-primary-content" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
         </div>
         <span class="ml-3 font-bold tracking-wide whitespace-nowrap text-lg sidebar-label"
-              x-show="!collapsed">INFRA-CAP</span>
+              >INFRA-CAP</span>
       </div>
 
       <!-- nav -->
@@ -454,14 +455,14 @@
                 : 'text-base-content/70 hover:bg-base-200 hover:text-base-content'"
              @click="mobileOpen = false; active = item.href">
             <span class="shrink-0 w-5 h-5" x-html="item.icon"></span>
-            <span class="ml-3 whitespace-nowrap sidebar-label" x-show="!collapsed" x-text="item.label"></span>
+            <span class="ml-3 whitespace-nowrap sidebar-label" x-text="item.label"></span>
           </a>
         </template>
       </nav>
 
       <!-- footer -->
       <div class="p-4 border-t border-base-200 text-xs text-base-content/40 whitespace-nowrap overflow-hidden"
-           x-show="!collapsed">INFRA-CAP v0.1</div>
+           >INFRA-CAP v0.1</div>
     </aside>
 
     <!-- mobile backdrop -->
