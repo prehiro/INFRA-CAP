@@ -362,20 +362,29 @@
 }
 
 /* ===== page entrance (audit + licenses + generic) =====
-   Snappy fade+lift: 220ms — smooth but not sluggish. The previous 850ms
-   + staggered 450ms chain looked like a flicker on hard reload.
-   One container fade is enough; children inherit it without their own
-   opacity:0 so there's no blank-frame flash. Respects reduced-motion. */
+   Spring fade+lift: 0.45s — visible smooth like dashboard, but compact
+   12px lift + bounce curve. No blank-frame flicker: container fades
+   immediately (0.02s), children cascade with short 60ms stagger.
+   Respects reduced-motion. */
 @keyframes page-in {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 .page-enter {
-  animation: page-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: page-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: 0.02s;
   will-change: opacity, transform;
 }
+.page-enter > * {
+  animation: page-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.page-enter > *:nth-child(1) { animation-delay: 0.06s; }
+.page-enter > *:nth-child(2) { animation-delay: 0.12s; }
+.page-enter > *:nth-child(3) { animation-delay: 0.18s; }
+.page-enter > *:nth-child(4) { animation-delay: 0.24s; }
+.page-enter > *:nth-child(n+5) { animation-delay: 0.30s; }
 @media (prefers-reduced-motion: reduce) {
-  .page-enter { animation: none !important; }
+  .page-enter, .page-enter > * { animation: none !important; }
 }
 
 /* ===== modal diff rows (staggered) ===== */
