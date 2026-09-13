@@ -54,7 +54,7 @@
       {{$total := 0}}{{if $C}}{{range $k, $v := $C}}{{$total = add $total $v}}{{end}}{{end}}
       <button type="button" title="Show all (reset filters)"
               @click="clearAllFilters()"
-              class="status-chip"
+              class="status-chip {{if eq $F.Status ""}}status-chip-active{{end}}"
               :class="status === '' ? 'status-chip-active' : ''">
         <span class="status-dot bg-blue-600"></span>All
         <span class="chip-count">{{$total}}</span>
@@ -62,7 +62,7 @@
       {{range $st := licenseStatuses}}
       <button type="button" title="Filter: {{$st}}"
               @click="selectStatus('{{$st}}')"
-              class="status-chip"
+              class="status-chip {{if eq $F.Status $st}}status-chip-active{{end}}"
               :class="status === '{{$st}}' ? 'status-chip-active' : ''">
         <span class="status-dot {{if eq $st "In use"}}bg-green-600{{else if eq $st "Available"}}bg-blue-600{{else if eq $st "Expired"}}bg-red-600{{else}}bg-stone-500{{end}}"></span>{{$st}}
         <span class="chip-count">{{index $C $st}}</span>

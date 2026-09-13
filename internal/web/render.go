@@ -497,6 +497,29 @@ const (
 	navIconPermissions = `<svg xmlns="http://www.w3.org/2000/svg" class="w-full h-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`
 )
 
+// activeNavHref returns the href of the nav item that best matches the
+// current request path. Logic mirrors the JS in Alpine sidebar.init():
+// prefer exact match, then longest prefix match (but "/" only on exact).
+func activeNavHref(items []any, path string) string {
+	best := "/"
+	bestLen := 0
+	for _, raw := range items {
+		m, ok := raw.(map[string]any)
+		if !ok {
+			continue
+		}
+		href := asString(m["href"])
+		if path == href {
+			return href // exact match wins immediately
+		}
+		if href != "/" && strings.HasPrefix(path, href) && len(href) > bestLen {
+			best = href
+			bestLen = len(href)
+		}
+	}
+	return best
+}
+
 // Render renders an app page inside the main (sidebar) layout.
 func Render(w http.ResponseWriter, r *http.Request, title string, data any) {
 	RenderNamed(w, r, "content", title, data)
@@ -545,6 +568,10 @@ func RenderNamed(w http.ResponseWriter, r *http.Request, contentName, title stri
 				if js, jerr := navItemsJSON(items); jerr == nil {
 					tdata["NavItemsJS"] = js
 				}
+				// Pass raw items + active href so the layout can
+				// server-render the nav links (no Alpine flicker).
+				tdata["NavItems"] = items
+				tdata["ActiveNav"] = activeNavHref(items, r.URL.Path)
 			}
 		}
 	}
